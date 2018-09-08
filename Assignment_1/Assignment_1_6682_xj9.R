@@ -32,9 +32,6 @@ Ytest = factor(c(rep(1,N), rep(0,N)))
 ######################
 #Visulization
 ######################
-#Start of PDF output
-pdf("AssignmentOutput_1_6682_xj9.pdf")
-
 plot(traindata[, 1], traindata[, 2], type = "n", xlab = "", ylab = "")
 
 points(traindata[1:n, 1], traindata[1:n, 2], col = "blue");
@@ -106,6 +103,8 @@ test_err_Bayes = sum(Ytest !=  Ytest_pred_Bayes) / (2*N)
 ######################
 #Plot the Performance
 ######################
+#Start of PDF output
+pdf("AssignmentOutput_1_6682_xj9.pdf")
 
 plot(c(0.5,m), range(test_err_ls, train_err_ls, test_err_knn, train_err_knn),
      type="n", xlab="Degree of Freedom", ylab="Error", xaxt="n")
