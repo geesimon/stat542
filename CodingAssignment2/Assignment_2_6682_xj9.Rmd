@@ -10,45 +10,149 @@ output:
 
 
 ```{r}
+library(glmnet)
+set.seed(6682)
+
 method_names = c("Full","AIC.F","AIC.B","BIC.F","BIC.B","R.min","R.1se",
                  "L.min","L.1se","L.Refit")
 
 load("BostonHousing1.Rdata")
 HousingData = Housing1
 
-r = 50
+iterations = 50
 n = nrow(Housing1)
 ntest = round(n*0.25)
 
 #Prepare test ids for all iterations
-all_test_ids = matrix(0, ntest, r)
-for(t in 1:r){
-  all_test_ids[, t] = sample(1:n, ntest)
+ALL_TEST_IDs = matrix(0, iterations, ntest)
+for(r in 1:iterations){
+  ALL_TEST_IDs[r, ] = sample(1:n, ntest)
 }
 
 #Make matrix to store MSPE and DF info for each iteration
 MSPE_Stat = matrix(0, r, length(method_names))
 colnames(MSPE_Stat) = method_names
 
-DF_Stat = matrix(0, r, length(method_names))
-colnames(DF_Stat) = method_names
+MODEL_SIZE_Stat = matrix(0, r, length(method_names))
+colnames(MODEL_SIZE_Stat) = method_names
+
+COMPUTATION_TIME_Stat = matrix(0, 1, length(method_names))
+colnames(COMPUTATION_TIME_Stat) = method_names
 ```
 
-## Method 1: Full Model
 ```{r}
-start.time = proc.time()
+#Method 1: Full Model (Full)
+eval_full_model = function(data, test_ids) {
+  full_model = lm(Y ~ ., data = data[-test_ids, ])
+  Ytest_pred = predict(full_model, newdata = data[test_ids,])
+  mspe = mean((data[test_ids,]$Y - Ytest_pred)^2)
 
-for (i in 1:r) {
-  test_ids = all_test_ids[,i]
-  
-  full_model = lm(Y ~ ., data = HousingData[-test_ids, ])
-  Ytest_pred = predict(full_model, newdata = HousingData[test_ids,])
-  MSPE_Stat[i,1] = mean((HousingData[test_ids,]$Y - Ytest_pred)^2)
+  list(mspe=mspe, model_size = length(coef(full_model)) - 1)
 }
 
-proc.time() - start.time
+#Method 2: Forward AIC (AIC.F)
+eval_aic_f_model = function(data, test_ids) {
+  full_model = lm(Y ~ ., data = data[-test_ids, ])
+  stepAIC = step(lm(Y ~ 1, data = data[-test_ids, ]), 
+                  list(upper = full_model),
+                  trace = 0, direction = "forward")
+  Ytest_pred = predict(stepAIC, newdata = data[test_ids, ])
+  mspe = mean((data[test_ids,]$Y - Ytest_pred)^2)
+    
+  # number of predictors (excluding the intercept)    
+  model_size = length(stepAIC$coef) - 1
+
+  list(mspe=mspe, model_size = model_size)
+}
+
+#Method 3: Backward AIC (AIC.B)
+eval_aic_b_model = function(data, test_ids) {
+  full_model = lm(Y ~ ., data = data[-test_ids, ])
+  stepAIC = step(full_model, trace = 0, direction = "backward")
+  Ytest_pred = predict(stepAIC, newdata = data[test_ids, ])
+  mspe = mean((data[test_ids,]$Y - Ytest_pred)^2)
+    
+  # number of predictors (excluding the intercept)    
+  model_size = length(stepAIC$coef) - 1
+
+  list(mspe=mspe, model_size = model_size)
+}
+
+#Method 4: Forward BIC (BIC.F)
+eval_bic_f_model = function(data, test_ids) {
+  ntrain = nrow(data) - length(test_ids)
+  
+  full_model = lm(Y ~ ., data = data[-test_ids, ])
+  stepAIC = step(lm(Y ~ 1, data = data[-test_ids, ]), 
+                  list(upper = full_model),
+                  trace = 0, direction = "forward", k = log(ntrain))
+  Ytest_pred = predict(stepAIC, newdata = data[test_ids, ])
+  mspe = mean((data[test_ids,]$Y - Ytest_pred)^2)
+    
+  # number of predictors (excluding the intercept)    
+  model_size = length(stepAIC$coef) - 1
+
+  list(mspe=mspe, model_size = model_size)
+}
+
+#Method 5: Backward BIC (BIC.B)
+eval_bic_b_model = function(data, test_ids) {
+  ntrain = nrow(data) - length(test_ids)
+  
+  full_model = lm(Y ~ ., data = data[-test_ids, ])
+  stepAIC = step(full_model, trace = 0, 
+                 direction = "backward", k = log(ntrain))
+  Ytest_pred = predict(stepAIC, newdata = data[test_ids, ])
+  mspe = mean((data[test_ids,]$Y - Ytest_pred)^2)
+    
+  # number of predictors (excluding the intercept)    
+  model_size = length(stepAIC$coef) - 1
+
+  list(mspe=mspe, model_size = model_size)
+}
+
+#Method 6/7: Ridge with lambda_min/lambda_1se (R_min, R_1se)
+eval_ridge_model = function(data, test_ids) {
+  mspe = rep(0, 2)
+  model_size = rep(0, 2)
+  ntrain = nrow(data) - length(test_ids)
+  
+  X = as.matrix(data[, -1])
+  Y = data[, 1]
+    
+  cv.out = cv.glmnet(X[-test_ids,], Y[-test_ids], alpha = 0)
+  
+  Ytest.pred = predict(cv.out, s = cv.out$lambda.min, newx = X[test_ids, ])
+  mspe[1] = mean((Y[test_ids] - Ytest_pred)^2)
+  
+  Ytest.pred = predict(cv.out, s = cv.out$lambda.min, newx = X[test_ids, ])
+  mspe[2] = mean((Y[test_ids] - Ytest_pred)^2)
+}
+
+#Method 8: Lasso using lambda.min (L_min)
+
+#Method 9/10: Lasso using lambda.1se without/with Refit (L_1se, L_Refit)
 ```
-## Method 2: Full Model
+
+```{r}
+eval_function = c(eval_full_model, eval_aic_f_model, eval_aic_b_model, eval_bic_f_model, eval_bic_b_model)
+
+for (f in 1:length(eval_function)) {
+  start_time = proc.time()
+  
+  for (i in 1:iterations){
+      test_ids = ALL_TEST_IDs[i,]
+      
+      e = eval_function[[f]](Housing1, test_ids)
+      
+      MSPE_Stat[i, f] = e$mspe
+      MODEL_SIZE_Stat[i,f] = e$model_size
+  }
+  
+  COMPUTATION_TIME_Stat[1,f] = (proc.time() - start_time)[3]
+}
+```
+
 ```{r}
 
 ```
