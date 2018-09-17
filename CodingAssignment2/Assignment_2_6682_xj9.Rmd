@@ -1,0 +1,59 @@
+---
+title: "STAT542 - Coding Assignment 2"
+author: "Xiaoming Ji"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+# 1.BostonHousing1.Rdata
+
+
+```{r}
+method_names = c("Full","AIC.F","AIC.B","BIC.F","BIC.B","R.min","R.1se",
+                 "L.min","L.1se","L.Refit")
+
+load("BostonHousing1.Rdata")
+HousingData = Housing1
+
+r = 50
+n = nrow(Housing1)
+ntest = round(n*0.25)
+
+#Prepare test ids for all iterations
+all_test_ids = matrix(0, ntest, r)
+for(t in 1:r){
+  all_test_ids[, t] = sample(1:n, ntest)
+}
+
+#Make matrix to store MSPE and DF info for each iteration
+MSPE_Stat = matrix(0, r, length(method_names))
+colnames(MSPE_Stat) = method_names
+
+DF_Stat = matrix(0, r, length(method_names))
+colnames(DF_Stat) = method_names
+```
+
+## Method 1: Full Model
+```{r}
+start.time = proc.time()
+
+for (i in 1:r) {
+  test_ids = all_test_ids[,i]
+  
+  full_model = lm(Y ~ ., data = HousingData[-test_ids, ])
+  Ytest_pred = predict(full_model, newdata = HousingData[test_ids,])
+  MSPE_Stat[i,1] = mean((HousingData[test_ids,]$Y - Ytest_pred)^2)
+}
+
+proc.time() - start.time
+```
+## Method 2: Full Model
+```{r}
+
+```
+
+
+# 2.BostonHousing2.Rdata
+
+# 3.BostonHousing3.Rdata
