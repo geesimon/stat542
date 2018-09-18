@@ -223,7 +223,7 @@ for(r in 1:iterations){
 e1 = eval_models(Housing1, ALL_TEST_IDs, eval_functions, method_names)
 draw_stat(e1$MSPE_Stat, e1$Model_Size_Stat)
 ```
-Computation Time (Note: R.min with R.1se and L.min with L.1se are calculated using same function, thus their computation time are the same)
+Computation Time (Note: R.min with R.1se and L.min with L.1se are calculated using one function, thus we make their computation time the same)
 ```{r, echo=FALSE}
 e1$Computation_Time_Stat
 ```
@@ -238,7 +238,7 @@ load("BostonHousing2.Rdata")
 e2 = eval_models(Housing2, ALL_TEST_IDs, eval_functions, method_names)
 draw_stat(e2$MSPE_Stat, e2$Model_Size_Stat)
 ```
-Computation Time (Note: R.min with R.1se and L.min with L.1se are calculated using same function, thus their computation time are the same)
+Computation Time (Note: R.min with R.1se and L.min with L.1se are calculated using one function, thus we make their computation time the same)
 ```{r, echo=FALSE}
 e2$Computation_Time_Stat
 ```
@@ -253,7 +253,7 @@ load("BostonHousing3.Rdata")
 e3 = eval_models(Housing3, ALL_TEST_IDs, eval_functions, method_names)
 draw_stat(e3$MSPE_Stat, e3$Model_Size_Stat)
 ```
-Computation Time (Note: R.min with R.1se and L.min with L.1se are calculated using same function, thus their computation time are the same)
+Computation Time (Note: R.min with R.1se and L.min with L.1se are calculated using one function, thus we make their computation time the same)
 ```{r, echo=FALSE}
 e3$Computation_Time_Stat
 ```
