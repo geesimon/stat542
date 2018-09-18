@@ -1,46 +1,16 @@
 ---
 title: "STAT542 - Coding Assignment 2"
 author: "Xiaoming Ji"
-output:
-  pdf_document: default
-  html_notebook: default
+output: pdf_document
 ---
 
-# 1.BostonHousing1.Rdata
-
-
-```{r}
-library(glmnet)
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+mypackages = c("glmnet", "ggplot2", "gridExtra")   # required packages
+tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
+if (length(tmp) > 0) install.packages(tmp)
+lapply(mypackages, require, character.only = TRUE)
 set.seed(6682)
 
-method_names = c("Full","AIC.F","AIC.B","BIC.F","BIC.B","R.min","R.1se",
-                 "L.min","L.1se","L.Refit")
-
-load("BostonHousing1.Rdata")
-HousingData = Housing1
-
-iterations = 50
-n = nrow(Housing1)
-ntest = round(n*0.25)
-
-#Prepare test ids for all iterations
-ALL_TEST_IDs = matrix(0, iterations, ntest)
-for(r in 1:iterations){
-  ALL_TEST_IDs[r, ] = sample(1:n, ntest)
-}
-
-#Make matrix to store MSPE and DF info for each iteration
-MSPE_Stat = matrix(0, r, length(method_names))
-colnames(MSPE_Stat) = method_names
-
-MODEL_SIZE_Stat = matrix(0, r, length(method_names))
-colnames(MODEL_SIZE_Stat) = method_names
-
-COMPUTATION_TIME_Stat = matrix(0, 1, length(method_names))
-colnames(COMPUTATION_TIME_Stat) = method_names
-```
-
-```{r}
 #Method 1: Full Model (Full)
 eval_full_model = function(data, test_ids) {
   full_model = lm(Y ~ ., data = data[-test_ids, ])
@@ -111,7 +81,7 @@ eval_bic_b_model = function(data, test_ids) {
   list(mspe=mspe, model_size = model_size)
 }
 
-#Method 6/7: Ridge with lambda_min/lambda_1se (R_min, R_1se)
+#Method 6/7: Ridge with lambda.min/lambda.1se (R_min, R_1se)
 eval_ridge_model = function(data, test_ids) {
   mspe = rep(0, 2)
   model_size = rep(0, 2)
@@ -119,45 +89,171 @@ eval_ridge_model = function(data, test_ids) {
   
   X = as.matrix(data[, -1])
   Y = data[, 1]
-    
+  
+  tmpX = scale(X[-test_ids, ]) * sqrt(ntrain / (ntrain - 1))
+  d = svd(tmpX)$d
+  
   cv.out = cv.glmnet(X[-test_ids,], Y[-test_ids], alpha = 0)
-  
-  Ytest.pred = predict(cv.out, s = cv.out$lambda.min, newx = X[test_ids, ])
+
+  Ytest_pred = predict(cv.out, s = cv.out$lambda.min, newx = X[test_ids, ])
   mspe[1] = mean((Y[test_ids] - Ytest_pred)^2)
+  model_size[1] = sum(d^2/(d^2 + cv.out$lambda.min*ntrain))
   
-  Ytest.pred = predict(cv.out, s = cv.out$lambda.min, newx = X[test_ids, ])
+  Ytest_pred = predict(cv.out, s = cv.out$lambda.1se, newx = X[test_ids, ])
   mspe[2] = mean((Y[test_ids] - Ytest_pred)^2)
+  model_size[2] = sum(d^2/(d^2 + cv.out$lambda.1se*ntrain))
+ 
+  list(mspe=mspe, model_size = model_size) 
 }
 
-#Method 8: Lasso using lambda.min (L_min)
+#Method 8/9: Lasso using lambda.min/lambda.1se (L_min, L_1se)
+eval_lasso_model = function(data, test_ids) {
+  mspe = rep(0, 2)
+  model_size = rep(0, 2)
+  
+  X = as.matrix(data[, -1])
+  Y = data[, 1]  
+  
+  cv.out = cv.glmnet(X[-test_ids, ], Y[-test_ids], alpha = 1)
+  
+  Ytest_pred = predict(cv.out, s = cv.out$lambda.min, newx = X[test_ids, ])
+  mspe[1] = mean((Y[test_ids] - Ytest_pred)^2)
+  coef = predict(cv.out, s = cv.out$lambda.min, type = "coefficients")
+  model_size[1] = sum(coef != 0) - 1
+  
+  Ytest_pred = predict(cv.out, s = cv.out$lambda.1se, newx = X[test_ids, ])
+  mspe[2] = mean((Y[test_ids] - Ytest_pred)^2)
+  coef = predict(cv.out, s = cv.out$lambda.1se, type = "coefficients")
+  model_size[2] = sum(coef != 0) - 1
 
-#Method 9/10: Lasso using lambda.1se without/with Refit (L_1se, L_Refit)
+  list(mspe=mspe, model_size = model_size) 
+}
+
+#Method 10: Lasso using lambda.1se with Refit (L_Refit)
+eval_lasso_refit_model = function(data, test_ids) {
+  X = as.matrix(data[, -1])
+  Y = data[, 1]
+  
+  cv.out = cv.glmnet(X[-test_ids, ], Y[-test_ids], alpha = 1)
+  lasso_coef = predict(cv.out, s = cv.out$lambda.1se, type = "coefficients")
+  
+  var_sel = row.names(lasso_coef)[nonzeroCoef(lasso_coef)[-1]]
+  tmp_X = X[, colnames(X) %in% var_sel]
+  
+  lasso_refit = coef(lm(Y[-test_ids] ~ tmp_X[-test_ids, ]))
+  
+  Ytest_pred = lasso_refit[1] + tmp_X[test_ids,] %*% lasso_refit[-1]
+  mspe = mean((Y[test_ids] - Ytest_pred)^2)
+  model_size = length(var_sel)
+  
+  list(mspe=mspe, model_size = model_size) 
+}
 ```
 
-```{r}
-eval_function = c(eval_full_model, eval_aic_f_model, eval_aic_b_model, eval_bic_f_model, eval_bic_b_model)
-
-for (f in 1:length(eval_function)) {
-  start_time = proc.time()
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+eval_models = function(data, all_test_ids, eval_funcs, method_names) {
+  iterations = dim(all_test_ids)[1]
+  MSPE_Stat = matrix(0, iterations, length(method_names))
+  colnames(MSPE_Stat) = method_names
   
-  for (i in 1:iterations){
-      test_ids = ALL_TEST_IDs[i,]
-      
-      e = eval_function[[f]](Housing1, test_ids)
-      
-      MSPE_Stat[i, f] = e$mspe
-      MODEL_SIZE_Stat[i,f] = e$model_size
+  Model_Size_Stat = matrix(0, r, length(method_names))
+  colnames(Model_Size_Stat) = method_names
+  
+  Computation_Time_Stat = matrix(0, 1, length(method_names))
+  colnames(Computation_Time_Stat) = method_names
+  
+  m_i = 1
+  for (f in eval_funcs) {
+    start_time = proc.time()
+    
+    method_length = 1
+    for (i in 1:iterations){
+        test_ids = all_test_ids[i,]
+        
+        e = f(data, test_ids)
+  
+        method_length = length(e$mspe)
+        MSPE_Stat[i, m_i:(m_i + method_length - 1)] = e$mspe
+        Model_Size_Stat[i, m_i:(m_i + method_length -1)] = e$model_size
+    }
+    
+    Computation_Time_Stat[1,m_i:(m_i + method_length -1)] = (proc.time() - start_time)[3]
+    
+    m_i = m_i + method_length
   }
   
-  COMPUTATION_TIME_Stat[1,f] = (proc.time() - start_time)[3]
+  list(MSPE_Stat = MSPE_Stat, Model_Size_Stat = Model_Size_Stat, Computation_Time_Stat = Computation_Time_Stat)
+}
+
+draw_stat = function(MSPE_Stat, Model_Size_Stat) {
+  p1 = ggplot(stack(as.data.frame(MSPE_Stat)), aes(x=ind, y=values, fill=ind)) + 
+    geom_boxplot() + theme(legend.position="none") +
+    xlab("Method") + ylab("MSPE")
+  p2 = ggplot(stack(as.data.frame(Model_Size_Stat)), aes(x=ind, y=values, fill=ind)) + 
+    geom_boxplot() + theme(legend.position="none") +
+    xlab("Method") + ylab("Model Size")
+  # p3 = ggplot(stack(as.data.frame(Computation_Time_Stat)), aes(x=ind, y=values, fill=ind)) +
+  #   geom_bar(stat="identity") + theme(legend.position="none") +
+  #   xlab("Method") + ylab("Computation Time (Sec)")
+  #as.data.frame(Computation_Time_Stat)
+  grid.arrange(p1, p2, nrow=2)
 }
 ```
 
-```{r}
+# Results for Boston Housing 1
+```{r, echo=FALSE, fig.width=10, fig.height=4}
+eval_functions = c(eval_full_model, eval_aic_f_model, eval_aic_b_model,       
+                  eval_bic_f_model, eval_bic_b_model, eval_ridge_model, 
+                  eval_lasso_model, eval_lasso_refit_model)
+method_names = c("Full","AIC.F","AIC.B","BIC.F","BIC.B","R.min","R.1se",
+                 "L.min","L.1se","L.Refit")
 
+load("BostonHousing1.Rdata")
+
+iterations = 50
+n = nrow(Housing1)
+ntest = round(n*0.25)
+
+#Prepare test ids for all iterations
+ALL_TEST_IDs = matrix(0, iterations, ntest)
+for(r in 1:iterations){
+  ALL_TEST_IDs[r, ] = sample(1:n, ntest)
+}
+
+e1 = eval_models(Housing1, ALL_TEST_IDs, eval_functions, method_names)
+draw_stat(e1$MSPE_Stat, e1$Model_Size_Stat)
+```
+Computation Time (Note: R.min with R.1se and L.min with L.1se are calculated using same function, thus their computation time are the same)
+```{r, echo=FALSE}
+e1$Computation_Time_Stat
 ```
 
+# Results for Boston Housing 2
+```{r, echo=FALSE, fig.width=10, fig.height=4}
+eval_functions = c(eval_ridge_model, eval_lasso_model, eval_lasso_refit_model)
+method_names = c("R.min","R.1se","L.min","L.1se","L.Refit")
 
-# 2.BostonHousing2.Rdata
+load("BostonHousing2.Rdata")
 
-# 3.BostonHousing3.Rdata
+e2 = eval_models(Housing2, ALL_TEST_IDs, eval_functions, method_names)
+draw_stat(e2$MSPE_Stat, e2$Model_Size_Stat)
+```
+Computation Time (Note: R.min with R.1se and L.min with L.1se are calculated using same function, thus their computation time are the same)
+```{r, echo=FALSE}
+e2$Computation_Time_Stat
+```
+
+# Results for Boston Housing 3
+```{r, echo=FALSE, fig.width=10, fig.height=4}
+eval_functions = c(eval_ridge_model, eval_lasso_model, eval_lasso_refit_model)
+method_names = c("R.min","R.1se","L.min","L.1se","L.Refit")
+
+load("BostonHousing3.Rdata")
+
+e3 = eval_models(Housing3, ALL_TEST_IDs, eval_functions, method_names)
+draw_stat(e3$MSPE_Stat, e3$Model_Size_Stat)
+```
+Computation Time (Note: R.min with R.1se and L.min with L.1se are calculated using same function, thus their computation time are the same)
+```{r, echo=FALSE}
+e3$Computation_Time_Stat
+```
