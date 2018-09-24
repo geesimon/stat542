@@ -1,0 +1,48 @@
+---
+title: "STAT542 - - Project 1"
+author: "Xiaoming Ji"
+output: pdf_document
+---
+
+```{r}
+TRAIN_FILE_NAME = 'Ames_data.csv'
+TEST_FILE_NAME = 'test.csv'
+
+train_data = read.csv(TRAIN_FILE_NAME)
+train_data = train_data[, colnames(train_data) != 'PID']
+
+numericVars = which(sapply(train_data, is.numeric))
+factorVars = which(sapply(train_data, is.factor))
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+#Handle missing value
+#Make numerical na value as year built
+train_data$Garage_Yr_Blt[is.na(train_data$Garage_Yr_Blt)] = train_data$Year_Built[is.na(train_data$Garage_Yr_Blt)]
+
+#Convert Year_Built to factor
+#train_data$Year_Built = as.factor(train_data$Year_Built)
+```
+
+Build random forest model
+```{r}
+library(randomForest)
+
+rfModel = randomForest(Sale_Price ~ ., data = train_data, importance = T, ntree=400); 
+```
+
+Ridge with lambda.min/lambda.1se (R_min, R_1se)
+```{r}
+X = train_data[, colnames(train_data) != 'Sale_Price']
+X = model.matrix(~., X)
+
+Y = train_data[, 'Sale_Price']
+cv.out = cv.glmnet(X, Y, alpha = 0)
+```
+
