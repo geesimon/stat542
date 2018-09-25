@@ -32,18 +32,23 @@ log_RMSE = function (true_value, predicted_value) {
 train_data = read.csv(TRAIN_FILE_NAME)
 test_data = read.csv(TEST_FILE_NAME)
 
-#train_data = train_data[, colnames(train_data) != 'PID']
-
-numericVars = which(sapply(train_data, is.numeric))
-factorVars = which(sapply(train_data, is.factor))
+#Make numerical na value as year built
+train_data$Garage_Yr_Blt[is.na(train_data$Garage_Yr_Blt)] = train_data$Year_Built[is.na(train_data$Garage_Yr_Blt)]
+test_data$Garage_Yr_Blt[is.na(test_data$Garage_Yr_Blt)] = test_data$Year_Built[is.na(test_data$Garage_Yr_Blt)]
 ```
 
 Pre-processing
 ```{r}
+
+```
+
+
+```{r}
 #Remove variables that have a dominate level
-#USELESS_VARIABLES = c("Condition_2", "Utilities")
-USELESS_VARIABLES = c("Condition_2", "Utilities", "Street", "Pool_QC")
+USELESS_VARIABLES = c("Condition_2", "Utilities")
+#USELESS_VARIABLES = c("Condition_2", "Utilities", "Street", "Pool_QC")
 train_data = train_data[, !colnames(train_data) %in% USELESS_VARIABLES]
+test_data = test_data[, !colnames(test_data) %in% USELESS_VARIABLES]
 
 CategoricalLevels = list(
   MS_SubClass = c("One_Story_1946_and_Newer_All_Styles","Two_Story_1946_and_Newer",
@@ -115,36 +120,35 @@ CategoricalLevels = list(
 
 for (name in names(CategoricalLevels)) {
   if(!name %in% colnames(train_data)) next;
-  #print(name)
-  train_data[name] = factor(train_data[,name], levels = CategoricalLevels[[name]])
-  test_data[name] = factor(test_data[,name], levels = CategoricalLevels[[name]])
+  # train_data[name] = factor(train_data[,name], levels = CategoricalLevels[[name]])
+  # test_data[name] = factor(test_data[,name], levels = CategoricalLevels[[name]])
+  # n = length(CategoricalLevels[[name]])
+  # if (CategoricalLevels[[name]][n] == "Misc") {
+  #   train_data[name][is.na(train_data[name])] = "Misc"
+  #   test_data[name][is.na(test_data[name])] = "Misc"
+  # } else {
+  #   train_data[,name] = as.numeric(train_data[,name])
+  #   test_data[,name] = as.numeric(test_data[,name])
+  # }
   n = length(CategoricalLevels[[name]])
-  if (CategoricalLevels[[name]][n] == "Misc") {
-    train_data[name][is.na(train_data[name])] = "Misc"
-    test_data[name][is.na(test_data[name])] = "Misc"
+  if(CategoricalLevels[[name]][n] != "Misc") {
+    train_data[,name] = factor(train_data[,name], levels = CategoricalLevels[[name]])
+    test_data[,name] = factor(test_data[,name], levels = CategoricalLevels[[name]])
   } else {
-    train_data[,name] = as.numeric(train_data[,name])
-    test_data[,name] = as.numeric(test_data[,name])
+    test_data[,name] = factor(test_data[,name], levels = levels(train_data[,name]))
+    max_level = names(sort(table(train_data[,name]), decreasing = TRUE))[1]
+    test_data[,name][is.na(test_data[,name])] = max_level
   }
 }
 ```
 
 ```{r}
-for (name in names(CategoricalLevels)){
-  print(name)
-  print(sum(train_data[name] == "Misc"))
-}
+# for (name in names(CategoricalLevels)){
+#   print(name)
+#   print(sum(train_data[name] == "Misc"))
+# }
 ```
 
-```{r}
-#Handle missing value
-#Make numerical na value as year built
-train_data$Garage_Yr_Blt[is.na(train_data$Garage_Yr_Blt)] = train_data$Year_Built[is.na(train_data$Garage_Yr_Blt)]
-test_data$Garage_Yr_Blt[is.na(test_data$Garage_Yr_Blt)] = test_data$Year_Built[is.na(test_data$Garage_Yr_Blt)]
-
-#Convert Year_Built to factor
-#train_data$Year_Built = as.factor(train_data$Year_Built)
-```
 
 Build random forest model
 ```{r}
@@ -163,7 +167,7 @@ log_RMSE(yhat_test, test_data$Sale_Price)
 ```{r}
 library(gbm)
 
-myfit1 = gbm(Sale_Price ~ ., data = train_data, distribution = "gaussian", n.trees = 1000,
+myfit1 = gbm(Sale_Price ~ ., data = train_data, distribution = "gaussian", n.trees = 2000,
              shrinkage = 0.04, interaction.depth = 3, bag.fraction = 0.5, cv.folds = 5)
 
 opt.size = gbm.perf(myfit1)
@@ -171,12 +175,22 @@ y.pred = predict(myfit1, test_data, n.trees = opt.size)
 log_RMSE(y.pred, test_data$Sale_Price)
 ```
 
-Ridge with lambda.min/lambda.1se (R_min, R_1se)
+Lasso with lambda.1se (R_min, R_1se)
 ```{r}
-X = train_data[, colnames(train_data) != 'Sale_Price']
-X = model.matrix(~., X)
+library(glmnet)
 
-Y = train_data[, 'Sale_Price']
-cv.out = cv.glmnet(X, Y, alpha = 0)
+X_train = train_data[, colnames(train_data) != 'Sale_Price']
+X_train = model.matrix(~. -PID, X_train)
+
+Y_train = log(train_data$Sale_Price)
+
+cv.out = cv.glmnet(X_train, Y_train, alpha = 1)
+
+X_test = test_data[, colnames(test_data) != 'Sale_Price']
+X_test = model.matrix(~. -PID, X_test)
+
+Ytest_pred = exp(predict(cv.out, s = cv.out$lambda.1se, newx = X_test))
+
+log_RMSE(Ytest_pred, test_data$Sale_Price)
 ```
 
