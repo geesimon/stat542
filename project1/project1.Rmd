@@ -45,8 +45,10 @@ Pre-processing
 
 ```{r}
 #Remove variables that have a dominate level
-USELESS_VARIABLES = c("Condition_2", "Utilities")
-#USELESS_VARIABLES = c("Condition_2", "Utilities", "Street", "Pool_QC")
+#USELESS_VARIABLES = c("Condition_2", "Utilities")
+USELESS_VARIABLES = c("Street","Utilities","Land_Slope","Condition_2", "Roof_Matl", 
+                      "Heating","Pool_QC", "Misc_Feature", "Low_Qual_Fin_SF",
+                      "Pool_Area", "Misc_Val", "Longitude", "Latitude")
 train_data = train_data[, !colnames(train_data) %in% USELESS_VARIABLES]
 test_data = test_data[, !colnames(test_data) %in% USELESS_VARIABLES]
 
@@ -155,12 +157,12 @@ Build random forest model
 library(randomForest)
 
 start_time = proc.time()
-rfModel = randomForest(Sale_Price ~ . - PID, data = train_data, importance = T, ntree=500); 
+rfModel = randomForest(log(Sale_Price) ~ . - PID, data = train_data, importance = T, ntree=500); 
 (proc.time() - start_time)[3]
 ```
 
 ```{r}
-yhat_test = predict(rfModel, test_data)
+yhat_test = exp(predict(rfModel, test_data))
 log_RMSE(yhat_test, test_data$Sale_Price)
 ```
 
@@ -189,7 +191,7 @@ cv.out = cv.glmnet(X_train, Y_train, alpha = 1)
 X_test = test_data[, colnames(test_data) != 'Sale_Price']
 X_test = model.matrix(~. -PID, X_test)
 
-Ytest_pred = exp(predict(cv.out, s = cv.out$lambda.1se, newx = X_test))
+Ytest_pred = exp(predict(cv.out, s = cv.out$lambda.min, newx = X_test))
 
 log_RMSE(Ytest_pred, test_data$Sale_Price)
 ```
