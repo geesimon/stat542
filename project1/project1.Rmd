@@ -39,7 +39,38 @@ test_data$Garage_Yr_Blt[is.na(test_data$Garage_Yr_Blt)] = test_data$Year_Built[i
 
 Pre-processing
 ```{r}
+#Add total bath variable
+train_data$TotBathrooms = train_data$Full_Bath + (train_data$Half_Bath * 0.5) +
+                          train_data$Bsmt_Full_Bath + (train_data$Bsmt_Half_Bath * 0.5)
+test_data$TotBathrooms = test_data$Full_Bath + (test_data$Half_Bath * 0.5) +
+                          test_data$Bsmt_Full_Bath + (test_data$Bsmt_Half_Bath * 0.5)
 
+#Add Remodeled variable
+train_data$Remodeled = ifelse(train_data$Year_Built == train_data$Year_Remod_Add, "No", "Yes")
+train_data$Remodeled = factor(train_data$Remodeled)
+test_data$Remodeled = ifelse(test_data$Year_Built == test_data$Year_Remod_Add, "No", "Yes")
+test_data$Remodeled = factor(test_data$Remodeled)
+
+#Add Age variable
+train_data$Age = train_data$Year_Sold - train_data$Year_Remod_Add
+test_data$Age = test_data$Year_Sold - test_data$Year_Remod_Add
+
+#Add IsNew variable
+train_data$IsNew = ifelse(train_data$Year_Sold == train_data$Year_Built, "Yes", "No")
+train_data$IsNew = factor(train_data$IsNew)
+test_data$IsNew = ifelse(test_data$Year_Sold == test_data$Year_Built, "Yes", "No")
+test_data$IsNew = factor(test_data$IsNew)
+
+#Make Year_Sold as factor
+train_data$Year_Sold = factor(train_data$Year_Sold)
+train_data$Mo_Sold = factor(train_data$Mo_Sold)
+
+
+all$TotalSqFeet <- all$GrLivArea + all$TotalBsmtSF
+all$TotalPorchSF <- all$OpenPorchSF + all$EnclosedPorch + all$X3SsnPorch + all$ScreenPorch
+
+#To do: remove consolidated variables
+dropVars <- c('YearRemodAdd', 'GarageYrBlt', 'GarageArea', 'GarageCond', 'TotalBsmtSF', 'TotalRmsAbvGrd', 'BsmtFinSF1')
 ```
 
 
@@ -117,7 +148,12 @@ CategoricalLevels = list(
   Fence = c("No_Fence", "Minimum_Wood_Wire", "Good_Wood", "Minimum_Privacy", "Good_Privacy"),
   Misc_Feature = c("None", "Misc"),
   Sale_Type = c("WD ", "New", "Misc"),
-  Sale_Condition = c("Normal", "Partial", "Abnorml", "Misc")
+  Sale_Condition = c("Normal", "Partial", "Abnorml", "Misc"),
+  
+  Year_Sold = c("Misc"),
+  Mo_Sold = c("Misc"),
+  Remodeled = c("Misc"),
+  IsNew = c("Misc")
 )
 
 for (name in names(CategoricalLevels)) {
@@ -148,6 +184,16 @@ for (name in names(CategoricalLevels)) {
   }
 }
 ```
+
+Pre-processing
+```{r}
+train_data$Overall_Qual = as.numeric(train_data$Overall_Qual)
+train_data$Overall_Cond = as.numeric(train_data$Overall_Cond)
+
+test_data$Overall_Qual = as.numeric(test_data$Overall_Qual)
+test_data$Overall_Cond = as.numeric(test_data$Overall_Cond)
+```
+
 
 Build random forest model
 ```{r}
@@ -251,11 +297,11 @@ mylasso_fit = function(X, y, lam, n.iter = 500)
       r = r - X[, j] * b[j]
     }
     rss = sum(r^2)
-    print(rss)
+    #print(rss)
     rss_changed = abs(rss_saved - rss)
     rss_saved = rss
-    print(rss_changed)
-    print(step)
+    #print(rss_changed)
+    #print(step)
   }
   
 
