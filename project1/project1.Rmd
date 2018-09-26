@@ -149,14 +149,6 @@ for (name in names(CategoricalLevels)) {
 }
 ```
 
-```{r}
-# for (name in names(CategoricalLevels)){
-#   print(name)
-#   print(sum(train_data[name] == "Misc"))
-# }
-```
-
-
 Build random forest model
 ```{r}
 library(randomForest)
@@ -196,8 +188,91 @@ cv.out = cv.glmnet(X_train, Y_train, alpha = 1)
 X_test = test_data[, colnames(test_data) != 'Sale_Price']
 X_test = model.matrix(~. -PID, X_test)
 
-Ytest_pred = exp(predict(cv.out, s = cv.out$lambda.min, newx = X_test))
+Ytest_pred = exp(predict(cv.out, s = cv.out$lambda.1se, newx = X_test))
 
 log_RMSE(Ytest_pred, test_data$Sale_Price)
+```
+
+
+
+```{r}
+X_train = train_data[, !colnames(train_data) %in% c('PID','Sale_Price')]
+X_train = model.matrix(~., X_train)[,-1]
+
+Y_train = log(train_data$Sale_Price)
+
+one_step_lasso = function(r, x, lam){
+  length(r)
+  length(x)
+  xx = sum(x^2)
+  xr = sum(r*x)
+  b = (abs(xr) -lam/2)/xx
+  b = sign(xr)*ifelse(b>0, b, 0)
+  return(b)
+}
+
+mylasso_fit = function(X, y, lam, n.iter = 500)
+{
+  # X: n-by-p design matrix without the intercept
+  # y: n-by-1 response vector
+  # lam: lambda value
+  # n.iter: number of iterations
+  p = dim(X)[2]
+  
+  # Center and scale X and y.
+  X = scale(X)
+  y = scale(y)
+  x_center = attr(X, "scaled:center")
+  x_scale = attr(X, "scaled:scale")
+  y_center = attr(y, "scaled:center")
+  y_scale = attr(y, "scaled:scale")    
+
+  # Initial values for residual and coefficient vector b
+  b = rep(0, p)
+  r = y
+  
+  rss_saved = 0
+  rss_changed = 1000
+  
+  for(step in 1:n.iter){
+    if (rss_changed < 1e-08) break;
+    for(j in 1:p){
+      # 1) Update the residual vector to be the one
+      # in blue on p37 of [lec_W3_VariableSelection.pdf]. 
+      # r <-- current residual + X[, j] * b[j]
+      r = r + X[,j] * b[j]
+
+      # 2) Apply one_step_lasso to update beta_j
+      # b[j] = one_step_lasso(r, X[, j], lam)
+      b[j] = one_step_lasso(r, X[, j], lam)
+      
+      # 3) Update the current residual vector
+      # r <-- r - X[, j] * b[j]
+      r = r - X[, j] * b[j]
+    }
+    rss = sum(r^2)
+    print(rss)
+    rss_changed = abs(rss_saved - rss)
+    rss_saved = rss
+    print(rss_changed)
+    print(step)
+  }
+  
+
+
+  # Scale back b and add intercept b0
+  # For b0, check p13 of [lec_W3_VariableSelection.pdf]. 
+  b = b / x_scale
+  b0 = y_center - sum(b * x_center)
+  
+  return(c(b0, b))
+}
+
+mylasso_predict = function(X, beta) {
+  n = length(beta)
+  return (beta[1] + as.matrix(X) %*% beta[2:n])
+}
+
+
 ```
 
