@@ -139,6 +139,11 @@ for (name in names(CategoricalLevels)) {
   } else {
     test_data[,name] = factor(test_data[,name], levels = levels(train_data[,name]))
     max_level = names(sort(table(train_data[,name]), decreasing = TRUE))[1]
+    # if(sum(is.na(test_data[,name])) > 0){
+    #   print(name)
+    #   print(max_level)
+    #   print(sum(is.na(test_data[,name])))
+    # }
     test_data[,name][is.na(test_data[,name])] = max_level
   }
 }

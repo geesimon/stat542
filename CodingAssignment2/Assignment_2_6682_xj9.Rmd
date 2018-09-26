@@ -81,10 +81,8 @@ eval_bic_b_model = function(data, test_ids) {
   list(mspe=mspe, model_size = model_size)
 }
 
-#Method 6/7: Ridge with lambda.min/lambda.1se (R_min, R_1se)
-eval_ridge_model = function(data, test_ids) {
-  mspe = rep(0, 2)
-  model_size = rep(0, 2)
+#Method 6: Ridge with lambda.min (R_min)
+eval_ridge_model_min = function(data, test_ids, custom_lambda = exp(seq(-10, 10, 0.2))) {
   ntrain = nrow(data) - length(test_ids)
   
   X = as.matrix(data[, -1])
@@ -93,48 +91,70 @@ eval_ridge_model = function(data, test_ids) {
   tmpX = scale(X[-test_ids, ]) * sqrt(ntrain / (ntrain - 1))
   d = svd(tmpX)$d
   
-  cv.out = cv.glmnet(X[-test_ids,], Y[-test_ids], alpha = 0)
+  cv.out = cv.glmnet(X[-test_ids,], Y[-test_ids], alpha = 0, lambda = custom_lambda)
 
   Ytest_pred = predict(cv.out, s = cv.out$lambda.min, newx = X[test_ids, ])
-  mspe[1] = mean((Y[test_ids] - Ytest_pred)^2)
-  model_size[1] = sum(d^2/(d^2 + cv.out$lambda.min*ntrain))
-  
-  Ytest_pred = predict(cv.out, s = cv.out$lambda.1se, newx = X[test_ids, ])
-  mspe[2] = mean((Y[test_ids] - Ytest_pred)^2)
-  model_size[2] = sum(d^2/(d^2 + cv.out$lambda.1se*ntrain))
+  mspe = mean((Y[test_ids] - Ytest_pred)^2)
+  model_size = sum(d^2/(d^2 + cv.out$lambda.min*ntrain))
  
   list(mspe=mspe, model_size = model_size) 
 }
 
-#Method 8/9: Lasso using lambda.min/lambda.1se (L_min, L_1se)
-eval_lasso_model = function(data, test_ids) {
-  mspe = rep(0, 2)
-  model_size = rep(0, 2)
+#Method 7: Ridge with lambda.1se (R_1se)
+eval_ridge_model_1se = function(data, test_ids, custom_lambda = exp(seq(-10, 10, 0.2))) {
+  ntrain = nrow(data) - length(test_ids)
   
+  X = as.matrix(data[, -1])
+  Y = data[, 1]
+  
+  tmpX = scale(X[-test_ids, ]) * sqrt(ntrain / (ntrain - 1))
+  d = svd(tmpX)$d
+  
+  cv.out = cv.glmnet(X[-test_ids,], Y[-test_ids], alpha = 0, lambda = custom_lambda)
+  
+  Ytest_pred = predict(cv.out, s = cv.out$lambda.1se, newx = X[test_ids, ])
+  mspe = mean((Y[test_ids] - Ytest_pred)^2)
+  model_size = sum(d^2/(d^2 + cv.out$lambda.1se*ntrain))
+ 
+  list(mspe=mspe, model_size = model_size) 
+}
+
+#Method 8: Lasso using lambda.min (L_min)
+eval_lasso_model_min = function(data, test_ids, custom_lambda = exp(seq(-10, 10, 0.2))) {
+  X = as.matrix(data[, -1])
+  Y = data[, 1]  
+  
+  cv.out = cv.glmnet(X[-test_ids, ], Y[-test_ids], alpha = 1, lambda = custom_lambda)
+  
+  Ytest_pred = predict(cv.out, s = cv.out$lambda.min, newx = X[test_ids, ])
+  mspe = mean((Y[test_ids] - Ytest_pred)^2)
+  coef = predict(cv.out, s = cv.out$lambda.min, type = "coefficients")
+  model_size = sum(coef != 0) - 1
+
+  list(mspe=mspe, model_size = model_size) 
+}
+
+#Method 9: Lasso using lambda.1se (L_1se)
+eval_lasso_model_1se = function(data, test_ids, custom_lambda = exp(seq(-10, 10, 0.2))) {
   X = as.matrix(data[, -1])
   Y = data[, 1]  
   
   cv.out = cv.glmnet(X[-test_ids, ], Y[-test_ids], alpha = 1)
   
-  Ytest_pred = predict(cv.out, s = cv.out$lambda.min, newx = X[test_ids, ])
-  mspe[1] = mean((Y[test_ids] - Ytest_pred)^2)
-  coef = predict(cv.out, s = cv.out$lambda.min, type = "coefficients")
-  model_size[1] = sum(coef != 0) - 1
-  
   Ytest_pred = predict(cv.out, s = cv.out$lambda.1se, newx = X[test_ids, ])
-  mspe[2] = mean((Y[test_ids] - Ytest_pred)^2)
+  mspe = mean((Y[test_ids] - Ytest_pred)^2)
   coef = predict(cv.out, s = cv.out$lambda.1se, type = "coefficients")
-  model_size[2] = sum(coef != 0) - 1
+  model_size = sum(coef != 0) - 1
 
   list(mspe=mspe, model_size = model_size) 
 }
 
 #Method 10: Lasso using lambda.1se with Refit (L_Refit)
-eval_lasso_refit_model = function(data, test_ids) {
+eval_lasso_refit_model = function(data, test_ids, custom_lambda = exp(seq(-10, 10, 0.2))) {
   X = as.matrix(data[, -1])
   Y = data[, 1]
   
-  cv.out = cv.glmnet(X[-test_ids, ], Y[-test_ids], alpha = 1)
+  cv.out = cv.glmnet(X[-test_ids, ], Y[-test_ids], alpha = 1, lambda = custom_lambda)
   lasso_coef = predict(cv.out, s = cv.out$lambda.1se, type = "coefficients")
   
   var_sel = row.names(lasso_coef)[nonzeroCoef(lasso_coef)[-1]]
@@ -203,8 +223,10 @@ draw_stat = function(MSPE_Stat, Model_Size_Stat) {
 # Results for Boston Housing 1
 ```{r, echo=FALSE, fig.width=10, fig.height=4}
 eval_functions = c(eval_full_model, eval_aic_f_model, eval_aic_b_model,       
-                  eval_bic_f_model, eval_bic_b_model, eval_ridge_model, 
-                  eval_lasso_model, eval_lasso_refit_model)
+                  eval_bic_f_model, eval_bic_b_model, 
+                  eval_ridge_model_min, eval_ridge_model_1se,
+                  eval_lasso_model_min, eval_lasso_model_1se,
+                  eval_lasso_refit_model)
 method_names = c("Full","AIC.F","AIC.B","BIC.F","BIC.B","R.min","R.1se",
                  "L.min","L.1se","L.Refit")
 
@@ -223,14 +245,16 @@ for(r in 1:iterations){
 e1 = eval_models(Housing1, ALL_TEST_IDs, eval_functions, method_names)
 draw_stat(e1$MSPE_Stat, e1$Model_Size_Stat)
 ```
-Computation Time (Note: R.min with R.1se and L.min with L.1se are calculated using one function, thus we make their computation time the same)
+Computation Time,
 ```{r, echo=FALSE}
 e1$Computation_Time_Stat
 ```
 
 # Results for Boston Housing 2
 ```{r, echo=FALSE, fig.width=10, fig.height=4}
-eval_functions = c(eval_ridge_model, eval_lasso_model, eval_lasso_refit_model)
+eval_functions = c(eval_ridge_model_min, eval_ridge_model_1se,
+                  eval_lasso_model_min, eval_lasso_model_1se,
+                  eval_lasso_refit_model)
 method_names = c("R.min","R.1se","L.min","L.1se","L.Refit")
 
 load("BostonHousing2.Rdata")
@@ -238,14 +262,16 @@ load("BostonHousing2.Rdata")
 e2 = eval_models(Housing2, ALL_TEST_IDs, eval_functions, method_names)
 draw_stat(e2$MSPE_Stat, e2$Model_Size_Stat)
 ```
-Computation Time (Note: R.min with R.1se and L.min with L.1se are calculated using one function, thus we make their computation time the same)
+Computation Time,
 ```{r, echo=FALSE}
 e2$Computation_Time_Stat
 ```
 
 # Results for Boston Housing 3
 ```{r, echo=FALSE, fig.width=10, fig.height=4}
-eval_functions = c(eval_ridge_model, eval_lasso_model, eval_lasso_refit_model)
+eval_functions = c(eval_ridge_model_min, eval_ridge_model_1se,
+                  eval_lasso_model_min, eval_lasso_model_1se,
+                  eval_lasso_refit_model)
 method_names = c("R.min","R.1se","L.min","L.1se","L.Refit")
 
 load("BostonHousing3.Rdata")
@@ -253,7 +279,7 @@ load("BostonHousing3.Rdata")
 e3 = eval_models(Housing3, ALL_TEST_IDs, eval_functions, method_names)
 draw_stat(e3$MSPE_Stat, e3$Model_Size_Stat)
 ```
-Computation Time (Note: R.min with R.1se and L.min with L.1se are calculated using one function, thus we make their computation time the same)
+Computation Time,
 ```{r, echo=FALSE}
 e3$Computation_Time_Stat
 ```
