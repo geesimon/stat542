@@ -19,18 +19,23 @@ write.csv(test_data, "test.csv", row.names = FALSE)
 
 
 ```{r}
-set.seed(1234)
-all_data = read.csv("Ames_data.csv")
-
 TRAIN_FILE_NAME = 'train.csv'
 TEST_FILE_NAME = 'test.csv'
 
+train_data = read.csv(TRAIN_FILE_NAME)
+test_data = read.csv(TEST_FILE_NAME)
+```
+
+
+Handle na value
+```{r}
 log_RMSE = function (true_value, predicted_value) {
   sqrt(mean((log(predicted_value) - log(true_value))^2))
 }
 
-train_data = read.csv(TRAIN_FILE_NAME)
-test_data = read.csv(TEST_FILE_NAME)
+get_RMSE = function (true_value, predicted_value) {
+  sqrt(mean((predicted_value - true_value)^2))
+}
 
 #Make numerical na value as year built
 train_data$Garage_Yr_Blt[is.na(train_data$Garage_Yr_Blt)] = train_data$Year_Built[is.na(train_data$Garage_Yr_Blt)]
@@ -61,16 +66,28 @@ train_data$IsNew = factor(train_data$IsNew)
 test_data$IsNew = ifelse(test_data$Year_Sold == test_data$Year_Built, "Yes", "No")
 test_data$IsNew = factor(test_data$IsNew)
 
+#Add Total Square Feet
+train_data$TotalSqFeet = train_data$Gr_Liv_Area + train_data$Total_Bsmt_SF
+test_data$TotalSqFeet = test_data$Gr_Liv_Area + test_data$Total_Bsmt_SF
+
+#Consolidating Porch variables
+train_data$TotalPorchSF =  train_data$Open_Porch_SF + train_data$Enclosed_Porch + 
+                          train_data$Three_season_porch + train_data$Screen_Porch
+test_data$TotalPorchSF =  test_data$Open_Porch_SF + test_data$Enclosed_Porch + 
+                          test_data$Three_season_porch + test_data$Screen_Porch
+
 #Make Year_Sold as factor
 train_data$Year_Sold = factor(train_data$Year_Sold)
 train_data$Mo_Sold = factor(train_data$Mo_Sold)
 
+#Remove highly correlated and consolidated variables
+dropVars = c('Year_Remod_Add', 'Garage_Yr_Blt', 'Garage_Area', 'Garage_Cond', 'Total_Bsmt_SF', 
+             'TotRms_AbvGrd', 'BsmtFin_SF_1', 
+             'Full_Bath', 'Half_Bath', 'Bsmt_Full_Bath', 'Bsmt_Half_Bath',
+             'Open_Porch_SF', 'Enclosed_Porch', 'Three_season_porch', 'Screen_Porch')
 
-all$TotalSqFeet <- all$GrLivArea + all$TotalBsmtSF
-all$TotalPorchSF <- all$OpenPorchSF + all$EnclosedPorch + all$X3SsnPorch + all$ScreenPorch
-
-#To do: remove consolidated variables
-dropVars <- c('YearRemodAdd', 'GarageYrBlt', 'GarageArea', 'GarageCond', 'TotalBsmtSF', 'TotalRmsAbvGrd', 'BsmtFinSF1')
+train_data = train_data[, !colnames(train_data) %in% dropVars]
+test_data = test_data[, !colnames(test_data) %in% dropVars]
 ```
 
 
@@ -194,30 +211,52 @@ test_data$Overall_Qual = as.numeric(test_data$Overall_Qual)
 test_data$Overall_Cond = as.numeric(test_data$Overall_Cond)
 ```
 
+Process numeric data
+```{r}
+library(psych)
+
+for (i in 2:dim(train_data)[2]){
+  if(colnames(train_data)[i] %in% c("Sale_Price",names(CategoricalLevels))) next;
+
+  if (is.numeric(train_data[, i])) {
+    if(skew(train_data[, i]) > 0.8) {
+      train_data[, i] = log(train_data[, i] + 1)
+      test_data[, i] = log(test_data[, i] + 1)
+      print(colnames(train_data)[i])
+    }
+  }
+}
+```
+
+```{r}
+train_data$Sale_Price = log(train_data$Sale_Price)
+test_data$Sale_Price = log(test_data$Sale_Price)
+```
+
 
 Build random forest model
 ```{r}
 library(randomForest)
 
 start_time = proc.time()
-rfModel = randomForest(log(Sale_Price) ~ . - PID, data = train_data, importance = T, ntree=500); 
+rfModel = randomForest(Sale_Price ~ . - PID, data = train_data, importance = T, ntree=500); 
 (proc.time() - start_time)[3]
 ```
 
 ```{r}
-yhat_test = exp(predict(rfModel, test_data))
-log_RMSE(yhat_test, test_data$Sale_Price)
+yhat_test = predict(rfModel, test_data)
+get_RMSE(yhat_test, test_data$Sale_Price)
 ```
 
 ```{r}
 library(gbm)
 
-myfit1 = gbm(Sale_Price ~ ., data = train_data, distribution = "gaussian", n.trees = 2000,
-             shrinkage = 0.04, interaction.depth = 3, bag.fraction = 0.5, cv.folds = 5)
+myfit1 = gbm(Sale_Price ~ ., data = train_data, distribution = "gaussian", n.trees = 4000,
+             shrinkage = 0.01, interaction.depth = 3, bag.fraction = 0.5, cv.folds = 5)
 
 opt.size = gbm.perf(myfit1)
 y.pred = predict(myfit1, test_data, n.trees = opt.size)
-log_RMSE(y.pred, test_data$Sale_Price)
+get_RMSE(y.pred, test_data$Sale_Price)
 ```
 
 Lasso with lambda.1se (R_min, R_1se)
@@ -227,26 +266,21 @@ library(glmnet)
 X_train = train_data[, colnames(train_data) != 'Sale_Price']
 X_train = model.matrix(~. -PID, X_train)
 
-Y_train = log(train_data$Sale_Price)
+Y_train = train_data$Sale_Price
 
 cv.out = cv.glmnet(X_train, Y_train, alpha = 1)
 
 X_test = test_data[, colnames(test_data) != 'Sale_Price']
 X_test = model.matrix(~. -PID, X_test)
 
-Ytest_pred = exp(predict(cv.out, s = cv.out$lambda.1se, newx = X_test))
+Ytest_pred = predict(cv.out, s = cv.out$lambda.min, newx = X_test)
 
-log_RMSE(Ytest_pred, test_data$Sale_Price)
+get_RMSE(Ytest_pred, test_data$Sale_Price)
 ```
 
 
 
 ```{r}
-X_train = train_data[, !colnames(train_data) %in% c('PID','Sale_Price')]
-X_train = model.matrix(~., X_train)[,-1]
-
-Y_train = log(train_data$Sale_Price)
-
 one_step_lasso = function(r, x, lam){
   length(r)
   length(x)
@@ -303,8 +337,6 @@ mylasso_fit = function(X, y, lam, n.iter = 500)
     #print(rss_changed)
     #print(step)
   }
-  
-
 
   # Scale back b and add intercept b0
   # For b0, check p13 of [lec_W3_VariableSelection.pdf]. 
@@ -315,10 +347,23 @@ mylasso_fit = function(X, y, lam, n.iter = 500)
 }
 
 mylasso_predict = function(X, beta) {
-  n = length(beta)
-  return (beta[1] + as.matrix(X) %*% beta[2:n])
+  beta[1] + as.matrix(X) %*% beta[-1]
 }
+```
 
+```{r}
+X_train = train_data[, !colnames(train_data) %in% c('PID','Sale_Price')]
+X_train = model.matrix(~., X_train)[,-1]
 
+Y_train = train_data$Sale_Price
+
+X_test = test_data[, !colnames(test_data) %in% c('PID','Sale_Price')]
+X_test = model.matrix(~., X_test)[,-1]
+Y_test = test_data$Sale_Price
+
+beta = mylasso_fit(X_train, Y_train, 1)
+
+Ytest_pred = mylasso_predict(X_test, beta)
+get_RMSE(Ytest_pred, test_data$Sale_Price)
 ```
 
