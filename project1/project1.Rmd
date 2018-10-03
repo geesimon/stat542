@@ -19,6 +19,7 @@ write.csv(test_data, "test.csv", row.names = FALSE)
 
 
 ```{r}
+all_data = read.csv("Ames_data.csv")
 TRAIN_FILE_NAME = 'train.csv'
 TEST_FILE_NAME = 'test.csv'
 
@@ -239,7 +240,7 @@ Build random forest model
 library(randomForest)
 
 start_time = proc.time()
-rfModel = randomForest(Sale_Price ~ . - PID, data = train_data, importance = T, ntree=500); 
+rfModel = randomForest(Sale_Price ~ . - PID, data = train_data, importance = T, ntree=400); 
 (proc.time() - start_time)[3]
 ```
 
