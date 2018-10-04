@@ -19,11 +19,15 @@ write.csv(test_data, "test.csv", row.names = FALSE)
 
 
 ```{r}
+all_data = read.csv("Ames_data.csv")
 TRAIN_FILE_NAME = 'train.csv'
 TEST_FILE_NAME = 'test.csv'
+```
 
-train_data = read.csv(TRAIN_FILE_NAME)
-test_data = read.csv(TEST_FILE_NAME)
+```{r}
+Project1_test_id =  read.table("Project1_test_id.txt", quote="\"", comment.char="")
+#train_data = read.csv(TRAIN_FILE_NAME)
+#test_data = read.csv(TEST_FILE_NAME)
 ```
 
 
@@ -37,200 +41,262 @@ get_RMSE = function (true_value, predicted_value) {
   sqrt(mean((predicted_value - true_value)^2))
 }
 
+Winsorizing = function (data, filter_by, fraction=.05)
+{
+   if(length(fraction) != 1 || fraction < 0 ||
+         fraction > 0.5) {
+      stop("bad value for 'fraction'")
+   }
+   lim = quantile(data[,filter_by], probs=c(fraction, 1-fraction))
+   
+   data[data[,filter_by]< lim[1],filter_by] = lim[1]
+   data[data[,filter_by] > lim[2], filter_by] = lim[2]
+   
+   data
+}
+
 #Make numerical na value as year built
-train_data$Garage_Yr_Blt[is.na(train_data$Garage_Yr_Blt)] = train_data$Year_Built[is.na(train_data$Garage_Yr_Blt)]
-test_data$Garage_Yr_Blt[is.na(test_data$Garage_Yr_Blt)] = test_data$Year_Built[is.na(test_data$Garage_Yr_Blt)]
-```
-
-Pre-processing
-```{r}
-#Add total bath variable
-train_data$TotBathrooms = train_data$Full_Bath + (train_data$Half_Bath * 0.5) +
-                          train_data$Bsmt_Full_Bath + (train_data$Bsmt_Half_Bath * 0.5)
-test_data$TotBathrooms = test_data$Full_Bath + (test_data$Half_Bath * 0.5) +
-                          test_data$Bsmt_Full_Bath + (test_data$Bsmt_Half_Bath * 0.5)
-
-#Add Remodeled variable
-train_data$Remodeled = ifelse(train_data$Year_Built == train_data$Year_Remod_Add, "No", "Yes")
-train_data$Remodeled = factor(train_data$Remodeled)
-test_data$Remodeled = ifelse(test_data$Year_Built == test_data$Year_Remod_Add, "No", "Yes")
-test_data$Remodeled = factor(test_data$Remodeled)
-
-#Add Age variable
-train_data$Age = train_data$Year_Sold - train_data$Year_Remod_Add
-test_data$Age = test_data$Year_Sold - test_data$Year_Remod_Add
-
-#Add IsNew variable
-train_data$IsNew = ifelse(train_data$Year_Sold == train_data$Year_Built, "Yes", "No")
-train_data$IsNew = factor(train_data$IsNew)
-test_data$IsNew = ifelse(test_data$Year_Sold == test_data$Year_Built, "Yes", "No")
-test_data$IsNew = factor(test_data$IsNew)
-
-#Add Total Square Feet
-train_data$TotalSqFeet = train_data$Gr_Liv_Area + train_data$Total_Bsmt_SF
-test_data$TotalSqFeet = test_data$Gr_Liv_Area + test_data$Total_Bsmt_SF
-
-#Consolidating Porch variables
-train_data$TotalPorchSF =  train_data$Open_Porch_SF + train_data$Enclosed_Porch + 
-                          train_data$Three_season_porch + train_data$Screen_Porch
-test_data$TotalPorchSF =  test_data$Open_Porch_SF + test_data$Enclosed_Porch + 
-                          test_data$Three_season_porch + test_data$Screen_Porch
-
-#Make Year_Sold as factor
-train_data$Year_Sold = factor(train_data$Year_Sold)
-train_data$Mo_Sold = factor(train_data$Mo_Sold)
-
-#Remove highly correlated and consolidated variables
-dropVars = c('Year_Remod_Add', 'Garage_Yr_Blt', 'Garage_Area', 'Garage_Cond', 'Total_Bsmt_SF', 
-             'TotRms_AbvGrd', 'BsmtFin_SF_1', 
-             'Full_Bath', 'Half_Bath', 'Bsmt_Full_Bath', 'Bsmt_Half_Bath',
-             'Open_Porch_SF', 'Enclosed_Porch', 'Three_season_porch', 'Screen_Porch')
-
-train_data = train_data[, !colnames(train_data) %in% dropVars]
-test_data = test_data[, !colnames(test_data) %in% dropVars]
-```
-
-
-```{r}
-#Remove variables that have a dominate level
-#USELESS_VARIABLES = c("Condition_2", "Utilities")
-USELESS_VARIABLES = c("Street","Utilities","Land_Slope","Condition_2", "Roof_Matl", 
-                      "Heating","Pool_QC", "Misc_Feature", "Low_Qual_Fin_SF",
-                      "Pool_Area", "Misc_Val", "Longitude", "Latitude")
-train_data = train_data[, !colnames(train_data) %in% USELESS_VARIABLES]
-test_data = test_data[, !colnames(test_data) %in% USELESS_VARIABLES]
-
-CategoricalLevels = list(
-  MS_SubClass = c("One_Story_1946_and_Newer_All_Styles","Two_Story_1946_and_Newer",
-                  "One_and_Half_Story_Finished_All_Ages", "One_Story_PUD_1946_and_Newer",
-                  "One_Story_1945_and_Older", "Two_Story_PUD_1946_and_Newer",
-                  "Two_Story_1945_and_Older","Split_or_Multilevel",
-                  "Duplex_All_Styles_and_Ages","Two_Family_conversion_All_Styles_and_Ages", 
-                  "Split_Foyer", "Two_and_Half_Story_All_Ages", "One_and_Half_Story_Unfinished_All_Ages",
-                  "PUD_Multilevel_Split_Level_Foyer", "Misc"),
-  MS_Zoning = c("Residential_Low_Density", "Residential_Medium_Density", 
-                "Floating_Village_Residential","Residential_High_Density",
-                "C_all", "Misc"),
-  Street = c("Pave", "Misc"),
-  Alley = c("No_Alley_Access", "Gravel", "Paved", "Misc"),
-  Lot_Shape = c("Regular", "Slightly_Irregular", "Misc"),
-  Land_Contour = c("Lvl","HLS", "Bnk", "Misc"),
-  Utilities = c("AllPub", "Misc"),
-  Lot_Config = c("Inside","Corner","CulDSac", "Misc"),
-  Land_Slope = c("Gtl","Mod", "Misc"),
-  Neighborhood = c("North_Ames","College_Creek","Old_Town","Edwards","Somerset",
-                   "Northridge_Heights","Gilbert","Sawyer","Northwest_Ames",
-                   "Sawyer_West","Mitchell","Brookside","Crawford",
-                   "Iowa_DOT_and_Rail_Road", "Timberland", "Northridge","Stone_Brook",
-                   "South_and_West_of_Iowa_State_University", "Clear_Creek", "Meadow_Village",
-                   "Briardale", "Bloomington_Heights", "Veenker", "Northpark_Villa", "Blueste",
-                   "Misc"),
-  Condition_1 = c("Norm","Feedr", "Misc"),
-  Condition_2 = c("Norm", "Misc"),
-  Bldg_Type = c("OneFam","TwnhsE","Duplex","Twnhs", "Misc"),
-  House_Style = c("One_Story","Two_Story","One_and_Half_Fin", 
-                  "SLvl","Misc"),
-  Overall_Qual = c("Very_Poor", "Poor","Fair","Below_Average",
-                   "Average","Above_Average","Good", "Very_Good", 
-                   "Excellent", "Very_Excellent"),
-  Overall_Cond = c("Very_Poor", "Poor","Fair","Below_Average",
-                   "Average","Above_Average","Good", "Very_Good", 
-                   "Excellent", "Very_Excellent"),
-  Roof_Style = c("Gable","Hip", "Misc"),
-  Roof_Matl = c("CompShg", "Misc"),
-  Exterior_1st = c("VinylSd","MetalSd","HdBoard","Wd Sdng","Plywood","CemntBd", "Misc"),
-  Exterior_2nd = c("VinylSd","MetalSd","HdBoard","Wd Sdng","Plywood","CmentBd", "Misc"),
-  Mas_Vnr_Type = c("None","BrkFace","Stone", "Misc"),
-  Exter_Qual = c("Poor", "Fair","Typical","Good" ,"Excellent"),
-  Exter_Cond = c("Poor", "Fair","Typical","Good" ,"Excellent"),
-  Foundation = c("PConc","CBlock", "BrkTil", "Misc"),
-  Bsmt_Qual = c("No_Basement","Poor","Fair","Typical","Good","Excellent"),
-  Bsmt_Cond = c("No_Basement","Poor","Fair","Typical","Good","Excellent"),
-  Bsmt_Exposure = c("No_Basement", "No", "Mn","Av", "Gd"),
-  BsmtFin_Type_1 = c("No_Basement","Unf", "LwQ", "Rec", "BLQ", "ALQ", "GLQ"),
-  BsmtFin_Type_2 = c("No_Basement","Unf", "LwQ", "Rec", "BLQ", "ALQ", "GLQ"),
-  Heating = c("GasA", "Misc"),
-  Heating_QC = c("Poor", "Fair","Typical","Good" ,"Excellent"),
-  Central_Air = c("Y", "Misc"),
-  Electrical = c("SBrkr","FuseA", "Misc"),
-  Kitchen_Qual = c("Poor", "Fair","Typical","Good" ,"Excellent"),
-  Functional = c("Sal", "Sev", "Maj2", "Maj1", "Mod", "Min2", "Min1", "Typ"),
-  Fireplace_Qu = c("No_Fireplace", "Poor", "Fair","Typical","Good","Excellent"),
-  Garage_Type = c("Attchd","Detchd", "BuiltIn", "No_Garage", "Misc"),
-  Garage_Finish = c("No_Garage", "Unf", "RFn", "Fin"),
-  Garage_Qual = c("No_Garage", "Poor", "Fair","Typical","Good","Excellent"),
-  Garage_Cond = c("No_Garage", "Poor", "Fair","Typical","Good","Excellent"),
-  Paved_Drive = c("Dirt_Gravel","Partial_Pavement", "Paved"),
-  Pool_QC = c("No_Pool", "Fair", "Typical", "Good", "Excellent"),
-  Fence = c("No_Fence", "Minimum_Wood_Wire", "Good_Wood", "Minimum_Privacy", "Good_Privacy"),
-  Misc_Feature = c("None", "Misc"),
-  Sale_Type = c("WD ", "New", "Misc"),
-  Sale_Condition = c("Normal", "Partial", "Abnorml", "Misc"),
+handle_missing = function(train_data, test_data){
+  train_data$Garage_Yr_Blt[is.na(train_data$Garage_Yr_Blt)] =
+    train_data$Year_Built[is.na(train_data$Garage_Yr_Blt)]
+  test_data$Garage_Yr_Blt[is.na(test_data$Garage_Yr_Blt)] =
+    test_data$Year_Built[is.na(test_data$Garage_Yr_Blt)]
   
-  Year_Sold = c("Misc"),
-  Mo_Sold = c("Misc"),
-  Remodeled = c("Misc"),
-  IsNew = c("Misc")
-)
-
-for (name in names(CategoricalLevels)) {
-  if(!name %in% colnames(train_data)) next;
-  # train_data[name] = factor(train_data[,name], levels = CategoricalLevels[[name]])
-  # test_data[name] = factor(test_data[,name], levels = CategoricalLevels[[name]])
-  # n = length(CategoricalLevels[[name]])
-  # if (CategoricalLevels[[name]][n] == "Misc") {
-  #   train_data[name][is.na(train_data[name])] = "Misc"
-  #   test_data[name][is.na(test_data[name])] = "Misc"
-  # } else {
-  #   train_data[,name] = as.numeric(train_data[,name])
-  #   test_data[,name] = as.numeric(test_data[,name])
-  # }
-  n = length(CategoricalLevels[[name]])
-  if(CategoricalLevels[[name]][n] != "Misc") {
-    train_data[,name] = factor(train_data[,name], levels = CategoricalLevels[[name]])
-    test_data[,name] = factor(test_data[,name], levels = CategoricalLevels[[name]])
-  } else {
-    test_data[,name] = factor(test_data[,name], levels = levels(train_data[,name]))
-    max_level = names(sort(table(train_data[,name]), decreasing = TRUE))[1]
-    # if(sum(is.na(test_data[,name])) > 0){
-    #   print(name)
-    #   print(max_level)
-    #   print(sum(is.na(test_data[,name])))
-    # }
-    test_data[,name][is.na(test_data[,name])] = max_level
-  }
+  list(train_data = train_data, test_data = test_data)
 }
 ```
 
 Pre-processing
 ```{r}
-train_data$Overall_Qual = as.numeric(train_data$Overall_Qual)
-train_data$Overall_Cond = as.numeric(train_data$Overall_Cond)
+Add_Variables = function(train_data, test_data){
+  #Add total bath variable
+  train_data$TotBathrooms = train_data$Full_Bath + (train_data$Half_Bath * 0.5) +
+                            train_data$Bsmt_Full_Bath + (train_data$Bsmt_Half_Bath * 0.5)
+  test_data$TotBathrooms = test_data$Full_Bath + (test_data$Half_Bath * 0.5) +
+                            test_data$Bsmt_Full_Bath + (test_data$Bsmt_Half_Bath * 0.5)
+  
+  #Add Remodeled variable
+  train_data$Remodeled = ifelse(train_data$Year_Built == train_data$Year_Remod_Add, "No", "Yes")
+  train_data$Remodeled = factor(train_data$Remodeled)
+  test_data$Remodeled = ifelse(test_data$Year_Built == test_data$Year_Remod_Add, "No", "Yes")
+  test_data$Remodeled = factor(test_data$Remodeled)
+  
+  #Add Age variable
+  train_data$Age = train_data$Year_Sold - train_data$Year_Remod_Add
+  test_data$Age = test_data$Year_Sold - test_data$Year_Remod_Add
+  
+  #Add IsNew variable
+  train_data$IsNew = ifelse(train_data$Year_Sold == train_data$Year_Built, "Yes", "No")
+  train_data$IsNew = factor(train_data$IsNew)
+  test_data$IsNew = ifelse(test_data$Year_Sold == test_data$Year_Built, "Yes", "No")
+  test_data$IsNew = factor(test_data$IsNew)
+  
+  #Add Total Square Feet
+  train_data$TotalSqFeet = train_data$Gr_Liv_Area + train_data$Total_Bsmt_SF
+  test_data$TotalSqFeet = test_data$Gr_Liv_Area + test_data$Total_Bsmt_SF
+  
+  #Consolidating Porch variables
+  train_data$TotalPorchSF =  train_data$Open_Porch_SF + train_data$Enclosed_Porch + 
+                            train_data$Three_season_porch + train_data$Screen_Porch
+  test_data$TotalPorchSF =  test_data$Open_Porch_SF + test_data$Enclosed_Porch + 
+                            test_data$Three_season_porch + test_data$Screen_Porch
+  
+  #Make Year_Sold as factor
+  train_data$Year_Sold = factor(train_data$Year_Sold)
+  train_data$Mo_Sold = factor(train_data$Mo_Sold)
+  
+  #Remove highly correlated and consolidated variables
+  dropVars = c('Year_Remod_Add', 'Garage_Yr_Blt', 'Garage_Area', 'Garage_Cond', 'Total_Bsmt_SF', 
+               'TotRms_AbvGrd', 'BsmtFin_SF_1', 
+               'Full_Bath', 'Half_Bath', 'Bsmt_Full_Bath', 'Bsmt_Half_Bath',
+               'Open_Porch_SF', 'Enclosed_Porch', 'Three_season_porch', 'Screen_Porch')
+  
+  train_data = train_data[, !colnames(train_data) %in% dropVars]
+  test_data = test_data[, !colnames(test_data) %in% dropVars]
+  
+  list(train_data = train_data, test_data = test_data)
+}
+```
 
-test_data$Overall_Qual = as.numeric(test_data$Overall_Qual)
-test_data$Overall_Cond = as.numeric(test_data$Overall_Cond)
+
+```{r}
+  CategoricalLevels = list(
+    MS_SubClass = c("One_Story_1946_and_Newer_All_Styles","Two_Story_1946_and_Newer",
+                    "One_and_Half_Story_Finished_All_Ages", "One_Story_PUD_1946_and_Newer",
+                    "One_Story_1945_and_Older", "Two_Story_PUD_1946_and_Newer",
+                    "Two_Story_1945_and_Older","Split_or_Multilevel",
+                    "Duplex_All_Styles_and_Ages","Two_Family_conversion_All_Styles_and_Ages", 
+                    "Split_Foyer", "Two_and_Half_Story_All_Ages", "One_and_Half_Story_Unfinished_All_Ages",
+                    "PUD_Multilevel_Split_Level_Foyer", "Misc"),
+    MS_Zoning = c("Residential_Low_Density", "Residential_Medium_Density", 
+                  "Floating_Village_Residential","Residential_High_Density",
+                  "C_all", "Misc"),
+    Street = c("Pave", "Misc"),
+    Alley = c("No_Alley_Access", "Gravel", "Paved", "Misc"),
+    Lot_Shape = c("Regular", "Slightly_Irregular", "Misc"),
+    Land_Contour = c("Lvl","HLS", "Bnk", "Misc"),
+    Utilities = c("AllPub", "Misc"),
+    Lot_Config = c("Inside","Corner","CulDSac", "Misc"),
+    Land_Slope = c("Gtl","Mod", "Misc"),
+    Neighborhood = c("North_Ames","College_Creek","Old_Town","Edwards","Somerset",
+                     "Northridge_Heights","Gilbert","Sawyer","Northwest_Ames",
+                     "Sawyer_West","Mitchell","Brookside","Crawford",
+                     "Iowa_DOT_and_Rail_Road", "Timberland", "Northridge","Stone_Brook",
+                     "South_and_West_of_Iowa_State_University", "Clear_Creek", "Meadow_Village",
+                     "Briardale", "Bloomington_Heights", "Veenker", "Northpark_Villa", "Blueste",
+                     "Misc"),
+    Condition_1 = c("Norm","Feedr", "Misc"),
+    Condition_2 = c("Norm", "Misc"),
+    Bldg_Type = c("OneFam","TwnhsE","Duplex","Twnhs", "Misc"),
+    House_Style = c("One_Story","Two_Story","One_and_Half_Fin", 
+                    "SLvl","Misc"),
+    Overall_Qual = c("Very_Poor", "Poor","Fair","Below_Average",
+                     "Average","Above_Average","Good", "Very_Good", 
+                     "Excellent", "Very_Excellent"),
+    Overall_Cond = c("Very_Poor", "Poor","Fair","Below_Average",
+                     "Average","Above_Average","Good", "Very_Good", 
+                     "Excellent", "Very_Excellent"),
+    Roof_Style = c("Gable","Hip", "Misc"),
+    Roof_Matl = c("CompShg", "Misc"),
+    Exterior_1st = c("VinylSd","MetalSd","HdBoard","Wd Sdng","Plywood","CemntBd", "Misc"),
+    Exterior_2nd = c("VinylSd","MetalSd","HdBoard","Wd Sdng","Plywood","CmentBd", "Misc"),
+    Mas_Vnr_Type = c("None","BrkFace","Stone", "Misc"),
+    Exter_Qual = c("Poor", "Fair","Typical","Good" ,"Excellent"),
+    Exter_Cond = c("Poor", "Fair","Typical","Good" ,"Excellent"),
+    Foundation = c("PConc","CBlock", "BrkTil", "Misc"),
+    Bsmt_Qual = c("No_Basement","Poor","Fair","Typical","Good","Excellent"),
+    Bsmt_Cond = c("No_Basement","Poor","Fair","Typical","Good","Excellent"),
+    Bsmt_Exposure = c("No_Basement", "No", "Mn","Av", "Gd"),
+    BsmtFin_Type_1 = c("No_Basement","Unf", "LwQ", "Rec", "BLQ", "ALQ", "GLQ"),
+    BsmtFin_Type_2 = c("No_Basement","Unf", "LwQ", "Rec", "BLQ", "ALQ", "GLQ"),
+    Heating = c("GasA", "Misc"),
+    Heating_QC = c("Poor", "Fair","Typical","Good" ,"Excellent"),
+    Central_Air = c("Y", "Misc"),
+    Electrical = c("SBrkr","FuseA", "Misc"),
+    Kitchen_Qual = c("Poor", "Fair","Typical","Good" ,"Excellent"),
+    Functional = c("Sal", "Sev", "Maj2", "Maj1", "Mod", "Min2", "Min1", "Typ"),
+    Fireplace_Qu = c("No_Fireplace", "Poor", "Fair","Typical","Good","Excellent"),
+    Garage_Type = c("Attchd","Detchd", "BuiltIn", "No_Garage", "Misc"),
+    Garage_Finish = c("No_Garage", "Unf", "RFn", "Fin"),
+    Garage_Qual = c("No_Garage", "Poor", "Fair","Typical","Good","Excellent"),
+    Garage_Cond = c("No_Garage", "Poor", "Fair","Typical","Good","Excellent"),
+    Paved_Drive = c("Dirt_Gravel","Partial_Pavement", "Paved"),
+    Pool_QC = c("No_Pool", "Fair", "Typical", "Good", "Excellent"),
+    Fence = c("No_Fence", "Minimum_Wood_Wire", "Good_Wood", "Minimum_Privacy", "Good_Privacy"),
+    Misc_Feature = c("None", "Misc"),
+    Sale_Type = c("WD ", "New", "Misc"),
+    Sale_Condition = c("Normal", "Partial", "Abnorml", "Misc"),
+    
+    Year_Sold = c("Misc"),
+    Mo_Sold = c("Misc"),
+    Remodeled = c("Misc"),
+    IsNew = c("Misc")
+  )
+
+process_categorical = function(train_data, test_data){
+  #Remove variables that have a dominate level
+  #USELESS_VARIABLES = c("Condition_2", "Utilities")
+  USELESS_VARIABLES = c("Street","Utilities","Land_Slope","Condition_2", "Roof_Matl", 
+                        "Heating","Pool_QC", "Misc_Feature", "Low_Qual_Fin_SF",
+                        "Pool_Area", "Misc_Val", "Longitude", "Latitude")
+  train_data = train_data[, !colnames(train_data) %in% USELESS_VARIABLES]
+  test_data = test_data[, !colnames(test_data) %in% USELESS_VARIABLES]
+  
+  
+  for (name in names(CategoricalLevels)) {
+    if(!name %in% colnames(train_data)) next;
+    # train_data[name] = factor(train_data[,name], levels = CategoricalLevels[[name]])
+    # test_data[name] = factor(test_data[,name], levels = CategoricalLevels[[name]])
+    # n = length(CategoricalLevels[[name]])
+    # if (CategoricalLevels[[name]][n] == "Misc") {
+    #   train_data[name][is.na(train_data[name])] = "Misc"
+    #   test_data[name][is.na(test_data[name])] = "Misc"
+    # } else {
+    #   train_data[,name] = as.numeric(train_data[,name])
+    #   test_data[,name] = as.numeric(test_data[,name])
+    # }
+    n = length(CategoricalLevels[[name]])
+    if(CategoricalLevels[[name]][n] != "Misc") {
+      train_data[,name] = factor(train_data[,name], levels = CategoricalLevels[[name]])
+      test_data[,name] = factor(test_data[,name], levels = CategoricalLevels[[name]])
+    } else {
+      test_data[,name] = factor(test_data[,name], levels = levels(train_data[,name]))
+      max_level = names(sort(table(train_data[,name]), decreasing = TRUE))[1]
+      # if(sum(is.na(test_data[,name])) > 0){
+      #   print(name)
+      #   print(max_level)
+      #   print(sum(is.na(test_data[,name])))
+      # }
+      test_data[,name][is.na(test_data[,name])] = max_level
+    }
+  }
+  
+  list(train_data = train_data, test_data = test_data)
+}
+
+```
+
+Pre-processing
+```{r}
+cate_to_numeric = function(train_data, test_data){
+  train_data$Overall_Qual = as.numeric(train_data$Overall_Qual)
+  train_data$Overall_Cond = as.numeric(train_data$Overall_Cond)
+  
+  test_data$Overall_Qual = as.numeric(test_data$Overall_Qual)
+  test_data$Overall_Cond = as.numeric(test_data$Overall_Cond)
+  
+  list(train_data = train_data, test_data = test_data)
+}
+
 ```
 
 Process numeric data
 ```{r}
 library(psych)
 
-for (i in 2:dim(train_data)[2]){
-  if(colnames(train_data)[i] %in% c("Sale_Price",names(CategoricalLevels))) next;
-
-  if (is.numeric(train_data[, i])) {
-    if(skew(train_data[, i]) > 0.8) {
-      train_data[, i] = log(train_data[, i] + 1)
-      test_data[, i] = log(test_data[, i] + 1)
-      print(colnames(train_data)[i])
+process_numeric = function(train_data, test_data) {
+  for (i in 2:dim(train_data)[2]){
+    if(colnames(train_data)[i] %in% c("Sale_Price",names(CategoricalLevels))) next;
+  
+    if (is.numeric(train_data[, i])) {
+      if(skew(train_data[, i]) > 0.8) {
+        train_data[, i] = log(train_data[, i] + 1)
+        test_data[, i] = log(test_data[, i] + 1)
+        #print(colnames(train_data)[i])
+      }
     }
   }
+  
+  list(train_data = train_data, test_data = test_data)
 }
+  
+
 ```
 
 ```{r}
-train_data$Sale_Price = log(train_data$Sale_Price)
-test_data$Sale_Price = log(test_data$Sale_Price)
+process_output = function (train_data, test_data) {
+  train_data$Sale_Price = log(train_data$Sale_Price)
+  test_data$Sale_Price = log(test_data$Sale_Price)
+  
+  train_data = Winsorizing(train_data, "Sale_Price", 0.01)
+  
+  list(train_data = train_data, test_data = test_data)
+}
+```
+
+
+```{r}
+preprocess_data = function(train_data, test_data){
+  r = handle_missing(train_data, test_data)
+  r = Add_Variables(r$train_data, r$test_data)
+  r = process_categorical(r$train_data, r$test_data)
+  r = cate_to_numeric(r$train_data, r$test_data)
+  r = process_numeric(r$train_data, r$test_data)
+  r = process_output(r$train_data, r$test_data)
+  
+  list(train_data = r$train_data, test_data = r$test_data)
+}
+
 ```
 
 
@@ -238,25 +304,45 @@ Build random forest model
 ```{r}
 library(randomForest)
 
-start_time = proc.time()
-rfModel = randomForest(Sale_Price ~ . - PID, data = train_data, importance = T, ntree=500); 
-(proc.time() - start_time)[3]
+for (i in 1:10){
+  test_pid = Project1_test_id[,i]
+
+  train_data = all_data[!all_data$PID %in% test_pid,]
+  test_data = all_data[all_data$PID %in% test_pid,]
+
+  r = preprocess_data(train_data, test_data)
+  
+  #start_time = proc.time()
+  rfModel = randomForest(Sale_Price ~ . - PID, data = r$train_data, importance = T, ntree=500); 
+  #(proc.time() - start_time)[3]
+  yhat_test = predict(rfModel, r$test_data)
+  print(get_RMSE(yhat_test, r$test_data$Sale_Price))
+}
 ```
 
 ```{r}
-yhat_test = predict(rfModel, test_data)
-get_RMSE(yhat_test, test_data$Sale_Price)
+#yhat_test = predict(rfModel, test_data)
+#get_RMSE(yhat_test, test_data$Sale_Price)
 ```
 
 ```{r}
 library(gbm)
 
-myfit1 = gbm(Sale_Price ~ ., data = train_data, distribution = "gaussian", n.trees = 4000,
-             shrinkage = 0.01, interaction.depth = 3, bag.fraction = 0.5, cv.folds = 5)
+for (i in 1:10){
+  test_pid = Project1_test_id[,i]
 
-opt.size = gbm.perf(myfit1)
-y.pred = predict(myfit1, test_data, n.trees = opt.size)
-get_RMSE(y.pred, test_data$Sale_Price)
+  train_data = all_data[!all_data$PID %in% test_pid,]
+  test_data = all_data[all_data$PID %in% test_pid,]
+
+  r = preprocess_data(train_data, test_data)
+  
+  gbmModel = gbm(Sale_Price ~ ., data = r$train_data, distribution = "gaussian", n.trees = 3000,
+               shrinkage = 0.01, interaction.depth = 6, bag.fraction = 0.5, cv.folds = 5)
+  
+  opt.size = gbm.perf(gbmModel)
+  y.pred = predict(gbmModel, r$test_data, n.trees = opt.size)
+  print(get_RMSE(y.pred, r$test_data$Sale_Price))
+}
 ```
 
 Lasso with lambda.1se (R_min, R_1se)
