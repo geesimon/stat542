@@ -187,8 +187,6 @@ Add_Variables = function(train_data, test_data){
     Sale_Type = c("WD ", "New", "Misc"),
     Sale_Condition = c("Normal", "Partial", "Abnorml", "Misc"),
     
-    Year_Sold = c("Misc"),
-    Mo_Sold = c("Misc"),
     Remodeled = c("Misc"),
     IsNew = c("Misc")
   )
@@ -217,16 +215,11 @@ process_categorical = function(train_data, test_data){
     # }
     n = length(CategoricalLevels[[name]])
     if(CategoricalLevels[[name]][n] != "Misc") {
-      train_data[,name] = factor(train_data[,name], levels = CategoricalLevels[[name]])
-      test_data[,name] = factor(test_data[,name], levels = CategoricalLevels[[name]])
+      train_data[,name] = ordered(train_data[,name], levels = CategoricalLevels[[name]])
+      test_data[,name] = ordered(test_data[,name], levels = CategoricalLevels[[name]])
     } else {
       test_data[,name] = factor(test_data[,name], levels = levels(train_data[,name]))
       max_level = names(sort(table(train_data[,name]), decreasing = TRUE))[1]
-      # if(sum(is.na(test_data[,name])) > 0){
-      #   print(name)
-      #   print(max_level)
-      #   print(sum(is.na(test_data[,name])))
-      # }
       test_data[,name][is.na(test_data[,name])] = max_level
     }
   }
@@ -255,6 +248,11 @@ Process numeric data
 library(psych)
 
 process_numeric = function(train_data, test_data) {
+  train_data$Year_Sold = factor(train_data$Year_Sold)
+  train_data$Mo_Sold = factor(train_data$Mo_Sold)
+  test_data$Year_Sold = factor(test_data$Year_Sold)
+  test_data$Mo_Sold = factor(test_data$Mo_Sold)
+  
   for (i in 2:dim(train_data)[2]){
     if(colnames(train_data)[i] %in% c("Sale_Price",names(CategoricalLevels))) next;
   
@@ -288,10 +286,10 @@ process_output = function (train_data, test_data) {
 ```{r}
 preprocess_data = function(train_data, test_data){
   r = handle_missing(train_data, test_data)
-  r = Add_Variables(r$train_data, r$test_data)
+  #r = Add_Variables(r$train_data, r$test_data)
   r = process_categorical(r$train_data, r$test_data)
   r = cate_to_numeric(r$train_data, r$test_data)
-  r = process_numeric(r$train_data, r$test_data)
+  #r = process_numeric(r$train_data, r$test_data)
   r = process_output(r$train_data, r$test_data)
   
   list(train_data = r$train_data, test_data = r$test_data)
