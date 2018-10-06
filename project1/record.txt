@@ -1,0 +1,195 @@
+with_log
+0.1387962
+0.1292268
+
+no_log
+0.1480301
+0.1386286
+
+
+> print(rmse)
+           [,1]      [,2]      [,3]
+ [1,] 0.1259964 0.1170398 0.1259433
+ [2,] 0.1374111 0.1244836 0.1302777
+ [3,] 0.1525156 0.1343892 0.1394911
+ [4,] 0.1484628 0.1242324 0.1250567
+ [5,] 0.1148974 0.1024826 0.1053796
+ [6,] 0.1509788 0.1231019 0.1260587
+ [7,] 0.1375112 0.1209256 0.1162148
+ [8,] 0.1247464 0.1119060 0.1148403
+ [9,] 0.1534144 0.1253207 0.1239454
+[10,] 0.1320527 0.1156211 0.1103563
+> cat("\n Avg", colMeans(rmse), "\n" )
+
+ Avg 0.1377987 0.1199503 0.1217564 
+
+
+
+> print(rmse)
+           [,1]      [,2]      [,3]
+ [1,] 0.0000000 0.0000000 0.0000000
+ [2,] 0.0000000 0.0000000 0.0000000
+ [3,] 0.1524360 0.1347753 0.1395547
+ [4,] 0.0000000 0.0000000 0.0000000
+ [5,] 0.0000000 0.0000000 0.0000000
+ [6,] 0.1499379 0.1236388 0.1255248
+ [7,] 0.0000000 0.0000000 0.0000000
+ [8,] 0.0000000 0.0000000 0.0000000
+ [9,] 0.1537671 0.1256761 0.1241468
+[10,] 0.0000000 0.0000000 0.0000000
+> cat("\n Avg", colMeans(rmse), "\n" )
+
+ Avg 0.04561409 0.03840902 0.03892263 
+
+
+
+  r = handle_missing(train_data, test_data)
+  r = Add_Variables(r$train_data, r$test_data)
+  r = Remove_Variables(r$train_data, r$test_data)
+  r = process_categorical(r$train_data, r$test_data)
+  r = cate_to_numeric(r$train_data, r$test_data)
+  #r = process_numeric(r$train_data, r$test_data)
+  r = process_output(r$train_data, r$test_data)
+  r$train_data = Winsorizing(r$train_data, "Sale_Price", 0.01)
+
+> print(rmse)
+           [,1]      [,2]      [,3]
+ [1,] 0.0000000 0.0000000 0.0000000
+ [2,] 0.0000000 0.0000000 0.0000000
+ [3,] 0.1504135 0.1344642 0.1487234
+ [4,] 0.0000000 0.0000000 0.0000000
+ [5,] 0.0000000 0.0000000 0.0000000
+ [6,] 0.1472351 0.1234554 0.1318170
+ [7,] 0.0000000 0.0000000 0.0000000
+ [8,] 0.0000000 0.0000000 0.0000000
+ [9,] 0.1497886 0.1256268 0.1352925
+[10,] 0.0000000 0.0000000 0.0000000
+> cat("\n Avg", colMeans(rmse), "\n" )
+
+ Avg 0.04474372 0.03835465 0.04158329 
+
+
+  r = handle_missing(train_data, test_data)
+  r = Add_Variables(r$train_data, r$test_data)
+  r = Remove_Variables(r$train_data, r$test_data)
+  r = process_categorical(r$train_data, r$test_data)
+  r = cate_to_numeric(r$train_data, r$test_data)
+  r = process_numeric(r$train_data, r$test_data)
+  r = process_output(r$train_data, r$test_data)
+  r$train_data = Winsorizing(r$train_data, "Sale_Price", 0.05)
+
+           [,1]      [,2]      [,3]
+ [1,] 0.0000000 0.0000000 0.0000000
+ [2,] 0.0000000 0.0000000 0.0000000
+ [3,] 0.1696964 0.1511904 0.1512268
+ [4,] 0.0000000 0.0000000 0.0000000
+ [5,] 0.0000000 0.0000000 0.0000000
+ [6,] 0.1734871 0.1477481 0.1425854
+ [7,] 0.0000000 0.0000000 0.0000000
+ [8,] 0.0000000 0.0000000 0.0000000
+ [9,] 0.1726598 0.1465719 0.1381183
+[10,] 0.0000000 0.0000000 0.0000000
+
+ Avg 0.05158432 0.04455104 0.04319305 
+
+
+  r = handle_missing(train_data, test_data)
+  r = Add_Variables(r$train_data, r$test_data)
+  r = Remove_Variables(r$train_data, r$test_data)
+  r = process_categorical(r$train_data, r$test_data)
+  r = cate_to_numeric(r$train_data, r$test_data)
+  r = process_numeric(r$train_data, r$test_data)
+  r = process_output(r$train_data, r$test_data)
+  r$train_data = Winsorizing2(r$train_data, "Sale_Price")
+           [,1]      [,2]      [,3]
+ [1,] 0.0000000 0.0000000 0.0000000
+ [2,] 0.0000000 0.0000000 0.0000000
+ [3,] 0.1509902 0.1335889 0.1386708
+ [4,] 0.0000000 0.0000000 0.0000000
+ [5,] 0.0000000 0.0000000 0.0000000
+ [6,] 0.1476046 0.1222652 0.1246999
+ [7,] 0.0000000 0.0000000 0.0000000
+ [8,] 0.0000000 0.0000000 0.0000000
+ [9,] 0.1506684 0.1232724 0.1219685
+[10,] 0.0000000 0.0000000 0.0000000
+
+ Avg 0.04492632 0.03791266 0.03853392 
+
+
+  r = handle_missing(train_data, test_data)
+  r = Add_Variables(r$train_data, r$test_data)
+  r = Remove_Variables(r$train_data, r$test_data)
+  r = process_categorical(r$train_data, r$test_data)
+  r = cate_to_numeric(r$train_data, r$test_data)
+  r = process_numeric(r$train_data, r$test_data)
+  r = process_output(r$train_data, r$test_data)
+  r$train_data = Winsorizing2(r$train_data, c("PIC", "Overall_Qual","Overall_Cond"))
+
+           [,1]      [,2]      [,3]
+ [1,] 0.0000000 0.0000000 0.0000000
+ [2,] 0.0000000 0.0000000 0.0000000
+ [3,] 0.1491931 0.1346984 0.2223775
+ [4,] 0.0000000 0.0000000 0.0000000
+ [5,] 0.0000000 0.0000000 0.0000000
+ [6,] 0.1438568 0.1217897 0.2113396
+ [7,] 0.0000000 0.0000000 0.0000000
+ [8,] 0.0000000 0.0000000 0.0000000
+ [9,] 0.1450070 0.1195299 0.1944409
+[10,] 0.0000000 0.0000000 0.0000000
+
+ Avg 0.04380569 0.0376018 0.0628158 
+
+
+  r = handle_missing(train_data, test_data)
+  r = Add_Variables(r$train_data, r$test_data)
+  r = Remove_Variables(r$train_data, r$test_data)
+  r = process_categorical(r$train_data, r$test_data)
+  r = cate_to_numeric(r$train_data, r$test_data)
+  r = process_numeric(r$train_data, r$test_data)
+  r = process_output(r$train_data, r$test_data)
+  r$train_data = Winsorizing2(r$train_data, c("PIC", "Overall_Qual","Overall_Cond",
+                                              "Mas_Vnr_Area","BsmtFin_SF_2", "Second_Flr_SF",
+                                              "Bedroom_AbvGr", "Kitchen_AbvGr", "Garage_Cars",
+                                              "Wood_Deck_SF"))
+
+           [,1]      [,2]      [,3]
+ [1,] 0.0000000 0.0000000 0.0000000
+ [2,] 0.0000000 0.0000000 0.0000000
+ [3,] 0.1512735 0.1323465 0.1390600
+ [4,] 0.0000000 0.0000000 0.0000000
+ [5,] 0.0000000 0.0000000 0.0000000
+ [6,] 0.1473029 0.1220658 0.1234899
+ [7,] 0.0000000 0.0000000 0.0000000
+ [8,] 0.0000000 0.0000000 0.0000000
+ [9,] 0.1512214 0.1216508 0.1230874
+[10,] 0.0000000 0.0000000 0.0000000
+
+ Avg 0.04497979 0.03760631 0.03856372 
+
+
+  r = handle_missing(train_data, test_data)
+  r = Add_Variables(r$train_data, r$test_data)
+  r = Remove_Variables(r$train_data, r$test_data)
+  r = process_categorical(r$train_data, r$test_data)
+  r = cate_to_numeric(r$train_data, r$test_data)
+  r = process_numeric(r$train_data, r$test_data)
+  r = process_output(r$train_data, r$test_data)
+  # r$train_data = Winsorizing2(r$train_data, c("PIC", "Overall_Qual","Overall_Cond",
+  #                                             "Mas_Vnr_Area","BsmtFin_SF_2", "Second_Flr_SF",
+  #                                             "Bedroom_AbvGr", "Kitchen_AbvGr", "Garage_Cars",
+  #                                             "Wood_Deck_SF"))
+  
+
+           [,1]      [,2]      [,3]
+ [1,] 0.0000000 0.0000000 0.0000000
+ [2,] 0.0000000 0.0000000 0.0000000
+ [3,] 0.1484663 0.1326764 0.1387992
+ [4,] 0.0000000 0.0000000 0.0000000
+ [5,] 0.0000000 0.0000000 0.0000000
+ [6,] 0.1427373 0.1206504 0.1223844
+ [7,] 0.0000000 0.0000000 0.0000000
+ [8,] 0.0000000 0.0000000 0.0000000
+ [9,] 0.1450686 0.1217911 0.1196423
+[10,] 0.0000000 0.0000000 0.0000000
+
+ Avg 0.04362722 0.03751179 0.03808259 

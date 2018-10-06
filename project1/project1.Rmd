@@ -333,11 +333,12 @@ rf_predict = function(train_data, test_data) {
   predict(rfModel, test_data)
 }
 
-rbm_predict = function(train_data, test_data) {
+gbm_predict = function(train_data, test_data) {
   gbmModel = gbm(Sale_Price ~ ., data = train_data, distribution = "gaussian", n.trees = 5000,
-               shrinkage = 0.01, interaction.depth = 6, bag.fraction = 0.5, cv.folds = 5)
+               shrinkage = 0.01, interaction.depth = 6, bag.fraction = 0.5, cv.folds = 5, verbose = FALSE)
   
   opt.size = gbm.perf(gbmModel)
+  print(opt.size)
   predict(gbmModel, test_data, n.trees = opt.size)
 }
 
@@ -355,7 +356,7 @@ lasso_predict = function(train_data, test_data) {
   predict(cv.out, s = cv.out$lambda.min, newx = X_test)
 }
 
-regression_functions = c(rf_predict, rbm_predict, lasso_predict)
+regression_functions = c(rf_predict, gbm_predict, lasso_predict)
 rmse = matrix(0, 10, length(regression_functions))
 
 for (i in c(3,6,9)){
