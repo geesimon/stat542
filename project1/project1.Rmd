@@ -228,9 +228,15 @@ process_categorical = function(train_data, test_data){
     if(CategoricalLevels[[name]][n] != "Misc") {
       train_data[,name] = ordered(train_data[,name], levels = CategoricalLevels[[name]])
       test_data[,name] = ordered(test_data[,name], levels = CategoricalLevels[[name]])
+      if(sum(!test_data[,name] %in% unique(train_data[,name])) > 0) {
+        cat("Undefined test categorical value:", name, "\n")
+      }
     } else {
       test_data[,name] = factor(test_data[,name], levels = levels(train_data[,name]))
       max_level = names(sort(table(train_data[,name]), decreasing = TRUE))[1]
+      
+      if(sum(is.na(test_data[,name])) > 0) cat(name, "\tna\t", sum(is.na(test_data[,name])))
+      
       test_data[,name][is.na(test_data[,name])] = max_level
     }
   }
@@ -359,8 +365,8 @@ lasso_predict = function(train_data, test_data) {
 regression_functions = c(rf_predict, gbm_predict, lasso_predict)
 rmse = matrix(0, 10, length(regression_functions))
 
-for (i in c(3,6,9)){
-#for (i in 1:10){
+#for (i in c(3,6,9)){
+for (i in 1:10){
   test_pid = Project1_test_id[,i]
 
   train_data = all_data[!all_data$PID %in% test_pid,]
