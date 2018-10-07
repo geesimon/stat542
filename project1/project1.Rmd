@@ -343,7 +343,7 @@ gbm_predict = function(train_data, test_data) {
   gbmModel = gbm(Sale_Price ~ ., data = train_data, distribution = "gaussian", n.trees = 5000,
                shrinkage = 0.01, interaction.depth = 6, bag.fraction = 0.5, cv.folds = 5, verbose = FALSE)
   
-  opt.size = gbm.perf(gbmModel)
+  opt.size = gbm.perf(gbmModel, method="cv")
   print(opt.size)
   predict(gbmModel, test_data, n.trees = opt.size)
 }
