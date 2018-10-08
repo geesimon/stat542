@@ -5,7 +5,7 @@ output: pdf_document
 ---
 
 ```{r}
-mypackages = c("randomForest","gbm","glmnet","psych")   # required packages
+mypackages = c("randomForest","gbm","glmnet","psych", "xgboost")   # required packages
 tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
 if (length(tmp) > 0) install.packages(tmp)
 lapply(mypackages, require, character.only = TRUE)
@@ -232,14 +232,36 @@ process_categorical = function(train_data, test_data){
     if(!name %in% colnames(train_data)) next;
     n = length(CategoricalLevels[[name]])
     if(CategoricalLevels[[name]][n] != "Misc") {
-      ordered_levels = CategoricalLevels[[name]][CategoricalLevels[[name]] %in% unique(train_data[,name])]
+      train_levels = CategoricalLevels[[name]][CategoricalLevels[[name]] %in% unique(train_data[,name])]
+      test_levels = CategoricalLevels[[name]][CategoricalLevels[[name]] %in% unique(test_data[,name])]
       
-      train_data[,name] = ordered(train_data[,name], levels = ordered_levels)
-      
-      test_data[,name] = ordered(test_data[,name], levels = ordered_levels)
-      if(sum(!test_data[,name] %in% unique(train_data[,name])) > 0) {
-        cat("Undefined test categorical value:", name, "\n")
+      train_data[,name] = ordered(train_data[,name], levels = train_levels)
+
+      #Replace with the closest ordered categorical value
+      if(sum(!test_levels %in% train_levels) > 0) {
+       
+        cat("Undefined test cate:", name, "\n")
+        cat("Undefined test value:", test_levels[!test_levels %in% train_levels], "\n")
+        cat("Levels:", train_levels, "\n")
+ 
+        #Reset to full level
+        test_data[,name] = ordered(test_data[,name], levels = CategoricalLevels[[name]])
+                
+        train_i = which(CategoricalLevels[[name]] %in% train_levels)
+        for(level_i in 1:length(test_levels)){
+          cat("Level_i", level_i, "\n")
+          level = test_levels[level_i]
+          if(level %in% train_levels) next;
+          
+          i = which(CategoricalLevels[[name]] == level)
+          i = train_i[which.min(abs(train_i - i))]
+          test_data[,name][test_data[,name] == test_levels[level_i]] = CategoricalLevels[[name]][i]
+        }
+        cat("New Level:", CategoricalLevels[[name]][i], "\n")
       }
+      
+      test_data[,name] = ordered(test_data[,name], levels = train_levels)
+
       if(length(unique(train_data[,name])) != length(levels(train_data[,name]))){
         cat("Unused level in:", name, "\n")
         cat("train:",unique(train_data[,name]), "\n")
@@ -275,7 +297,6 @@ cate_to_numeric = function(train_data, test_data){
 
   list(train_data = train_data, test_data = test_data)
 }
-
 ```
 
 Process numeric data
@@ -345,6 +366,7 @@ Build random forest model
 library(randomForest)
 library(gbm)
 library(glmnet)
+library(xgboost)
 
 set.seed(6682)
 
@@ -379,7 +401,25 @@ lasso_predict = function(train_data, test_data) {
   predict(cv.out, s = cv.out$lambda.min, newx = X_test)
 }
 
-regression_functions = c(rf_predict, gbm_predict, lasso_predict)
+
+xgb_predict = function(train_data, test_data) {
+  X_train = train_data[, colnames(train_data) != 'Sale_Price']
+  X_train = model.matrix(~., X_train)[,-1]
+  
+  Y_train = train_data$Sale_Price
+  
+  xgb_model = xgboost(data = X_train, label=Y_train, max_depth = 3, 
+                      eta = 0.05, nthread = 4, nrounds = 3000, verbose = FALSE)
+  
+  X_test = test_data[, colnames(test_data) != 'Sale_Price']
+  X_test = model.matrix(~. - PID, X_test)[,-1]
+  
+  predict(xgb_model, X_test)
+}
+
+#regression_functions = c(xgb_predict)
+regression_functions = c(gbm_predict, xgb_predict)
+#regression_functions = c(rf_predict, gbm_predict, lasso_predict, xgb_predict)
 rmse = matrix(0, 10, length(regression_functions))
 
 #for (i in c(3,6,9)){
