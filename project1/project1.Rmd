@@ -4,6 +4,13 @@ author: "Xiaoming Ji"
 output: pdf_document
 ---
 
+```{r}
+mypackages = c("randomForest","gbm","glmnet","psych")   # required packages
+tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
+if (length(tmp) > 0) install.packages(tmp)
+lapply(mypackages, require, character.only = TRUE)
+```
+
 ```{r, eval=FALSE, include=FALSE}
 all_data = read.csv("Ames_data.csv")
 n = nrow(all_data)
@@ -16,7 +23,6 @@ test_data = all_data[test_ids,]
 write.csv(train_data, "train.csv", row.names = FALSE)
 write.csv(test_data, "test.csv", row.names = FALSE)
 ```
-
 
 ```{r}
 all_data = read.csv("Ames_data.csv")
@@ -226,10 +232,18 @@ process_categorical = function(train_data, test_data){
     if(!name %in% colnames(train_data)) next;
     n = length(CategoricalLevels[[name]])
     if(CategoricalLevels[[name]][n] != "Misc") {
-      train_data[,name] = ordered(train_data[,name], levels = CategoricalLevels[[name]])
-      test_data[,name] = ordered(test_data[,name], levels = CategoricalLevels[[name]])
+      ordered_levels = CategoricalLevels[[name]][CategoricalLevels[[name]] %in% unique(train_data[,name])]
+      
+      train_data[,name] = ordered(train_data[,name], levels = ordered_levels)
+      
+      test_data[,name] = ordered(test_data[,name], levels = ordered_levels)
       if(sum(!test_data[,name] %in% unique(train_data[,name])) > 0) {
         cat("Undefined test categorical value:", name, "\n")
+      }
+      if(length(unique(train_data[,name])) != length(levels(train_data[,name]))){
+        cat("Unused level in:", name, "\n")
+        cat("train:",unique(train_data[,name]), "\n")
+        cat("levels:", CategoricalLevels[[name]], "\n")        
       }
     } else {
       test_data[,name] = factor(test_data[,name], levels = levels(train_data[,name]))
@@ -249,12 +263,16 @@ process_categorical = function(train_data, test_data){
 Pre-processing
 ```{r}
 cate_to_numeric = function(train_data, test_data){
-  train_data$Overall_Qual = as.numeric(train_data$Overall_Qual)
-  train_data$Overall_Cond = as.numeric(train_data$Overall_Cond)
+  cond_levels = c("Poor", "Average", "Good", "Excellent")
+  cond_map=c("Poor", "Poor", "Average", "Average", "Average", "Good", 
+             "Good", "Excellent", "Excellent", "Excellent")
+
+  train_data$Overall_Qual = ordered(cond_map[as.numeric(train_data$Overall_Qual)], levels=cond_levels)
+  train_data$Overall_Cond = ordered(cond_map[as.numeric(train_data$Overall_Cond)], levels=cond_levels)
   
-  test_data$Overall_Qual = as.numeric(test_data$Overall_Qual)
-  test_data$Overall_Cond = as.numeric(test_data$Overall_Cond)
-  
+  test_data$Overall_Qual = ordered(cond_map[as.numeric(test_data$Overall_Qual)], levels=cond_levels)
+  test_data$Overall_Cond = ordered(cond_map[as.numeric(test_data$Overall_Cond)], levels=cond_levels)
+
   list(train_data = train_data, test_data = test_data)
 }
 
@@ -278,14 +296,13 @@ process_numeric = function(train_data, test_data) {
   test_data$Mo_Sold[is.na(test_data$Mo_Sold)] = max_level
 
   for (i in 2:dim(train_data)[2]){
-    if(colnames(train_data)[i] %in% c("Sale_Price",names(CategoricalLevels))) next;
-  
-    if (is.numeric(train_data[, i])) {
-      if(skew(train_data[, i]) > 0.8) {
-        train_data[, i] = log(train_data[, i] + 1)
-        test_data[, i] = log(test_data[, i] + 1)
-        #print(colnames(train_data)[i])
-      }
+    if(colnames(train_data)[i] %in% c("Sale_Price", names(CategoricalLevels)) ||
+       !is.numeric(train_data[, i])) next;
+
+    if(skew(train_data[, i]) > 0.8) {
+      #print(colnames(train_data)[i])
+      train_data[, i] = log(train_data[, i] + 1)
+      test_data[, i] = log(test_data[, i] + 1)
     }
   }
   
@@ -309,7 +326,7 @@ preprocess_data = function(train_data, test_data){
   r = Add_Variables(r$train_data, r$test_data)
   r = Remove_Variables(r$train_data, r$test_data)
   r = process_categorical(r$train_data, r$test_data)
-  r = cate_to_numeric(r$train_data, r$test_data)
+  #r = cate_to_numeric(r$train_data, r$test_data)
   r = process_numeric(r$train_data, r$test_data)
   r = process_output(r$train_data, r$test_data)
   # r$train_data = Winsorizing2(r$train_data, c("PIC", "Overall_Qual","Overall_Cond",
@@ -332,7 +349,7 @@ library(glmnet)
 set.seed(6682)
 
 rf_predict = function(train_data, test_data) {
-  x_train = train_data[, !colnames(train_data) %in% c("Sale_Price", "PID")]
+  x_train = train_data[, !colnames(train_data) %in% c("Sale_Price")]
   
   rfModel = randomForest(x_train, train_data$Sale_Price,importance = T, ntree=400); 
   
@@ -341,7 +358,7 @@ rf_predict = function(train_data, test_data) {
 
 gbm_predict = function(train_data, test_data) {
   gbmModel = gbm(Sale_Price ~ ., data = train_data, distribution = "gaussian", n.trees = 5000,
-               shrinkage = 0.01, interaction.depth = 6, bag.fraction = 0.5, cv.folds = 5, verbose = FALSE)
+               shrinkage = 0.05, interaction.depth = 6, bag.fraction = 0.5, cv.folds = 5, verbose = FALSE)
   
   opt.size = gbm.perf(gbmModel, method="cv")
   print(opt.size)
@@ -350,7 +367,7 @@ gbm_predict = function(train_data, test_data) {
 
 lasso_predict = function(train_data, test_data) {
   X_train = train_data[, colnames(train_data) != 'Sale_Price']
-  X_train = model.matrix(~. -PID, X_train)
+  X_train = model.matrix(~., X_train)
   
   Y_train = train_data$Sale_Price
   
@@ -373,13 +390,16 @@ for (i in 1:10){
   test_data = all_data[all_data$PID %in% test_pid,]
 
   r = preprocess_data(train_data, test_data)
+
+  train_data = r$train_data[, !colnames(r$train_data) %in% c('PID')] #Remove 'PID' column
+  test_data = r$test_data[, !colnames(r$test_data) %in% c('Sale_Price')] #Remove "Sale_Price" column
   
   if(sum(is.na(r$train_data)) > 0 || sum(is.na(r$test_data)) > 0) {
-    print("NA value found!")
+    stop("NA value found!")
   }
   
   for (f in 1:length(regression_functions)){
-    yhat_test = regression_functions[[f]](r$train_data, r$test_data)
+    yhat_test = regression_functions[[f]](train_data, test_data)
     rmse[i, f] = get_RMSE(yhat_test, r$test_data$Sale_Price)
     cat(rmse[i, f], "\t")
   }
