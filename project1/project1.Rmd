@@ -408,8 +408,8 @@ xgb_predict = function(train_data, test_data) {
   
   Y_train = train_data$Sale_Price
   
-  xgb_model = xgboost(data = X_train, label=Y_train, max_depth = 3, 
-                      eta = 0.05, nthread = 4, nrounds = 3000, verbose = FALSE)
+  xgb_model = xgboost(data = X_train, label=Y_train, max_depth = 6, 
+                      eta = 0.05, nthread = 4, nrounds = 5000, verbose = FALSE)
   
   X_test = test_data[, colnames(test_data) != 'Sale_Price']
   X_test = model.matrix(~. - PID, X_test)[,-1]
