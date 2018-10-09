@@ -393,8 +393,8 @@ gbm_predict = function(train_data, test_data) {
 
   gbmFit = train(Sale_Price ~ ., data = train_data, method = "gbm",
                  trControl = fitControl, verbose = FALSE,
-                 distribution = "gaussian", tuneGrid = gbmGrid)
-  gbmFit
+                 distribution = "gaussian")#, tuneGrid = gbmGrid)
+  print(gbmFit)
 
   predict(gbmFit, test_data)
 }
@@ -437,8 +437,8 @@ xgb_predict = function(train_data, test_data) {
                           subsample = c(1, 0.5))
   
   xgbFit = train(Sale_Price ~ ., data = train_data, method = "xgbTree",
-                 trControl = fitControl, verbose = FALSE, tuneGrid = xgbGrid)
-  xgbFit
+                 trControl = fitControl, verbose = FALSE)#, tuneGrid = xgbGrid)
+  print(xgbFit)
   
   predict(xgbFit, test_data)
 }
@@ -462,7 +462,7 @@ regression_functions = list(
 #                             Lasso = lasso_predict
 #                             )
 
-rmse = matrix(0, 10, length(regression_functions))
+rmse = matrix(0, dim(Project1_test_id)[2], length(regression_functions))
 colnames(rmse) = names(regression_functions)
 
 start_time = proc.time()
