@@ -385,8 +385,8 @@ gbm_predict = function(train_data, test_data) {
   # opt.size = gbm.perf(gbmModel, method="cv")
   # predict(gbmModel, test_data, n.trees = opt.size)
   
-  fitControl <- trainControl(method = "repeatedcv", number = 5)
-  gbmGrid =  expand.grid(interaction.depth = c(1, 5, 9),
+  fitControl = trainControl(method = "repeatedcv", number = 5)
+  gbmGrid =  expand.grid(interaction.depth = c(3, 6, 9),
                           n.trees = (20:40)*50,
                           shrinkage = c(0.1, 0.01),
                           n.minobsinnode = 20)
@@ -394,6 +394,7 @@ gbm_predict = function(train_data, test_data) {
   gbmFit = train(Sale_Price ~ ., data = train_data, method = "gbm",
                  trControl = fitControl, verbose = FALSE,
                  distribution = "gaussian", tuneGrid = gbmGrid)
+  gbmFit
 
   predict(gbmFit, test_data)
 }
@@ -416,18 +417,30 @@ lasso_predict = function(train_data, test_data) {
 
 
 xgb_predict = function(train_data, test_data) {
-  X_train = train_data[, colnames(train_data) != 'Sale_Price']
-  X_train = model.matrix(~., X_train)[,-1]
+  # X_train = train_data[, colnames(train_data) != 'Sale_Price']
+  # X_train = model.matrix(~., X_train)[,-1]
+  # 
+  # Y_train = train_data$Sale_Price
+  # 
+  # xgb_model = xgboost(data = X_train, label=Y_train, max_depth = 6, 
+  #                     eta = 0.05, nthread = 4, nrounds = 5000, verbose = FALSE)
+  # 
+  # X_test = test_data[, colnames(test_data) != 'Sale_Price']
+  # X_test = model.matrix(~. - PID, X_test)[,-1]
+  # predict(xgb_model, X_test)
   
-  Y_train = train_data$Sale_Price
+  fitControl = trainControl(method = "repeatedcv", number = 5)
+  xgbGrid =  expand.grid(max_depth = c(3, 6, 9),
+                          nrounds = (20:40)*50,
+                          eta = c(0.1, 0.01),
+                          colsample_bytree = c(0.5, 1),
+                          subsample = c(1, 0.5))
   
-  xgb_model = xgboost(data = X_train, label=Y_train, max_depth = 6, 
-                      eta = 0.05, nthread = 4, nrounds = 5000, verbose = FALSE)
+  xgbFit = train(Sale_Price ~ ., data = train_data, method = "xgbTree",
+                 trControl = fitControl, verbose = FALSE, tuneGrid = xgbGrid)
+  xgbFit
   
-  X_test = test_data[, colnames(test_data) != 'Sale_Price']
-  X_test = model.matrix(~. - PID, X_test)[,-1]
-  
-  predict(xgb_model, X_test)
+  predict(xgbFit, test_data)
 }
 
 #regression_functions = c(xgb_predict)
@@ -438,10 +451,13 @@ xgb_predict = function(train_data, test_data) {
 #                             Lasso = lasso_predict,
 #                             Xgboost = xgb_predict
 #                             )
+# regression_functions = list(
+#                             GBM = gbm_predict
+#                             )
 regression_functions = list(
-                            GBM = gbm_predict
+                            GBM = gbm_predict,
+                            Xgboost = xgb_predict
                             )
-
 # regression_functions = list(
 #                             Lasso = lasso_predict
 #                             )
