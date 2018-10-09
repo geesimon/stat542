@@ -257,3 +257,1586 @@ Undefined test categorical value: Kitchen_Qual
 > cat("\n Avg", colMeans(rmse), "\n" )
 
  Avg 0.1321635 0.171397 0.1202536 
+
+
+
+Show in New WindowClear OutputExpand/Collapse Output
+[[1]]
+[1] TRUE
+
+[[2]]
+[1] TRUE
+
+[[3]]
+[1] TRUE
+
+[[4]]
+[1] TRUE
+
+[[5]]
+[1] TRUE
+
+[[6]]
+[1] TRUE
+
+Show in New WindowClear OutputExpand/Collapse Output
+Undefined test categorical: Kitchen_Qual Poor 
+Training Levels: Fair Typical Good Excellent 
+Level_i 1 
+Level_i 2 
+Level_i 3 
+Level_i 4 
+Level_i 5 
+New Level: Fair 
+variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 190: ElectricalUnknown has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 190: ElectricalUnknown has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 190: ElectricalUnknown has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 114: Exterior_1stPreCast has no variation.variable 115: Exterior_1stStone has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 114: Exterior_1stPreCast has no variation.variable 115: Exterior_1stStone has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 114: Exterior_1stPreCast has no variation.variable 115: Exterior_1stStone has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 44: NeighborhoodGreen_Hills has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 44: NeighborhoodGreen_Hills has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 44: NeighborhoodGreen_Hills has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 47: NeighborhoodLandmark has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 47: NeighborhoodLandmark has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 47: NeighborhoodLandmark has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 256: Sale_TypeVWD has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 256: Sale_TypeVWD has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 256: Sale_TypeVWD has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.Stochastic Gradient Boosting 
+
+2051 samples
+  59 predictor
+
+No pre-processing
+Resampling: Cross-Validated (5 fold, repeated 1 times) 
+Summary of sample sizes: 1641, 1641, 1641, 1640, 1641 
+Resampling results across tuning parameters:
+
+  interaction.depth  n.trees  RMSE       Rsquared   MAE       
+  1                   50      0.1693301  0.8580233  0.11559619
+  1                  100      0.1444540  0.8829395  0.09784725
+  1                  150      0.1364197  0.8937356  0.09128354
+  2                   50      0.1479449  0.8796640  0.09998241
+  2                  100      0.1332331  0.8983004  0.08852215
+  2                  150      0.1303562  0.9024258  0.08505232
+  3                   50      0.1395033  0.8910057  0.09458236
+  3                  100      0.1290822  0.9047070  0.08578469
+  3                  150      0.1275078  0.9068634  0.08393900
+
+Tuning parameter 'shrinkage' was held constant at a value of 0.1
+Tuning parameter 'n.minobsinnode' was held constant at a value of 10
+RMSE was used to select the optimal model using the smallest value.
+The final values used for the model were n.trees = 150, interaction.depth = 3, shrinkage = 0.1 and n.minobsinnode = 10.
+0.1254108 	eXtreme Gradient Boosting 
+
+2051 samples
+  59 predictor
+
+No pre-processing
+Resampling: Cross-Validated (5 fold, repeated 1 times) 
+Summary of sample sizes: 1640, 1641, 1640, 1641, 1642 
+Resampling results across tuning parameters:
+
+  eta  max_depth  colsample_bytree  subsample  nrounds  RMSE       Rsquared   MAE       
+  0.3  1          0.6               0.50        50      0.1478845  0.8763257  0.10421975
+  0.3  1          0.6               0.50       100      0.1411786  0.8882738  0.09660440
+  0.3  1          0.6               0.50       150      0.1408299  0.8898617  0.09446961
+  0.3  1          0.6               0.75        50      0.1508219  0.8721534  0.10567781
+  0.3  1          0.6               0.75       100      0.1407471  0.8887353  0.09604544
+  0.3  1          0.6               0.75       150      0.1376324  0.8936962  0.09167548
+  0.3  1          0.6               1.00        50      0.1483385  0.8758105  0.10220732
+  0.3  1          0.6               1.00       100      0.1391261  0.8905570  0.09375096
+  0.3  1          0.6               1.00       150      0.1342111  0.8981896  0.08946794
+  0.3  1          0.8               0.50        50      0.1531633  0.8686992  0.10610080
+  0.3  1          0.8               0.50       100      0.1427809  0.8857915  0.09729731
+  0.3  1          0.8               0.50       150      0.1410083  0.8890891  0.09402244
+  0.3  1          0.8               0.75        50      0.1513696  0.8708928  0.10408721
+  0.3  1          0.8               0.75       100      0.1424909  0.8862170  0.09554207
+  0.3  1          0.8               0.75       150      0.1387462  0.8923389  0.09188173
+  0.3  1          0.8               1.00        50      0.1496309  0.8735957  0.10449840
+  0.3  1          0.8               1.00       100      0.1399871  0.8892073  0.09523310
+  0.3  1          0.8               1.00       150      0.1347956  0.8973838  0.09078272
+  0.3  2          0.6               0.50        50      0.1461575  0.8812270  0.09452984
+  0.3  2          0.6               0.50       100      0.1473123  0.8811585  0.09089658
+  0.3  2          0.6               0.50       150      0.1441531  0.8867418  0.08877480
+  0.3  2          0.6               0.75        50      0.1430766  0.8851328  0.09430463
+  0.3  2          0.6               0.75       100      0.1384800  0.8925467  0.08905278
+  0.3  2          0.6               0.75       150      0.1360932  0.8964588  0.08641799
+  0.3  2          0.6               1.00        50      0.1379609  0.8924106  0.09107668
+  0.3  2          0.6               1.00       100      0.1326941  0.9004614  0.08590492
+  0.3  2          0.6               1.00       150      0.1306109  0.9038097  0.08323267
+  0.3  2          0.8               0.50        50      0.1385258  0.8927927  0.09274450
+  0.3  2          0.8               0.50       100      0.1380204  0.8940810  0.09007345
+  0.3  2          0.8               0.50       150      0.1369558  0.8952832  0.08848575
+  0.3  2          0.8               0.75        50      0.1439030  0.8844687  0.09491705
+  0.3  2          0.8               0.75       100      0.1391552  0.8927717  0.08846647
+  0.3  2          0.8               0.75       150      0.1373466  0.8952650  0.08666665
+  0.3  2          0.8               1.00        50      0.1392939  0.8909448  0.09125818
+  0.3  2          0.8               1.00       100      0.1342309  0.8993807  0.08667035
+  0.3  2          0.8               1.00       150      0.1320082  0.9026768  0.08451850
+  0.3  3          0.6               0.50        50      0.1373024  0.8946643  0.09238946
+  0.3  3          0.6               0.50       100      0.1346300  0.8987118  0.08954988
+  0.3  3          0.6               0.50       150      0.1335620  0.9002280  0.08867020
+  0.3  3          0.6               0.75        50      0.1410314  0.8906358  0.08928607
+  0.3  3          0.6               0.75       100      0.1394925  0.8932309  0.08599714
+  0.3  3          0.6               0.75       150      0.1390974  0.8940094  0.08520140
+  0.3  3          0.6               1.00        50      0.1349258  0.8976843  0.08854546
+  0.3  3          0.6               1.00       100      0.1315709  0.9028244  0.08509162
+  0.3  3          0.6               1.00       150      0.1302931  0.9047217  0.08364518
+  0.3  3          0.8               0.50        50      0.1398004  0.8908453  0.09128626
+  0.3  3          0.8               0.50       100      0.1385023  0.8929491  0.08994515
+  0.3  3          0.8               0.50       150      0.1374317  0.8948309  0.08950260
+  0.3  3          0.8               0.75        50      0.1359239  0.8962351  0.08804458
+  0.3  3          0.8               0.75       100      0.1334471  0.8998968  0.08537028
+  0.3  3          0.8               0.75       150      0.1335016  0.9001004  0.08465559
+  0.3  3          0.8               1.00        50      0.1382735  0.8937592  0.09026670
+  0.3  3          0.8               1.00       100      0.1358222  0.8977805  0.08728527
+  0.3  3          0.8               1.00       150      0.1348478  0.8992777  0.08638265
+  0.4  1          0.6               0.50        50      0.1533275  0.8680626  0.10544741
+  0.4  1          0.6               0.50       100      0.1427312  0.8854198  0.09619416
+  0.4  1          0.6               0.50       150      0.1432466  0.8865421  0.09400701
+  0.4  1          0.6               0.75        50      0.1544491  0.8661730  0.10875148
+  0.4  1          0.6               0.75       100      0.1450671  0.8817477  0.09883611
+  0.4  1          0.6               0.75       150      0.1403398  0.8902421  0.09369938
+  0.4  1          0.6               1.00        50      0.1493975  0.8739504  0.10533305
+  0.4  1          0.6               1.00       100      0.1394286  0.8907627  0.09519576
+  0.4  1          0.6               1.00       150      0.1344775  0.8985363  0.09014584
+  0.4  1          0.8               0.50        50      0.1567384  0.8641082  0.10716292
+  0.4  1          0.8               0.50       100      0.1478594  0.8776866  0.09895878
+  0.4  1          0.8               0.50       150      0.1425080  0.8860338  0.09381451
+  0.4  1          0.8               0.75        50      0.1523522  0.8695661  0.10509304
+  0.4  1          0.8               0.75       100      0.1421549  0.8871387  0.09518979
+  0.4  1          0.8               0.75       150      0.1369135  0.8953171  0.09024904
+  0.4  1          0.8               1.00        50      0.1507102  0.8720187  0.10595411
+  0.4  1          0.8               1.00       100      0.1398932  0.8899901  0.09567361
+  0.4  1          0.8               1.00       150      0.1344924  0.8983008  0.09082579
+  0.4  2          0.6               0.50        50      0.1550310  0.8700928  0.09962911
+  0.4  2          0.6               0.50       100      0.1495513  0.8792989  0.09595394
+  0.4  2          0.6               0.50       150      0.1487892  0.8806290  0.09432167
+  0.4  2          0.6               0.75        50      0.1418469  0.8882570  0.09310692
+  0.4  2          0.6               0.75       100      0.1396802  0.8924744  0.08908121
+  0.4  2          0.6               0.75       150      0.1377543  0.8955510  0.08699193
+  0.4  2          0.6               1.00        50      0.1443759  0.8838353  0.09450461
+  0.4  2          0.6               1.00       100      0.1403213  0.8907997  0.08934043
+  0.4  2          0.6               1.00       150      0.1379073  0.8950184  0.08716775
+  0.4  2          0.8               0.50        50      0.1460482  0.8824729  0.09879444
+  0.4  2          0.8               0.50       100      0.1434003  0.8869798  0.09405357
+  0.4  2          0.8               0.50       150      0.1419555  0.8889559  0.09266053
+  0.4  2          0.8               0.75        50      0.1409542  0.8901156  0.09377901
+  0.4  2          0.8               0.75       100      0.1362327  0.8972561  0.08929411
+  0.4  2          0.8               0.75       150      0.1336029  0.9009632  0.08735702
+  0.4  2          0.8               1.00        50      0.1382261  0.8921449  0.09083200
+  0.4  2          0.8               1.00       100      0.1330653  0.9002514  0.08560403
+  0.4  2          0.8               1.00       150      0.1317829  0.9023801  0.08354283
+  0.4  3          0.6               0.50        50      0.1528337  0.8702388  0.10015353
+  0.4  3          0.6               0.50       100      0.1535239  0.8703080  0.09951924
+  0.4  3          0.6               0.50       150      0.1535069  0.8701662  0.09894954
+  0.4  3          0.6               0.75        50      0.1451123  0.8830816  0.09330172
+  0.4  3          0.6               0.75       100      0.1424963  0.8872343  0.09131820
+  0.4  3          0.6               0.75       150      0.1425323  0.8871186  0.09082465
+  0.4  3          0.6               1.00        50      0.1429429  0.8868046  0.09147540
+  0.4  3          0.6               1.00       100      0.1408102  0.8907105  0.08854281
+  0.4  3          0.6               1.00       150      0.1409793  0.8905730  0.08745477
+  0.4  3          0.8               0.50        50      0.1471834  0.8805721  0.09758736
+  0.4  3          0.8               0.50       100      0.1484682  0.8791861  0.09737563
+  0.4  3          0.8               0.50       150      0.1481961  0.8798029  0.09740262
+  0.4  3          0.8               0.75        50      0.1416847  0.8891809  0.09230798
+  0.4  3          0.8               0.75       100      0.1396925  0.8923931  0.09015365
+  0.4  3          0.8               0.75       150      0.1391875  0.8933016  0.08973977
+  0.4  3          0.8               1.00        50      0.1397547  0.8931871  0.08923920
+  0.4  3          0.8               1.00       100      0.1391279  0.8941349  0.08753510
+  0.4  3          0.8               1.00       150      0.1397966  0.8932343  0.08751193
+
+Tuning parameter 'gamma' was held constant at a value of 0
+Tuning parameter 'min_child_weight' was held constant at a value of 1
+RMSE was used to select the optimal model using the smallest value.
+The final values used for the model were nrounds = 150, max_depth = 3, eta = 0.3, gamma = 0, colsample_bytree = 0.6, min_child_weight =
+ 1 and subsample = 1.
+0.1165861 	
+variable 47: NeighborhoodLandmark has no variation.variable 111: Exterior_1stImStucc has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 190: ElectricalUnknown has no variation.variable 257: Sale_TypeVWD has no variation.variable 47: NeighborhoodLandmark has no variation.variable 111: Exterior_1stImStucc has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 190: ElectricalUnknown has no variation.variable 257: Sale_TypeVWD has no variation.variable 47: NeighborhoodLandmark has no variation.variable 111: Exterior_1stImStucc has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 190: ElectricalUnknown has no variation.variable 257: Sale_TypeVWD has no variation.variable 18: MS_ZoningI_all has no variation.variable 47: NeighborhoodLandmark has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 190: ElectricalUnknown has no variation.variable 257: Sale_TypeVWD has no variation.variable 18: MS_ZoningI_all has no variation.variable 47: NeighborhoodLandmark has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 190: ElectricalUnknown has no variation.variable 257: Sale_TypeVWD has no variation.variable 18: MS_ZoningI_all has no variation.variable 47: NeighborhoodLandmark has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 190: ElectricalUnknown has no variation.variable 257: Sale_TypeVWD has no variation.variable 47: NeighborhoodLandmark has no variation.variable 188: ElectricalMix has no variation.variable 190: ElectricalUnknown has no variation.variable 250: Sale_TypeCon has no variation.variable 257: Sale_TypeVWD has no variation.variable 47: NeighborhoodLandmark has no variation.variable 188: ElectricalMix has no variation.variable 190: ElectricalUnknown has no variation.variable 250: Sale_TypeCon has no variation.variable 257: Sale_TypeVWD has no variation.variable 47: NeighborhoodLandmark has no variation.variable 188: ElectricalMix has no variation.variable 190: ElectricalUnknown has no variation.variable 250: Sale_TypeCon has no variation.variable 257: Sale_TypeVWD has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 47: NeighborhoodLandmark has no variation.variable 108: Exterior_1stCBlock has no variation.variable 128: Exterior_2ndOther has no variation.variable 190: ElectricalUnknown has no variation.variable 257: Sale_TypeVWD has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 47: NeighborhoodLandmark has no variation.variable 108: Exterior_1stCBlock has no variation.variable 128: Exterior_2ndOther has no variation.variable 190: ElectricalUnknown has no variation.variable 257: Sale_TypeVWD has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 47: NeighborhoodLandmark has no variation.variable 108: Exterior_1stCBlock has no variation.variable 128: Exterior_2ndOther has no variation.variable 190: ElectricalUnknown has no variation.variable 257: Sale_TypeVWD has no variation.variable 47: NeighborhoodLandmark has no variation.variable 114: Exterior_1stPreCast has no variation.variable 115: Exterior_1stStone has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 190: ElectricalUnknown has no variation.variable 257: Sale_TypeVWD has no variation.variable 47: NeighborhoodLandmark has no variation.variable 114: Exterior_1stPreCast has no variation.variable 115: Exterior_1stStone has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 190: ElectricalUnknown has no variation.variable 257: Sale_TypeVWD has no variation.variable 47: NeighborhoodLandmark has no variation.variable 114: Exterior_1stPreCast has no variation.variable 115: Exterior_1stStone has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 190: ElectricalUnknown has no variation.variable 257: Sale_TypeVWD has no variation.variable 47: NeighborhoodLandmark has no variation.variable 190: ElectricalUnknown has no variation.variable 257: Sale_TypeVWD has no variation.Stochastic Gradient Boosting 
+
+2051 samples
+  59 predictor
+
+No pre-processing
+Resampling: Cross-Validated (5 fold, repeated 1 times) 
+Summary of sample sizes: 1642, 1641, 1641, 1640, 1640 
+Resampling results across tuning parameters:
+
+  interaction.depth  n.trees  RMSE       Rsquared   MAE       
+  1                   50      0.1678960  0.8563336  0.11654532
+  1                  100      0.1406018  0.8872103  0.09744309
+  1                  150      0.1320737  0.8988479  0.09063453
+  2                   50      0.1432476  0.8855936  0.09902844
+  2                  100      0.1285259  0.9036786  0.08770752
+  2                  150      0.1249224  0.9089991  0.08483392
+  3                   50      0.1350756  0.8959410  0.09283666
+  3                  100      0.1241920  0.9102150  0.08424346
+  3                  150      0.1224382  0.9126700  0.08260107
+
+Tuning parameter 'shrinkage' was held constant at a value of 0.1
+Tuning parameter 'n.minobsinnode' was held constant at a value of 10
+RMSE was used to select the optimal model using the smallest value.
+The final values used for the model were n.trees = 150, interaction.depth = 3, shrinkage = 0.1 and n.minobsinnode = 10.
+0.1330937 	eXtreme Gradient Boosting 
+
+2051 samples
+  59 predictor
+
+No pre-processing
+Resampling: Cross-Validated (5 fold, repeated 1 times) 
+Summary of sample sizes: 1641, 1642, 1641, 1639, 1641 
+Resampling results across tuning parameters:
+
+  eta  max_depth  colsample_bytree  subsample  nrounds  RMSE       Rsquared   MAE       
+  0.3  1          0.6               0.50        50      0.1499138  0.8674658  0.10579545
+  0.3  1          0.6               0.50       100      0.1409982  0.8835859  0.09669047
+  0.3  1          0.6               0.50       150      0.1371445  0.8902312  0.09311436
+  0.3  1          0.6               0.75        50      0.1487911  0.8692083  0.10514924
+  0.3  1          0.6               0.75       100      0.1384820  0.8867360  0.09578503
+  0.3  1          0.6               0.75       150      0.1341991  0.8939715  0.09140168
+  0.3  1          0.6               1.00        50      0.1481732  0.8702987  0.10466596
+  0.3  1          0.6               1.00       100      0.1393212  0.8854250  0.09675596
+  0.3  1          0.6               1.00       150      0.1347567  0.8932678  0.09194544
+  0.3  1          0.8               0.50        50      0.1474459  0.8717032  0.10544435
+  0.3  1          0.8               0.50       100      0.1387541  0.8870135  0.09717608
+  0.3  1          0.8               0.50       150      0.1340315  0.8947383  0.09282641
+  0.3  1          0.8               0.75        50      0.1481564  0.8703411  0.10454936
+  0.3  1          0.8               0.75       100      0.1391385  0.8857707  0.09575867
+  0.3  1          0.8               0.75       150      0.1342042  0.8940000  0.09080775
+  0.3  1          0.8               1.00        50      0.1503188  0.8667601  0.10541033
+  0.3  1          0.8               1.00       100      0.1403637  0.8838641  0.09644529
+  0.3  1          0.8               1.00       150      0.1356579  0.8918173  0.09190633
+  0.3  2          0.6               0.50        50      0.1455048  0.8775216  0.09456772
+  0.3  2          0.6               0.50       100      0.1398138  0.8872779  0.08967932
+  0.3  2          0.6               0.50       150      0.1388286  0.8895064  0.08949405
+  0.3  2          0.6               0.75        50      0.1428163  0.8816623  0.09315695
+  0.3  2          0.6               0.75       100      0.1385314  0.8889665  0.08938994
+  0.3  2          0.6               0.75       150      0.1374107  0.8909161  0.08772101
+  0.3  2          0.6               1.00        50      0.1410550  0.8841143  0.09349815
+  0.3  2          0.6               1.00       100      0.1354856  0.8934141  0.08837792
+  0.3  2          0.6               1.00       150      0.1326884  0.8977790  0.08550625
+  0.3  2          0.8               0.50        50      0.1381603  0.8877076  0.09389972
+  0.3  2          0.8               0.50       100      0.1353780  0.8933257  0.08968788
+  0.3  2          0.8               0.50       150      0.1332932  0.8964444  0.08781396
+  0.3  2          0.8               0.75        50      0.1403434  0.8852707  0.09257510
+  0.3  2          0.8               0.75       100      0.1347144  0.8947150  0.08886804
+  0.3  2          0.8               0.75       150      0.1312898  0.9001736  0.08576075
+  0.3  2          0.8               1.00        50      0.1414649  0.8841213  0.09197033
+  0.3  2          0.8               1.00       100      0.1369052  0.8918587  0.08750558
+  0.3  2          0.8               1.00       150      0.1360763  0.8934801  0.08635230
+  0.3  3          0.6               0.50        50      0.1415564  0.8846259  0.09114218
+  0.3  3          0.6               0.50       100      0.1393739  0.8881377  0.08978390
+  0.3  3          0.6               0.50       150      0.1400074  0.8872788  0.08975567
+  0.3  3          0.6               0.75        50      0.1382181  0.8893990  0.09058967
+  0.3  3          0.6               0.75       100      0.1363930  0.8924865  0.08807316
+  0.3  3          0.6               0.75       150      0.1346503  0.8950842  0.08699033
+  0.3  3          0.6               1.00        50      0.1327566  0.8971883  0.08715985
+  0.3  3          0.6               1.00       100      0.1289061  0.9034093  0.08383823
+  0.3  3          0.6               1.00       150      0.1290974  0.9032637  0.08351406
+  0.3  3          0.8               0.50        50      0.1395628  0.8854328  0.09291555
+  0.3  3          0.8               0.50       100      0.1370421  0.8893778  0.09009519
+  0.3  3          0.8               0.50       150      0.1365862  0.8902370  0.09065827
+  0.3  3          0.8               0.75        50      0.1410548  0.8852856  0.09002766
+  0.3  3          0.8               0.75       100      0.1381306  0.8906201  0.08692856
+  0.3  3          0.8               0.75       150      0.1380368  0.8910009  0.08602903
+  0.3  3          0.8               1.00        50      0.1361801  0.8930160  0.08874161
+  0.3  3          0.8               1.00       100      0.1328893  0.8985650  0.08511138
+  0.3  3          0.8               1.00       150      0.1328584  0.8987569  0.08461591
+  0.4  1          0.6               0.50        50      0.1509505  0.8667290  0.10700813
+  0.4  1          0.6               0.50       100      0.1414145  0.8834809  0.09649114
+  0.4  1          0.6               0.50       150      0.1369900  0.8903840  0.09254687
+  0.4  1          0.6               0.75        50      0.1484374  0.8709089  0.10579061
+  0.4  1          0.6               0.75       100      0.1385614  0.8877444  0.09662366
+  0.4  1          0.6               0.75       150      0.1334820  0.8958359  0.09150632
+  0.4  1          0.6               1.00        50      0.1489406  0.8691226  0.10492645
+  0.4  1          0.6               1.00       100      0.1386561  0.8867931  0.09563134
+  0.4  1          0.6               1.00       150      0.1343090  0.8940487  0.09154286
+  0.4  1          0.8               0.50        50      0.1505461  0.8675771  0.10532501
+  0.4  1          0.8               0.50       100      0.1394046  0.8870650  0.09528766
+  0.4  1          0.8               0.50       150      0.1366908  0.8914524  0.09166326
+  0.4  1          0.8               0.75        50      0.1484420  0.8696174  0.10669575
+  0.4  1          0.8               0.75       100      0.1381446  0.8876132  0.09644784
+  0.4  1          0.8               0.75       150      0.1337213  0.8948203  0.09226236
+  0.4  1          0.8               1.00        50      0.1505139  0.8664733  0.10727160
+  0.4  1          0.8               1.00       100      0.1397004  0.8852206  0.09713491
+  0.4  1          0.8               1.00       150      0.1344453  0.8939465  0.09226112
+  0.4  2          0.6               0.50        50      0.1490430  0.8711261  0.09862338
+  0.4  2          0.6               0.50       100      0.1435476  0.8808211  0.09381619
+  0.4  2          0.6               0.50       150      0.1418800  0.8836688  0.09252036
+  0.4  2          0.6               0.75        50      0.1418984  0.8838561  0.09345781
+  0.4  2          0.6               0.75       100      0.1379020  0.8903551  0.08965775
+  0.4  2          0.6               0.75       150      0.1359953  0.8938733  0.08825120
+  0.4  2          0.6               1.00        50      0.1364114  0.8909667  0.09262282
+  0.4  2          0.6               1.00       100      0.1323806  0.8975831  0.08856385
+  0.4  2          0.6               1.00       150      0.1302107  0.9007339  0.08646943
+  0.4  2          0.8               0.50        50      0.1475040  0.8747297  0.09821235
+  0.4  2          0.8               0.50       100      0.1426923  0.8828033  0.09317888
+  0.4  2          0.8               0.50       150      0.1429615  0.8830138  0.09292053
+  0.4  2          0.8               0.75        50      0.1374777  0.8888135  0.09370435
+  0.4  2          0.8               0.75       100      0.1326432  0.8963686  0.08954989
+  0.4  2          0.8               0.75       150      0.1318917  0.8977741  0.08751698
+  0.4  2          0.8               1.00        50      0.1401782  0.8858302  0.09190516
+  0.4  2          0.8               1.00       100      0.1361244  0.8930181  0.08706142
+  0.4  2          0.8               1.00       150      0.1350649  0.8950700  0.08563596
+  0.4  3          0.6               0.50        50      0.1481421  0.8730523  0.09759228
+  0.4  3          0.6               0.50       100      0.1484442  0.8737681  0.09684135
+  0.4  3          0.6               0.50       150      0.1496705  0.8717855  0.09774227
+  0.4  3          0.6               0.75        50      0.1440170  0.8808713  0.09196125
+  0.4  3          0.6               0.75       100      0.1414461  0.8856089  0.08970163
+  0.4  3          0.6               0.75       150      0.1418274  0.8849571  0.08999739
+  0.4  3          0.6               1.00        50      0.1366290  0.8918994  0.09010659
+  0.4  3          0.6               1.00       100      0.1357452  0.8938321  0.08873313
+  0.4  3          0.6               1.00       150      0.1360234  0.8936802  0.08839642
+  0.4  3          0.8               0.50        50      0.1389744  0.8867065  0.09508678
+  0.4  3          0.8               0.50       100      0.1407378  0.8840209  0.09597148
+  0.4  3          0.8               0.50       150      0.1410958  0.8837907  0.09709907
+  0.4  3          0.8               0.75        50      0.1435490  0.8816224  0.09298617
+  0.4  3          0.8               0.75       100      0.1417596  0.8849084  0.09084623
+  0.4  3          0.8               0.75       150      0.1417932  0.8851895  0.09069821
+  0.4  3          0.8               1.00        50      0.1394228  0.8880794  0.09190424
+  0.4  3          0.8               1.00       100      0.1376270  0.8913355  0.08955371
+  0.4  3          0.8               1.00       150      0.1370011  0.8924488  0.08854124
+
+Tuning parameter 'gamma' was held constant at a value of 0
+Tuning parameter 'min_child_weight' was held constant at a value of 1
+RMSE was used to select the optimal model using the smallest value.
+The final values used for the model were nrounds = 100, max_depth = 3, eta = 0.3, gamma = 0, colsample_bytree = 0.6, min_child_weight =
+ 1 and subsample = 1.
+0.1312226 	
+variable 47: NeighborhoodLandmark has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 190: ElectricalUnknown has no variation.variable 47: NeighborhoodLandmark has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 190: ElectricalUnknown has no variation.variable 47: NeighborhoodLandmark has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 190: ElectricalUnknown has no variation.variable 47: NeighborhoodLandmark has no variation.variable 108: Exterior_1stCBlock has no variation.variable 188: ElectricalMix has no variation.variable 190: ElectricalUnknown has no variation.variable 47: NeighborhoodLandmark has no variation.variable 108: Exterior_1stCBlock has no variation.variable 188: ElectricalMix has no variation.variable 190: ElectricalUnknown has no variation.variable 47: NeighborhoodLandmark has no variation.variable 108: Exterior_1stCBlock has no variation.variable 188: ElectricalMix has no variation.variable 190: ElectricalUnknown has no variation.variable 47: NeighborhoodLandmark has no variation.variable 128: Exterior_2ndOther has no variation.variable 190: ElectricalUnknown has no variation.variable 257: Sale_TypeVWD has no variation.variable 47: NeighborhoodLandmark has no variation.variable 128: Exterior_2ndOther has no variation.variable 190: ElectricalUnknown has no variation.variable 257: Sale_TypeVWD has no variation.variable 47: NeighborhoodLandmark has no variation.variable 128: Exterior_2ndOther has no variation.variable 190: ElectricalUnknown has no variation.variable 257: Sale_TypeVWD has no variation.variable 47: NeighborhoodLandmark has no variation.variable 111: Exterior_1stImStucc has no variation.variable 190: ElectricalUnknown has no variation.variable 47: NeighborhoodLandmark has no variation.variable 111: Exterior_1stImStucc has no variation.variable 190: ElectricalUnknown has no variation.variable 47: NeighborhoodLandmark has no variation.variable 111: Exterior_1stImStucc has no variation.variable 190: ElectricalUnknown has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 18: MS_ZoningI_all has no variation.variable 47: NeighborhoodLandmark has no variation.variable 190: ElectricalUnknown has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 18: MS_ZoningI_all has no variation.variable 47: NeighborhoodLandmark has no variation.variable 190: ElectricalUnknown has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 18: MS_ZoningI_all has no variation.variable 47: NeighborhoodLandmark has no variation.variable 190: ElectricalUnknown has no variation.variable 47: NeighborhoodLandmark has no variation.variable 190: ElectricalUnknown has no variation.Stochastic Gradient Boosting 
+
+2051 samples
+  59 predictor
+
+No pre-processing
+Resampling: Cross-Validated (5 fold, repeated 1 times) 
+Summary of sample sizes: 1642, 1641, 1641, 1640, 1640 
+Resampling results across tuning parameters:
+
+  interaction.depth  n.trees  RMSE       Rsquared   MAE       
+  1                   50      0.1633085  0.8622896  0.11495045
+  1                  100      0.1366423  0.8910875  0.09685644
+  1                  150      0.1288470  0.9015834  0.09032407
+  2                   50      0.1394387  0.8897267  0.09771564
+  2                  100      0.1243713  0.9081131  0.08664870
+  2                  150      0.1212788  0.9124197  0.08353387
+  3                   50      0.1327429  0.8976860  0.09238853
+  3                  100      0.1222329  0.9111900  0.08455076
+  3                  150      0.1202024  0.9140677  0.08283383
+
+Tuning parameter 'shrinkage' was held constant at a value of 0.1
+Tuning parameter 'n.minobsinnode' was held constant at a value of 10
+RMSE was used to select the optimal model using the smallest value.
+The final values used for the model were n.trees = 150, interaction.depth = 3, shrinkage = 0.1 and n.minobsinnode = 10.
+0.1436524 	eXtreme Gradient Boosting 
+
+2051 samples
+  59 predictor
+
+No pre-processing
+Resampling: Cross-Validated (5 fold, repeated 1 times) 
+Summary of sample sizes: 1641, 1641, 1641, 1641, 1640 
+Resampling results across tuning parameters:
+
+  eta  max_depth  colsample_bytree  subsample  nrounds  RMSE       Rsquared   MAE       
+  0.3  1          0.6               0.50        50      0.1426566  0.8781378  0.10355836
+  0.3  1          0.6               0.50       100      0.1329929  0.8943380  0.09414464
+  0.3  1          0.6               0.50       150      0.1295655  0.9000803  0.09081109
+  0.3  1          0.6               0.75        50      0.1399796  0.8826661  0.10270074
+  0.3  1          0.6               0.75       100      0.1293554  0.8998949  0.09336187
+  0.3  1          0.6               0.75       150      0.1246293  0.9069597  0.08862151
+  0.3  1          0.6               1.00        50      0.1401602  0.8823097  0.10241510
+  0.3  1          0.6               1.00       100      0.1301576  0.8985480  0.09375890
+  0.3  1          0.6               1.00       150      0.1260945  0.9047916  0.08985825
+  0.3  1          0.8               0.50        50      0.1392740  0.8838624  0.10168767
+  0.3  1          0.8               0.50       100      0.1303635  0.8983633  0.09379055
+  0.3  1          0.8               0.50       150      0.1262723  0.9045894  0.08981647
+  0.3  1          0.8               0.75        50      0.1399967  0.8827166  0.10347911
+  0.3  1          0.8               0.75       100      0.1297638  0.8991143  0.09347157
+  0.3  1          0.8               0.75       150      0.1248479  0.9066935  0.08934070
+  0.3  1          0.8               1.00        50      0.1405851  0.8814136  0.10213515
+  0.3  1          0.8               1.00       100      0.1305773  0.8976036  0.09348718
+  0.3  1          0.8               1.00       150      0.1266137  0.9037704  0.08931258
+  0.3  2          0.6               0.50        50      0.1294788  0.8994195  0.09140255
+  0.3  2          0.6               0.50       100      0.1265555  0.9042930  0.08804234
+  0.3  2          0.6               0.50       150      0.1253130  0.9061872  0.08649072
+  0.3  2          0.6               0.75        50      0.1275884  0.9025631  0.08930095
+  0.3  2          0.6               0.75       100      0.1218205  0.9113918  0.08397205
+  0.3  2          0.6               0.75       150      0.1211353  0.9123790  0.08284332
+  0.3  2          0.6               1.00        50      0.1272657  0.9027473  0.08852229
+  0.3  2          0.6               1.00       100      0.1229242  0.9093548  0.08406197
+  0.3  2          0.6               1.00       150      0.1226017  0.9099559  0.08309734
+  0.3  2          0.8               0.50        50      0.1306699  0.8973188  0.09098567
+  0.3  2          0.8               0.50       100      0.1270983  0.9035924  0.08787774
+  0.3  2          0.8               0.50       150      0.1272436  0.9035222  0.08754580
+  0.3  2          0.8               0.75        50      0.1275707  0.9026917  0.09126433
+  0.3  2          0.8               0.75       100      0.1243302  0.9078337  0.08675051
+  0.3  2          0.8               0.75       150      0.1232340  0.9095218  0.08506500
+  0.3  2          0.8               1.00        50      0.1251915  0.9061888  0.08780998
+  0.3  2          0.8               1.00       100      0.1222426  0.9106913  0.08431491
+  0.3  2          0.8               1.00       150      0.1215670  0.9117025  0.08294524
+  0.3  3          0.6               0.50        50      0.1317916  0.8962919  0.09156392
+  0.3  3          0.6               0.50       100      0.1324429  0.8951815  0.09105118
+  0.3  3          0.6               0.50       150      0.1340072  0.8929352  0.09117356
+  0.3  3          0.6               0.75        50      0.1290262  0.9006052  0.08869641
+  0.3  3          0.6               0.75       100      0.1274026  0.9033224  0.08667063
+  0.3  3          0.6               0.75       150      0.1273165  0.9035159  0.08670060
+  0.3  3          0.6               1.00        50      0.1270736  0.9034020  0.08749933
+  0.3  3          0.6               1.00       100      0.1247926  0.9068213  0.08448368
+  0.3  3          0.6               1.00       150      0.1245725  0.9070858  0.08353587
+  0.3  3          0.8               0.50        50      0.1328330  0.8948118  0.09033766
+  0.3  3          0.8               0.50       100      0.1331381  0.8942896  0.08909045
+  0.3  3          0.8               0.50       150      0.1322365  0.8959173  0.08859340
+  0.3  3          0.8               0.75        50      0.1272604  0.9028303  0.08776118
+  0.3  3          0.8               0.75       100      0.1257566  0.9052342  0.08549453
+  0.3  3          0.8               0.75       150      0.1256312  0.9055378  0.08527933
+  0.3  3          0.8               1.00        50      0.1270683  0.9031878  0.08847577
+  0.3  3          0.8               1.00       100      0.1256581  0.9054551  0.08609067
+  0.3  3          0.8               1.00       150      0.1255476  0.9057250  0.08554284
+  0.4  1          0.6               0.50        50      0.1393885  0.8840680  0.10244510
+  0.4  1          0.6               0.50       100      0.1287266  0.9010641  0.09268886
+  0.4  1          0.6               0.50       150      0.1252734  0.9063724  0.08891656
+  0.4  1          0.6               0.75        50      0.1414745  0.8800955  0.10346867
+  0.4  1          0.6               0.75       100      0.1301353  0.8986689  0.09293627
+  0.4  1          0.6               0.75       150      0.1259384  0.9051951  0.08894095
+  0.4  1          0.6               1.00        50      0.1422184  0.8788242  0.10460731
+  0.4  1          0.6               1.00       100      0.1326496  0.8947553  0.09556727
+  0.4  1          0.6               1.00       150      0.1279836  0.9020561  0.09127083
+  0.4  1          0.8               0.50        50      0.1429017  0.8776589  0.10473562
+  0.4  1          0.8               0.50       100      0.1319612  0.8958553  0.09415353
+  0.4  1          0.8               0.50       150      0.1262191  0.9047425  0.08948892
+  0.4  1          0.8               0.75        50      0.1408470  0.8812883  0.10348204
+  0.4  1          0.8               0.75       100      0.1304185  0.8980213  0.09386715
+  0.4  1          0.8               0.75       150      0.1255999  0.9055749  0.08909552
+  0.4  1          0.8               1.00        50      0.1416422  0.8797136  0.10313387
+  0.4  1          0.8               1.00       100      0.1310552  0.8969850  0.09372905
+  0.4  1          0.8               1.00       150      0.1263693  0.9043910  0.08926520
+  0.4  2          0.6               0.50        50      0.1332285  0.8942791  0.09357762
+  0.4  2          0.6               0.50       100      0.1331766  0.8948821  0.09064290
+  0.4  2          0.6               0.50       150      0.1331346  0.8946331  0.09038428
+  0.4  2          0.6               0.75        50      0.1298114  0.8994128  0.09077359
+  0.4  2          0.6               0.75       100      0.1280306  0.9021925  0.08774792
+  0.4  2          0.6               0.75       150      0.1274461  0.9033552  0.08671288
+  0.4  2          0.6               1.00        50      0.1285550  0.9010800  0.09057149
+  0.4  2          0.6               1.00       100      0.1239260  0.9082838  0.08528140
+  0.4  2          0.6               1.00       150      0.1228734  0.9100075  0.08391216
+  0.4  2          0.8               0.50        50      0.1315946  0.8969431  0.09167326
+  0.4  2          0.8               0.50       100      0.1315541  0.8970390  0.09007956
+  0.4  2          0.8               0.50       150      0.1329466  0.8951241  0.09062518
+  0.4  2          0.8               0.75        50      0.1305633  0.8983677  0.09107480
+  0.4  2          0.8               0.75       100      0.1267233  0.9044620  0.08664720
+  0.4  2          0.8               0.75       150      0.1265253  0.9046875  0.08627836
+  0.4  2          0.8               1.00        50      0.1282902  0.9017212  0.08886534
+  0.4  2          0.8               1.00       100      0.1263334  0.9049563  0.08639986
+  0.4  2          0.8               1.00       150      0.1259821  0.9056069  0.08553539
+  0.4  3          0.6               0.50        50      0.1369735  0.8883652  0.09464194
+  0.4  3          0.6               0.50       100      0.1369146  0.8891643  0.09395689
+  0.4  3          0.6               0.50       150      0.1380214  0.8877075  0.09522778
+  0.4  3          0.6               0.75        50      0.1327202  0.8950254  0.09129272
+  0.4  3          0.6               0.75       100      0.1316601  0.8967164  0.08996119
+  0.4  3          0.6               0.75       150      0.1319187  0.8964616  0.08992040
+  0.4  3          0.6               1.00        50      0.1324237  0.8956002  0.09001939
+  0.4  3          0.6               1.00       100      0.1315245  0.8974083  0.08730659
+  0.4  3          0.6               1.00       150      0.1314682  0.8975589  0.08693860
+  0.4  3          0.8               0.50        50      0.1372117  0.8885983  0.09563554
+  0.4  3          0.8               0.50       100      0.1384829  0.8870384  0.09556792
+  0.4  3          0.8               0.50       150      0.1397358  0.8859063  0.09597925
+  0.4  3          0.8               0.75        50      0.1349804  0.8917357  0.09224935
+  0.4  3          0.8               0.75       100      0.1340460  0.8934219  0.09037787
+  0.4  3          0.8               0.75       150      0.1353527  0.8913490  0.09095722
+  0.4  3          0.8               1.00        50      0.1317014  0.8961858  0.09022281
+  0.4  3          0.8               1.00       100      0.1305809  0.8981993  0.08847698
+  0.4  3          0.8               1.00       150      0.1311917  0.8973983  0.08827231
+
+Tuning parameter 'gamma' was held constant at a value of 0
+Tuning parameter 'min_child_weight' was held constant at a value of 1
+RMSE was used to select the optimal model using the smallest value.
+The final values used for the model were nrounds = 150, max_depth = 2, eta = 0.3, gamma = 0, colsample_bytree = 0.6, min_child_weight =
+ 1 and subsample = 0.75.
+0.1449576 	
+Undefined test categorical: Functional Sev 
+Training Levels: Sal Maj2 Maj1 Mod Min2 Min1 Typ 
+Level_i 1 
+Level_i 2 
+Level_i 3 
+Level_i 4 
+Level_i 5 
+Level_i 6 
+Level_i 7 
+Level_i 8 
+New Level: Sal 
+variable 18: MS_ZoningI_all has no variation.variable 111: Exterior_1stImStucc has no variation.variable 123: Exterior_2ndCBlock has no variation.variable 18: MS_ZoningI_all has no variation.variable 111: Exterior_1stImStucc has no variation.variable 123: Exterior_2ndCBlock has no variation.variable 18: MS_ZoningI_all has no variation.variable 111: Exterior_1stImStucc has no variation.variable 123: Exterior_2ndCBlock has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 111: Exterior_1stImStucc has no variation.variable 115: Exterior_1stStone has no variation.variable 190: ElectricalUnknown has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 111: Exterior_1stImStucc has no variation.variable 115: Exterior_1stStone has no variation.variable 190: ElectricalUnknown has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 111: Exterior_1stImStucc has no variation.variable 115: Exterior_1stStone has no variation.variable 190: ElectricalUnknown has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 44: NeighborhoodGreen_Hills has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 44: NeighborhoodGreen_Hills has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 44: NeighborhoodGreen_Hills has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 47: NeighborhoodLandmark has no variation.variable 111: Exterior_1stImStucc has no variation.variable 47: NeighborhoodLandmark has no variation.variable 111: Exterior_1stImStucc has no variation.variable 47: NeighborhoodLandmark has no variation.variable 111: Exterior_1stImStucc has no variation.variable 111: Exterior_1stImStucc has no variation.variable 256: Sale_TypeVWD has no variation.variable 111: Exterior_1stImStucc has no variation.variable 256: Sale_TypeVWD has no variation.variable 111: Exterior_1stImStucc has no variation.variable 256: Sale_TypeVWD has no variation.variable 111: Exterior_1stImStucc has no variation.Stochastic Gradient Boosting 
+
+2051 samples
+  59 predictor
+
+No pre-processing
+Resampling: Cross-Validated (5 fold, repeated 1 times) 
+Summary of sample sizes: 1641, 1639, 1642, 1642, 1640 
+Resampling results across tuning parameters:
+
+  interaction.depth  n.trees  RMSE       Rsquared   MAE       
+  1                   50      0.1656406  0.8511705  0.11500399
+  1                  100      0.1416734  0.8789583  0.09800644
+  1                  150      0.1348693  0.8887526  0.09222107
+  2                   50      0.1441146  0.8779928  0.09897306
+  2                  100      0.1310051  0.8951506  0.08863491
+  2                  150      0.1277434  0.9001861  0.08632025
+  3                   50      0.1363772  0.8878944  0.09313457
+  3                  100      0.1268555  0.9014576  0.08611731
+  3                  150      0.1241658  0.9057699  0.08399185
+
+Tuning parameter 'shrinkage' was held constant at a value of 0.1
+Tuning parameter 'n.minobsinnode' was held constant at a value of 10
+RMSE was used to select the optimal model using the smallest value.
+The final values used for the model were n.trees = 150, interaction.depth = 3, shrinkage = 0.1 and n.minobsinnode = 10.
+0.1335917 	eXtreme Gradient Boosting 
+
+2051 samples
+  59 predictor
+
+No pre-processing
+Resampling: Cross-Validated (5 fold, repeated 1 times) 
+Summary of sample sizes: 1642, 1641, 1639, 1642, 1640 
+Resampling results across tuning parameters:
+
+  eta  max_depth  colsample_bytree  subsample  nrounds  RMSE       Rsquared   MAE       
+  0.3  1          0.6               0.50        50      0.1492462  0.8637666  0.10595195
+  0.3  1          0.6               0.50       100      0.1386005  0.8823899  0.09711304
+  0.3  1          0.6               0.50       150      0.1339034  0.8903453  0.09292810
+  0.3  1          0.6               0.75        50      0.1429330  0.8742327  0.10309460
+  0.3  1          0.6               0.75       100      0.1335212  0.8902469  0.09463322
+  0.3  1          0.6               0.75       150      0.1297112  0.8964365  0.09108992
+  0.3  1          0.6               1.00        50      0.1478992  0.8657465  0.10482029
+  0.3  1          0.6               1.00       100      0.1360522  0.8862906  0.09525673
+  0.3  1          0.6               1.00       150      0.1304115  0.8954739  0.09049564
+  0.3  1          0.8               0.50        50      0.1471091  0.8674176  0.10378169
+  0.3  1          0.8               0.50       100      0.1357170  0.8871226  0.09525274
+  0.3  1          0.8               0.50       150      0.1323057  0.8929555  0.09163637
+  0.3  1          0.8               0.75        50      0.1487374  0.8637370  0.10448580
+  0.3  1          0.8               0.75       100      0.1351166  0.8877391  0.09447328
+  0.3  1          0.8               0.75       150      0.1312308  0.8942433  0.09057402
+  0.3  1          0.8               1.00        50      0.1473096  0.8665477  0.10348672
+  0.3  1          0.8               1.00       100      0.1364151  0.8856370  0.09451863
+  0.3  1          0.8               1.00       150      0.1317657  0.8932713  0.09023527
+  0.3  2          0.6               0.50        50      0.1330126  0.8915757  0.09261473
+  0.3  2          0.6               0.50       100      0.1269142  0.9011053  0.08639236
+  0.3  2          0.6               0.50       150      0.1260405  0.9027953  0.08529635
+  0.3  2          0.6               0.75        50      0.1349992  0.8887074  0.09281156
+  0.3  2          0.6               0.75       100      0.1297365  0.8972394  0.08730328
+  0.3  2          0.6               0.75       150      0.1271618  0.9013795  0.08532713
+  0.3  2          0.6               1.00        50      0.1280694  0.8987887  0.08911548
+  0.3  2          0.6               1.00       100      0.1227816  0.9068900  0.08384262
+  0.3  2          0.6               1.00       150      0.1218892  0.9082343  0.08266808
+  0.3  2          0.8               0.50        50      0.1373734  0.8841563  0.09453293
+  0.3  2          0.8               0.50       100      0.1328666  0.8917543  0.08934601
+  0.3  2          0.8               0.50       150      0.1312853  0.8945927  0.08817770
+  0.3  2          0.8               0.75        50      0.1340707  0.8899526  0.09130391
+  0.3  2          0.8               0.75       100      0.1299866  0.8963343  0.08653400
+  0.3  2          0.8               0.75       150      0.1289587  0.8980489  0.08538374
+  0.3  2          0.8               1.00        50      0.1355026  0.8869906  0.08997725
+  0.3  2          0.8               1.00       100      0.1309264  0.8947124  0.08540270
+  0.3  2          0.8               1.00       150      0.1295625  0.8968792  0.08380770
+  0.3  3          0.6               0.50        50      0.1351727  0.8885711  0.09080628
+  0.3  3          0.6               0.50       100      0.1345016  0.8895983  0.08952662
+  0.3  3          0.6               0.50       150      0.1336681  0.8906482  0.08861539
+  0.3  3          0.6               0.75        50      0.1388498  0.8823760  0.08980177
+  0.3  3          0.6               0.75       100      0.1348752  0.8894192  0.08642279
+  0.3  3          0.6               0.75       150      0.1348643  0.8895443  0.08632673
+  0.3  3          0.6               1.00        50      0.1321725  0.8927098  0.08834939
+  0.3  3          0.6               1.00       100      0.1293891  0.8973569  0.08553575
+  0.3  3          0.6               1.00       150      0.1280932  0.8993531  0.08467330
+  0.3  3          0.8               0.50        50      0.1316835  0.8938725  0.08985208
+  0.3  3          0.8               0.50       100      0.1304330  0.8963371  0.08894317
+  0.3  3          0.8               0.50       150      0.1314218  0.8947849  0.08945238
+  0.3  3          0.8               0.75        50      0.1311830  0.8946700  0.08743341
+  0.3  3          0.8               0.75       100      0.1286499  0.8987124  0.08473130
+  0.3  3          0.8               0.75       150      0.1286415  0.8988717  0.08478718
+  0.3  3          0.8               1.00        50      0.1317928  0.8936387  0.08803219
+  0.3  3          0.8               1.00       100      0.1290019  0.8982848  0.08528141
+  0.3  3          0.8               1.00       150      0.1294986  0.8976412  0.08500099
+  0.4  1          0.6               0.50        50      0.1492973  0.8638925  0.10738539
+  0.4  1          0.6               0.50       100      0.1387899  0.8821887  0.09808693
+  0.4  1          0.6               0.50       150      0.1351008  0.8886881  0.09446357
+  0.4  1          0.6               0.75        50      0.1461564  0.8689412  0.10547979
+  0.4  1          0.6               0.75       100      0.1334565  0.8902694  0.09387491
+  0.4  1          0.6               0.75       150      0.1282566  0.8989703  0.08922608
+  0.4  1          0.6               1.00        50      0.1482201  0.8648119  0.10543121
+  0.4  1          0.6               1.00       100      0.1356844  0.8868761  0.09510892
+  0.4  1          0.6               1.00       150      0.1298886  0.8965095  0.09034426
+  0.4  1          0.8               0.50        50      0.1472933  0.8668289  0.10496923
+  0.4  1          0.8               0.50       100      0.1355938  0.8872591  0.09527487
+  0.4  1          0.8               0.50       150      0.1325689  0.8919865  0.09182545
+  0.4  1          0.8               0.75        50      0.1453060  0.8702072  0.10465969
+  0.4  1          0.8               0.75       100      0.1363820  0.8856224  0.09608349
+  0.4  1          0.8               0.75       150      0.1320399  0.8923134  0.09128821
+  0.4  1          0.8               1.00        50      0.1478908  0.8655047  0.10495829
+  0.4  1          0.8               1.00       100      0.1372613  0.8840870  0.09500637
+  0.4  1          0.8               1.00       150      0.1319481  0.8929250  0.09020567
+  0.4  2          0.6               0.50        50      0.1374993  0.8848611  0.09289217
+  0.4  2          0.6               0.50       100      0.1358934  0.8881380  0.09029198
+  0.4  2          0.6               0.50       150      0.1346949  0.8903256  0.08871583
+  0.4  2          0.6               0.75        50      0.1376478  0.8845510  0.09297256
+  0.4  2          0.6               0.75       100      0.1323424  0.8934454  0.08712226
+  0.4  2          0.6               0.75       150      0.1309337  0.8955295  0.08616617
+  0.4  2          0.6               1.00        50      0.1297977  0.8957944  0.09046195
+  0.4  2          0.6               1.00       100      0.1267723  0.9004549  0.08652375
+  0.4  2          0.6               1.00       150      0.1252563  0.9029948  0.08521006
+  0.4  2          0.8               0.50        50      0.1380547  0.8834839  0.09487522
+  0.4  2          0.8               0.50       100      0.1350377  0.8884225  0.09238289
+  0.4  2          0.8               0.50       150      0.1329435  0.8922034  0.09058166
+  0.4  2          0.8               0.75        50      0.1366836  0.8861051  0.09245836
+  0.4  2          0.8               0.75       100      0.1316976  0.8935831  0.08723632
+  0.4  2          0.8               0.75       150      0.1301938  0.8962487  0.08556762
+  0.4  2          0.8               1.00        50      0.1348028  0.8886678  0.09107462
+  0.4  2          0.8               1.00       100      0.1303563  0.8956263  0.08606962
+  0.4  2          0.8               1.00       150      0.1291858  0.8975184  0.08415120
+  0.4  3          0.6               0.50        50      0.1390024  0.8841512  0.09575703
+  0.4  3          0.6               0.50       100      0.1399477  0.8831310  0.09477559
+  0.4  3          0.6               0.50       150      0.1411296  0.8821420  0.09552223
+  0.4  3          0.6               0.75        50      0.1292324  0.8971918  0.08963321
+  0.4  3          0.6               0.75       100      0.1273912  0.9003408  0.08673441
+  0.4  3          0.6               0.75       150      0.1266620  0.9016737  0.08588249
+  0.4  3          0.6               1.00        50      0.1356072  0.8868755  0.09006146
+  0.4  3          0.6               1.00       100      0.1326672  0.8920445  0.08686249
+  0.4  3          0.6               1.00       150      0.1318399  0.8934639  0.08568001
+  0.4  3          0.8               0.50        50      0.1415102  0.8779087  0.09577536
+  0.4  3          0.8               0.50       100      0.1427483  0.8759812  0.09512039
+  0.4  3          0.8               0.50       150      0.1428810  0.8764420  0.09555009
+  0.4  3          0.8               0.75        50      0.1348082  0.8891557  0.08902336
+  0.4  3          0.8               0.75       100      0.1331178  0.8921527  0.08715120
+  0.4  3          0.8               0.75       150      0.1329850  0.8924350  0.08671030
+  0.4  3          0.8               1.00        50      0.1327614  0.8923429  0.08984229
+  0.4  3          0.8               1.00       100      0.1306176  0.8957830  0.08761900
+  0.4  3          0.8               1.00       150      0.1301084  0.8966002  0.08718780
+
+Tuning parameter 'gamma' was held constant at a value of 0
+Tuning parameter 'min_child_weight' was held constant at a value of 1
+RMSE was used to select the optimal model using the smallest value.
+The final values used for the model were nrounds = 150, max_depth = 2, eta = 0.3, gamma = 0, colsample_bytree = 0.6, min_child_weight =
+ 1 and subsample = 1.
+0.130937 	
+Undefined test categorical: Kitchen_Qual Poor 
+Training Levels: Fair Typical Good Excellent 
+Level_i 1 
+Level_i 2 
+Level_i 3 
+Level_i 4 
+Level_i 5 
+New Level: Fair 
+variable 44: NeighborhoodGreen_Hills has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 108: Exterior_1stCBlock has no variation.variable 115: Exterior_1stStone has no variation.variable 190: ElectricalUnknown has no variation.variable 44: NeighborhoodGreen_Hills has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 108: Exterior_1stCBlock has no variation.variable 115: Exterior_1stStone has no variation.variable 190: ElectricalUnknown has no variation.variable 44: NeighborhoodGreen_Hills has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 108: Exterior_1stCBlock has no variation.variable 115: Exterior_1stStone has no variation.variable 190: ElectricalUnknown has no variation.variable 111: Exterior_1stImStucc has no variation.variable 111: Exterior_1stImStucc has no variation.variable 111: Exterior_1stImStucc has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 18: MS_ZoningI_all has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 187: ElectricalFuseP has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 18: MS_ZoningI_all has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 187: ElectricalFuseP has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 18: MS_ZoningI_all has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 187: ElectricalFuseP has no variation.variable 47: NeighborhoodLandmark has no variation.variable 188: ElectricalMix has no variation.variable 47: NeighborhoodLandmark has no variation.variable 188: ElectricalMix has no variation.variable 47: NeighborhoodLandmark has no variation.variable 188: ElectricalMix has no variation.variable 128: Exterior_2ndOther has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 256: Sale_TypeVWD has no variation.variable 128: Exterior_2ndOther has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 256: Sale_TypeVWD has no variation.variable 128: Exterior_2ndOther has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 256: Sale_TypeVWD has no variation.Stochastic Gradient Boosting 
+
+2051 samples
+  59 predictor
+
+No pre-processing
+Resampling: Cross-Validated (5 fold, repeated 1 times) 
+Summary of sample sizes: 1641, 1641, 1640, 1640, 1642 
+Resampling results across tuning parameters:
+
+  interaction.depth  n.trees  RMSE       Rsquared   MAE       
+  1                   50      0.1772937  0.8394833  0.11951593
+  1                  100      0.1507592  0.8696395  0.10087419
+  1                  150      0.1443449  0.8787194  0.09583003
+  2                   50      0.1550449  0.8645547  0.10351071
+  2                  100      0.1420314  0.8820798  0.09250647
+  2                  150      0.1380946  0.8883220  0.08937510
+  3                   50      0.1467797  0.8766125  0.09836173
+  3                  100      0.1379771  0.8887974  0.09103962
+  3                  150      0.1357884  0.8923687  0.08913353
+
+Tuning parameter 'shrinkage' was held constant at a value of 0.1
+Tuning parameter 'n.minobsinnode' was held constant at a value of 10
+RMSE was used to select the optimal model using the smallest value.
+The final values used for the model were n.trees = 150, interaction.depth = 3, shrinkage = 0.1 and n.minobsinnode = 10.
+0.112735 	eXtreme Gradient Boosting 
+
+2051 samples
+  59 predictor
+
+No pre-processing
+Resampling: Cross-Validated (5 fold, repeated 1 times) 
+Summary of sample sizes: 1640, 1641, 1641, 1641, 1641 
+Resampling results across tuning parameters:
+
+  eta  max_depth  colsample_bytree  subsample  nrounds  RMSE       Rsquared   MAE       
+  0.3  1          0.6               0.50        50      0.1569654  0.8567891  0.10829322
+  0.3  1          0.6               0.50       100      0.1487200  0.8716194  0.10021674
+  0.3  1          0.6               0.50       150      0.1465504  0.8753334  0.09696660
+  0.3  1          0.6               0.75        50      0.1534430  0.8629575  0.10689767
+  0.3  1          0.6               0.75       100      0.1446681  0.8781356  0.09829099
+  0.3  1          0.6               0.75       150      0.1423363  0.8822067  0.09483785
+  0.3  1          0.6               1.00        50      0.1562889  0.8583023  0.10868588
+  0.3  1          0.6               1.00       100      0.1468170  0.8743691  0.09961097
+  0.3  1          0.6               1.00       150      0.1425218  0.8815368  0.09533292
+  0.3  1          0.8               0.50        50      0.1582922  0.8539695  0.10873807
+  0.3  1          0.8               0.50       100      0.1501661  0.8691245  0.10078466
+  0.3  1          0.8               0.50       150      0.1469767  0.8745633  0.09714501
+  0.3  1          0.8               0.75        50      0.1561239  0.8582241  0.10772530
+  0.3  1          0.8               0.75       100      0.1469544  0.8743612  0.09881224
+  0.3  1          0.8               0.75       150      0.1440723  0.8794249  0.09509235
+  0.3  1          0.8               1.00        50      0.1565438  0.8575661  0.10947237
+  0.3  1          0.8               1.00       100      0.1458862  0.8759971  0.10025243
+  0.3  1          0.8               1.00       150      0.1419504  0.8825136  0.09561663
+  0.3  2          0.6               0.50        50      0.1509322  0.8677517  0.09886830
+  0.3  2          0.6               0.50       100      0.1467718  0.8755524  0.09495755
+  0.3  2          0.6               0.50       150      0.1454959  0.8782755  0.09257006
+  0.3  2          0.6               0.75        50      0.1478121  0.8730757  0.09668582
+  0.3  2          0.6               0.75       100      0.1462323  0.8759762  0.09228254
+  0.3  2          0.6               0.75       150      0.1449280  0.8782964  0.09049778
+  0.3  2          0.6               1.00        50      0.1478153  0.8736129  0.09667216
+  0.3  2          0.6               1.00       100      0.1436670  0.8808675  0.09189449
+  0.3  2          0.6               1.00       150      0.1421404  0.8836407  0.08974243
+  0.3  2          0.8               0.50        50      0.1518300  0.8674191  0.10023227
+  0.3  2          0.8               0.50       100      0.1476840  0.8745463  0.09428668
+  0.3  2          0.8               0.50       150      0.1483499  0.8739692  0.09404828
+  0.3  2          0.8               0.75        50      0.1430783  0.8809585  0.09646631
+  0.3  2          0.8               0.75       100      0.1380664  0.8895978  0.09039783
+  0.3  2          0.8               0.75       150      0.1363933  0.8921860  0.08876828
+  0.3  2          0.8               1.00        50      0.1471979  0.8749418  0.09603838
+  0.3  2          0.8               1.00       100      0.1444821  0.8800943  0.09197208
+  0.3  2          0.8               1.00       150      0.1428996  0.8830123  0.08973634
+  0.3  3          0.6               0.50        50      0.1447495  0.8781302  0.09491113
+  0.3  3          0.6               0.50       100      0.1425356  0.8822676  0.09333883
+  0.3  3          0.6               0.50       150      0.1422413  0.8826480  0.09292814
+  0.3  3          0.6               0.75        50      0.1496254  0.8706401  0.09401869
+  0.3  3          0.6               0.75       100      0.1465626  0.8759003  0.09057708
+  0.3  3          0.6               0.75       150      0.1460040  0.8770384  0.08999702
+  0.3  3          0.6               1.00        50      0.1408121  0.8845965  0.09304344
+  0.3  3          0.6               1.00       100      0.1377962  0.8896672  0.08971688
+  0.3  3          0.6               1.00       150      0.1375272  0.8903091  0.08897967
+  0.3  3          0.8               0.50        50      0.1540531  0.8639617  0.09895428
+  0.3  3          0.8               0.50       100      0.1530408  0.8659286  0.09806005
+  0.3  3          0.8               0.50       150      0.1522671  0.8675751  0.09762706
+  0.3  3          0.8               0.75        50      0.1466827  0.8752521  0.09392947
+  0.3  3          0.8               0.75       100      0.1445935  0.8789562  0.09215248
+  0.3  3          0.8               0.75       150      0.1442424  0.8797473  0.09124320
+  0.3  3          0.8               1.00        50      0.1505633  0.8713126  0.09343421
+  0.3  3          0.8               1.00       100      0.1473868  0.8768549  0.09035578
+  0.3  3          0.8               1.00       150      0.1471543  0.8770707  0.08946556
+  0.4  1          0.6               0.50        50      0.1603067  0.8510969  0.10943051
+  0.4  1          0.6               0.50       100      0.1496798  0.8696898  0.09912584
+  0.4  1          0.6               0.50       150      0.1486117  0.8728187  0.09714348
+  0.4  1          0.6               0.75        50      0.1580719  0.8545554  0.11095700
+  0.4  1          0.6               0.75       100      0.1471569  0.8740835  0.09980258
+  0.4  1          0.6               0.75       150      0.1439093  0.8797131  0.09520120
+  0.4  1          0.6               1.00        50      0.1554136  0.8599556  0.10950139
+  0.4  1          0.6               1.00       100      0.1457899  0.8768793  0.10011717
+  0.4  1          0.6               1.00       150      0.1427039  0.8820990  0.09566801
+  0.4  1          0.8               0.50        50      0.1622988  0.8472114  0.11248343
+  0.4  1          0.8               0.50       100      0.1527333  0.8651004  0.10277193
+  0.4  1          0.8               0.50       150      0.1490711  0.8709955  0.09838526
+  0.4  1          0.8               0.75        50      0.1589352  0.8531103  0.10968135
+  0.4  1          0.8               0.75       100      0.1506533  0.8685078  0.10126024
+  0.4  1          0.8               0.75       150      0.1475122  0.8741728  0.09668876
+  0.4  1          0.8               1.00        50      0.1572636  0.8564902  0.10924938
+  0.4  1          0.8               1.00       100      0.1463206  0.8757323  0.09932522
+  0.4  1          0.8               1.00       150      0.1409507  0.8846209  0.09416686
+  0.4  2          0.6               0.50        50      0.1575165  0.8570704  0.10410375
+  0.4  2          0.6               0.50       100      0.1535086  0.8640510  0.09946185
+  0.4  2          0.6               0.50       150      0.1516776  0.8674812  0.09693040
+  0.4  2          0.6               0.75        50      0.1455696  0.8772229  0.09623857
+  0.4  2          0.6               0.75       100      0.1435247  0.8812832  0.09275957
+  0.4  2          0.6               0.75       150      0.1425709  0.8828823  0.09155490
+  0.4  2          0.6               1.00        50      0.1456127  0.8772220  0.09633509
+  0.4  2          0.6               1.00       100      0.1418858  0.8836515  0.09202566
+  0.4  2          0.6               1.00       150      0.1410092  0.8850704  0.09080307
+  0.4  2          0.8               0.50        50      0.1553981  0.8609005  0.10112597
+  0.4  2          0.8               0.50       100      0.1512904  0.8690439  0.09646354
+  0.4  2          0.8               0.50       150      0.1522447  0.8686860  0.09696562
+  0.4  2          0.8               0.75        50      0.1430411  0.8807374  0.09463326
+  0.4  2          0.8               0.75       100      0.1416752  0.8834456  0.09119228
+  0.4  2          0.8               0.75       150      0.1424295  0.8823733  0.08904236
+  0.4  2          0.8               1.00        50      0.1434273  0.8807514  0.09572852
+  0.4  2          0.8               1.00       100      0.1408824  0.8851748  0.09165988
+  0.4  2          0.8               1.00       150      0.1398976  0.8868688  0.08983486
+  0.4  3          0.6               0.50        50      0.1498452  0.8709344  0.09980703
+  0.4  3          0.6               0.50       100      0.1504440  0.8701565  0.09983154
+  0.4  3          0.6               0.50       150      0.1486731  0.8730274  0.09962402
+  0.4  3          0.6               0.75        50      0.1439609  0.8816125  0.09582252
+  0.4  3          0.6               0.75       100      0.1420794  0.8843848  0.09363620
+  0.4  3          0.6               0.75       150      0.1432805  0.8826688  0.09410168
+  0.4  3          0.6               1.00        50      0.1428409  0.8815965  0.09426417
+  0.4  3          0.6               1.00       100      0.1419251  0.8830967  0.09272990
+  0.4  3          0.6               1.00       150      0.1419286  0.8832123  0.09181539
+  0.4  3          0.8               0.50        50      0.1493242  0.8722740  0.09908885
+  0.4  3          0.8               0.50       100      0.1471280  0.8766726  0.09741271
+  0.4  3          0.8               0.50       150      0.1490780  0.8736230  0.09873645
+  0.4  3          0.8               0.75        50      0.1463191  0.8764798  0.09392514
+  0.4  3          0.8               0.75       100      0.1466808  0.8763427  0.09330362
+  0.4  3          0.8               0.75       150      0.1467738  0.8763569  0.09326538
+  0.4  3          0.8               1.00        50      0.1451145  0.8783642  0.09315711
+  0.4  3          0.8               1.00       100      0.1434668  0.8813449  0.09079307
+  0.4  3          0.8               1.00       150      0.1429670  0.8823681  0.09025348
+
+Tuning parameter 'gamma' was held constant at a value of 0
+Tuning parameter 'min_child_weight' was held constant at a value of 1
+RMSE was used to select the optimal model using the smallest value.
+The final values used for the model were nrounds = 150, max_depth = 2, eta = 0.3, gamma = 0, colsample_bytree = 0.8, min_child_weight =
+ 1 and subsample = 0.75.
+0.1101608 	
+Undefined test categorical: Functional Sev 
+Training Levels: Sal Maj2 Maj1 Mod Min2 Min1 Typ 
+Level_i 1 
+Level_i 2 
+Level_i 3 
+Level_i 4 
+Level_i 5 
+Level_i 6 
+Level_i 7 
+New Level: Sal 
+variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 18: MS_ZoningI_all has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 18: MS_ZoningI_all has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 18: MS_ZoningI_all has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 47: NeighborhoodLandmark has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 115: Exterior_1stStone has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 249: Sale_TypeCon has no variation.variable 256: Sale_TypeVWD has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 47: NeighborhoodLandmark has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 115: Exterior_1stStone has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 249: Sale_TypeCon has no variation.variable 256: Sale_TypeVWD has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 47: NeighborhoodLandmark has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 115: Exterior_1stStone has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 249: Sale_TypeCon has no variation.variable 256: Sale_TypeVWD has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 190: ElectricalUnknown has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 190: ElectricalUnknown has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 190: ElectricalUnknown has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.Stochastic Gradient Boosting 
+
+2051 samples
+  59 predictor
+
+No pre-processing
+Resampling: Cross-Validated (5 fold, repeated 1 times) 
+Summary of sample sizes: 1641, 1642, 1641, 1641, 1639 
+Resampling results across tuning parameters:
+
+  interaction.depth  n.trees  RMSE       Rsquared   MAE       
+  1                   50      0.1674026  0.8440255  0.11718631
+  1                  100      0.1431341  0.8733802  0.09986520
+  1                  150      0.1376452  0.8813967  0.09475614
+  2                   50      0.1451008  0.8727488  0.10060748
+  2                  100      0.1331044  0.8889582  0.09104226
+  2                  150      0.1291450  0.8954365  0.08815642
+  3                   50      0.1384320  0.8813637  0.09481443
+  3                  100      0.1284724  0.8959441  0.08715824
+  3                  150      0.1256595  0.9005938  0.08416231
+
+Tuning parameter 'shrinkage' was held constant at a value of 0.1
+Tuning parameter 'n.minobsinnode' was held constant at a value of 10
+RMSE was used to select the optimal model using the smallest value.
+The final values used for the model were n.trees = 150, interaction.depth = 3, shrinkage = 0.1 and n.minobsinnode = 10.
+0.1298239 	eXtreme Gradient Boosting 
+
+2051 samples
+  59 predictor
+
+No pre-processing
+Resampling: Cross-Validated (5 fold, repeated 1 times) 
+Summary of sample sizes: 1641, 1641, 1642, 1640, 1640 
+Resampling results across tuning parameters:
+
+  eta  max_depth  colsample_bytree  subsample  nrounds  RMSE       Rsquared   MAE       
+  0.3  1          0.6               0.50        50      0.1468257  0.8670943  0.10463819
+  0.3  1          0.6               0.50       100      0.1351718  0.8868897  0.09577130
+  0.3  1          0.6               0.50       150      0.1323802  0.8915913  0.09237959
+  0.3  1          0.6               0.75        50      0.1456357  0.8691662  0.10433635
+  0.3  1          0.6               0.75       100      0.1352715  0.8872135  0.09581437
+  0.3  1          0.6               0.75       150      0.1314395  0.8933739  0.09184262
+  0.3  1          0.6               1.00        50      0.1462374  0.8680802  0.10393020
+  0.3  1          0.6               1.00       100      0.1347483  0.8879157  0.09491014
+  0.3  1          0.6               1.00       150      0.1303700  0.8949526  0.09094818
+  0.3  1          0.8               0.50        50      0.1456759  0.8688237  0.10313348
+  0.3  1          0.8               0.50       100      0.1352901  0.8873748  0.09458456
+  0.3  1          0.8               0.50       150      0.1313603  0.8937521  0.09074758
+  0.3  1          0.8               0.75        50      0.1445297  0.8708353  0.10220791
+  0.3  1          0.8               0.75       100      0.1346206  0.8874801  0.09410749
+  0.3  1          0.8               0.75       150      0.1309052  0.8939375  0.09078658
+  0.3  1          0.8               1.00        50      0.1473487  0.8662039  0.10523951
+  0.3  1          0.8               1.00       100      0.1376556  0.8828763  0.09627335
+  0.3  1          0.8               1.00       150      0.1337559  0.8894573  0.09223367
+  0.3  2          0.6               0.50        50      0.1372516  0.8844734  0.09293471
+  0.3  2          0.6               0.50       100      0.1308049  0.8949933  0.08852412
+  0.3  2          0.6               0.50       150      0.1307145  0.8958239  0.08801720
+  0.3  2          0.6               0.75        50      0.1346943  0.8873262  0.09370190
+  0.3  2          0.6               0.75       100      0.1269494  0.8997303  0.08750564
+  0.3  2          0.6               0.75       150      0.1245373  0.9034503  0.08503232
+  0.3  2          0.6               1.00        50      0.1339440  0.8887625  0.09219138
+  0.3  2          0.6               1.00       100      0.1269543  0.9000374  0.08586277
+  0.3  2          0.6               1.00       150      0.1251404  0.9028358  0.08362079
+  0.3  2          0.8               0.50        50      0.1352660  0.8872566  0.09461307
+  0.3  2          0.8               0.50       100      0.1289588  0.8973918  0.08917340
+  0.3  2          0.8               0.50       150      0.1284517  0.8979673  0.08844235
+  0.3  2          0.8               0.75        50      0.1331928  0.8902831  0.09301212
+  0.3  2          0.8               0.75       100      0.1258623  0.9020187  0.08592522
+  0.3  2          0.8               0.75       150      0.1228060  0.9066271  0.08350054
+  0.3  2          0.8               1.00        50      0.1339528  0.8890648  0.09223928
+  0.3  2          0.8               1.00       100      0.1287202  0.8976446  0.08703369
+  0.3  2          0.8               1.00       150      0.1267084  0.9008993  0.08480565
+  0.3  3          0.6               0.50        50      0.1317337  0.8932127  0.09259700
+  0.3  3          0.6               0.50       100      0.1292644  0.8971960  0.08980272
+  0.3  3          0.6               0.50       150      0.1288706  0.8979765  0.08924166
+  0.3  3          0.6               0.75        50      0.1273635  0.8992714  0.08779617
+  0.3  3          0.6               0.75       100      0.1246768  0.9036055  0.08493104
+  0.3  3          0.6               0.75       150      0.1233807  0.9056430  0.08370900
+  0.3  3          0.6               1.00        50      0.1297640  0.8959115  0.08797583
+  0.3  3          0.6               1.00       100      0.1257963  0.9023808  0.08460308
+  0.3  3          0.6               1.00       150      0.1246823  0.9041009  0.08347640
+  0.3  3          0.8               0.50        50      0.1364456  0.8869245  0.09170426
+  0.3  3          0.8               0.50       100      0.1337923  0.8912377  0.08991010
+  0.3  3          0.8               0.50       150      0.1332632  0.8925428  0.08954710
+  0.3  3          0.8               0.75        50      0.1284288  0.8983125  0.08806871
+  0.3  3          0.8               0.75       100      0.1259270  0.9021347  0.08511234
+  0.3  3          0.8               0.75       150      0.1256589  0.9025088  0.08473929
+  0.3  3          0.8               1.00        50      0.1275205  0.8993679  0.08808863
+  0.3  3          0.8               1.00       100      0.1229838  0.9064992  0.08395488
+  0.3  3          0.8               1.00       150      0.1222335  0.9076842  0.08305924
+  0.4  1          0.6               0.50        50      0.1471832  0.8661784  0.10587303
+  0.4  1          0.6               0.50       100      0.1368792  0.8838872  0.09600466
+  0.4  1          0.6               0.50       150      0.1331473  0.8904243  0.09244451
+  0.4  1          0.6               0.75        50      0.1459324  0.8684375  0.10584763
+  0.4  1          0.6               0.75       100      0.1357507  0.8862272  0.09682190
+  0.4  1          0.6               0.75       150      0.1308981  0.8939574  0.09235563
+  0.4  1          0.6               1.00        50      0.1471274  0.8661981  0.10545849
+  0.4  1          0.6               1.00       100      0.1363354  0.8850125  0.09589902
+  0.4  1          0.6               1.00       150      0.1309939  0.8938250  0.09096237
+  0.4  1          0.8               0.50        50      0.1467668  0.8671913  0.10618626
+  0.4  1          0.8               0.50       100      0.1362549  0.8857434  0.09631353
+  0.4  1          0.8               0.50       150      0.1328263  0.8911716  0.09248470
+  0.4  1          0.8               0.75        50      0.1444170  0.8711442  0.10341337
+  0.4  1          0.8               0.75       100      0.1360100  0.8858429  0.09584132
+  0.4  1          0.8               0.75       150      0.1319774  0.8925123  0.09101721
+  0.4  1          0.8               1.00        50      0.1485203  0.8639714  0.10500529
+  0.4  1          0.8               1.00       100      0.1377799  0.8827825  0.09638362
+  0.4  1          0.8               1.00       150      0.1322967  0.8920934  0.09184350
+  0.4  2          0.6               0.50        50      0.1366239  0.8836905  0.09571696
+  0.4  2          0.6               0.50       100      0.1306171  0.8937888  0.09058059
+  0.4  2          0.6               0.50       150      0.1300373  0.8948520  0.09005442
+  0.4  2          0.6               0.75        50      0.1367155  0.8847838  0.09377802
+  0.4  2          0.6               0.75       100      0.1300262  0.8954793  0.08863473
+  0.4  2          0.6               0.75       150      0.1290966  0.8972176  0.08720847
+  0.4  2          0.6               1.00        50      0.1342974  0.8884711  0.09303934
+  0.4  2          0.6               1.00       100      0.1286206  0.8975694  0.08783614
+  0.4  2          0.6               1.00       150      0.1273237  0.8996616  0.08620850
+  0.4  2          0.8               0.50        50      0.1378404  0.8828261  0.09593457
+  0.4  2          0.8               0.50       100      0.1326070  0.8920828  0.09251261
+  0.4  2          0.8               0.50       150      0.1332257  0.8909365  0.09167337
+  0.4  2          0.8               0.75        50      0.1355865  0.8866503  0.09451522
+  0.4  2          0.8               0.75       100      0.1306129  0.8946362  0.08938090
+  0.4  2          0.8               0.75       150      0.1292835  0.8969099  0.08731154
+  0.4  2          0.8               1.00        50      0.1328767  0.8912346  0.09160164
+  0.4  2          0.8               1.00       100      0.1264937  0.9014612  0.08620815
+  0.4  2          0.8               1.00       150      0.1254438  0.9029142  0.08521268
+  0.4  3          0.6               0.50        50      0.1386702  0.8831088  0.09633999
+  0.4  3          0.6               0.50       100      0.1380558  0.8841909  0.09501516
+  0.4  3          0.6               0.50       150      0.1379181  0.8844189  0.09430585
+  0.4  3          0.6               0.75        50      0.1295490  0.8966137  0.09098430
+  0.4  3          0.6               0.75       100      0.1271811  0.9005162  0.08831362
+  0.4  3          0.6               0.75       150      0.1271337  0.9005815  0.08813869
+  0.4  3          0.6               1.00        50      0.1258145  0.9017052  0.08803483
+  0.4  3          0.6               1.00       100      0.1239906  0.9046269  0.08573147
+  0.4  3          0.6               1.00       150      0.1241268  0.9043744  0.08558538
+  0.4  3          0.8               0.50        50      0.1406038  0.8787631  0.09547068
+  0.4  3          0.8               0.50       100      0.1395215  0.8805150  0.09391083
+  0.4  3          0.8               0.50       150      0.1382131  0.8831467  0.09398881
+  0.4  3          0.8               0.75        50      0.1338104  0.8894602  0.09134443
+  0.4  3          0.8               0.75       100      0.1308378  0.8943063  0.08912010
+  0.4  3          0.8               0.75       150      0.1307722  0.8945944  0.08922838
+  0.4  3          0.8               1.00        50      0.1273213  0.8996581  0.08847324
+  0.4  3          0.8               1.00       100      0.1230440  0.9063585  0.08498914
+  0.4  3          0.8               1.00       150      0.1218440  0.9083180  0.08388513
+
+Tuning parameter 'gamma' was held constant at a value of 0
+Tuning parameter 'min_child_weight' was held constant at a value of 1
+RMSE was used to select the optimal model using the smallest value.
+The final values used for the model were nrounds = 150, max_depth = 3, eta = 0.4, gamma = 0, colsample_bytree = 0.8, min_child_weight =
+ 1 and subsample = 1.
+0.1357466 	
+Undefined test categorical: Kitchen_Qual Poor 
+Training Levels: Fair Typical Good Excellent 
+Level_i 1 
+Level_i 2 
+Level_i 3 
+Level_i 4 
+Level_i 5 
+New Level: Fair 
+variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 188: ElectricalMix has no variation.variable 190: ElectricalUnknown has no variation.variable 256: Sale_TypeVWD has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 188: ElectricalMix has no variation.variable 190: ElectricalUnknown has no variation.variable 256: Sale_TypeVWD has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 188: ElectricalMix has no variation.variable 190: ElectricalUnknown has no variation.variable 256: Sale_TypeVWD has no variation.variable 18: MS_ZoningI_all has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 115: Exterior_1stStone has no variation.variable 128: Exterior_2ndOther has no variation.variable 188: ElectricalMix has no variation.variable 256: Sale_TypeVWD has no variation.variable 18: MS_ZoningI_all has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 115: Exterior_1stStone has no variation.variable 128: Exterior_2ndOther has no variation.variable 188: ElectricalMix has no variation.variable 256: Sale_TypeVWD has no variation.variable 18: MS_ZoningI_all has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 115: Exterior_1stStone has no variation.variable 128: Exterior_2ndOther has no variation.variable 188: ElectricalMix has no variation.variable 256: Sale_TypeVWD has no variation.variable 111: Exterior_1stImStucc has no variation.variable 188: ElectricalMix has no variation.variable 256: Sale_TypeVWD has no variation.variable 111: Exterior_1stImStucc has no variation.variable 188: ElectricalMix has no variation.variable 256: Sale_TypeVWD has no variation.variable 111: Exterior_1stImStucc has no variation.variable 188: ElectricalMix has no variation.variable 256: Sale_TypeVWD has no variation.variable 47: NeighborhoodLandmark has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 256: Sale_TypeVWD has no variation.variable 47: NeighborhoodLandmark has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 256: Sale_TypeVWD has no variation.variable 47: NeighborhoodLandmark has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 256: Sale_TypeVWD has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 188: ElectricalMix has no variation.variable 256: Sale_TypeVWD has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 188: ElectricalMix has no variation.variable 256: Sale_TypeVWD has no variation.variable 114: Exterior_1stPreCast has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 188: ElectricalMix has no variation.variable 256: Sale_TypeVWD has no variation.variable 188: ElectricalMix has no variation.variable 256: Sale_TypeVWD has no variation.Stochastic Gradient Boosting 
+
+2051 samples
+  59 predictor
+
+No pre-processing
+Resampling: Cross-Validated (5 fold, repeated 1 times) 
+Summary of sample sizes: 1641, 1640, 1642, 1641, 1640 
+Resampling results across tuning parameters:
+
+  interaction.depth  n.trees  RMSE       Rsquared   MAE       
+  1                   50      0.1690502  0.8521785  0.11741825
+  1                  100      0.1443140  0.8798862  0.09918470
+  1                  150      0.1384333  0.8879046  0.09426216
+  2                   50      0.1480444  0.8764756  0.10155629
+  2                  100      0.1365053  0.8908855  0.09192408
+  2                  150      0.1329031  0.8965371  0.08883806
+  3                   50      0.1406251  0.8862027  0.09588031
+  3                  100      0.1322777  0.8974369  0.08814289
+  3                  150      0.1290166  0.9023547  0.08595807
+
+Tuning parameter 'shrinkage' was held constant at a value of 0.1
+Tuning parameter 'n.minobsinnode' was held constant at a value of 10
+RMSE was used to select the optimal model using the smallest value.
+The final values used for the model were n.trees = 150, interaction.depth = 3, shrinkage = 0.1 and n.minobsinnode = 10.
+0.11972 	eXtreme Gradient Boosting 
+
+2051 samples
+  59 predictor
+
+No pre-processing
+Resampling: Cross-Validated (5 fold, repeated 1 times) 
+Summary of sample sizes: 1640, 1641, 1642, 1641, 1640 
+Resampling results across tuning parameters:
+
+  eta  max_depth  colsample_bytree  subsample  nrounds  RMSE       Rsquared   MAE       
+  0.3  1          0.6               0.50        50      0.1485528  0.8708982  0.10652108
+  0.3  1          0.6               0.50       100      0.1386012  0.8879979  0.09735592
+  0.3  1          0.6               0.50       150      0.1362076  0.8920556  0.09383187
+  0.3  1          0.6               0.75        50      0.1494674  0.8692438  0.10755532
+  0.3  1          0.6               0.75       100      0.1409515  0.8841308  0.09851685
+  0.3  1          0.6               0.75       150      0.1366656  0.8909191  0.09423578
+  0.3  1          0.6               1.00        50      0.1470304  0.8734999  0.10373527
+  0.3  1          0.6               1.00       100      0.1384688  0.8875493  0.09600949
+  0.3  1          0.6               1.00       150      0.1345581  0.8937053  0.09189856
+  0.3  1          0.8               0.50        50      0.1516978  0.8652965  0.10797176
+  0.3  1          0.8               0.50       100      0.1437426  0.8793110  0.09922743
+  0.3  1          0.8               0.50       150      0.1388764  0.8870739  0.09442609
+  0.3  1          0.8               0.75        50      0.1478886  0.8716518  0.10499448
+  0.3  1          0.8               0.75       100      0.1395053  0.8859037  0.09686044
+  0.3  1          0.8               0.75       150      0.1358154  0.8917096  0.09228301
+  0.3  1          0.8               1.00        50      0.1471761  0.8731879  0.10371652
+  0.3  1          0.8               1.00       100      0.1400609  0.8847392  0.09693597
+  0.3  1          0.8               1.00       150      0.1365807  0.8902888  0.09325863
+  0.3  2          0.6               0.50        50      0.1393723  0.8861166  0.09592335
+  0.3  2          0.6               0.50       100      0.1341432  0.8948894  0.09037662
+  0.3  2          0.6               0.50       150      0.1337200  0.8959421  0.08918004
+  0.3  2          0.6               0.75        50      0.1384016  0.8873966  0.09471704
+  0.3  2          0.6               0.75       100      0.1336392  0.8952435  0.08984380
+  0.3  2          0.6               0.75       150      0.1332545  0.8960380  0.08913121
+  0.3  2          0.6               1.00        50      0.1355375  0.8919378  0.09289314
+  0.3  2          0.6               1.00       100      0.1317090  0.8980249  0.08864840
+  0.3  2          0.6               1.00       150      0.1303431  0.9003747  0.08678497
+  0.3  2          0.8               0.50        50      0.1406640  0.8853717  0.09557656
+  0.3  2          0.8               0.50       100      0.1362015  0.8920237  0.09147406
+  0.3  2          0.8               0.50       150      0.1362194  0.8924873  0.09039338
+  0.3  2          0.8               0.75        50      0.1378092  0.8891311  0.09370288
+  0.3  2          0.8               0.75       100      0.1329604  0.8972571  0.08907559
+  0.3  2          0.8               0.75       150      0.1315494  0.8992271  0.08725435
+  0.3  2          0.8               1.00        50      0.1362718  0.8909300  0.09338087
+  0.3  2          0.8               1.00       100      0.1318240  0.8979615  0.08814896
+  0.3  2          0.8               1.00       150      0.1307549  0.8996564  0.08630622
+  0.3  3          0.6               0.50        50      0.1399210  0.8848054  0.09598492
+  0.3  3          0.6               0.50       100      0.1390625  0.8868161  0.09414008
+  0.3  3          0.6               0.50       150      0.1402947  0.8849887  0.09485061
+  0.3  3          0.6               0.75        50      0.1340854  0.8942142  0.09050200
+  0.3  3          0.6               0.75       100      0.1327702  0.8962966  0.08790491
+  0.3  3          0.6               0.75       150      0.1333947  0.8955283  0.08833208
+  0.3  3          0.6               1.00        50      0.1350403  0.8931004  0.09052761
+  0.3  3          0.6               1.00       100      0.1322211  0.8976858  0.08732254
+  0.3  3          0.6               1.00       150      0.1320871  0.8980564  0.08676143
+  0.3  3          0.8               0.50        50      0.1422315  0.8817150  0.09531477
+  0.3  3          0.8               0.50       100      0.1396449  0.8861943  0.09293286
+  0.3  3          0.8               0.50       150      0.1399689  0.8857166  0.09300355
+  0.3  3          0.8               0.75        50      0.1332760  0.8955326  0.08973606
+  0.3  3          0.8               0.75       100      0.1295775  0.9014830  0.08576136
+  0.3  3          0.8               0.75       150      0.1303367  0.9005211  0.08582174
+  0.3  3          0.8               1.00        50      0.1350622  0.8931038  0.08979715
+  0.3  3          0.8               1.00       100      0.1322476  0.8976777  0.08667874
+  0.3  3          0.8               1.00       150      0.1316069  0.8987789  0.08558806
+  0.4  1          0.6               0.50        50      0.1543167  0.8606240  0.10956138
+  0.4  1          0.6               0.50       100      0.1454725  0.8765783  0.10211671
+  0.4  1          0.6               0.50       150      0.1402520  0.8849114  0.09746443
+  0.4  1          0.6               0.75        50      0.1482685  0.8716953  0.10692655
+  0.4  1          0.6               0.75       100      0.1390840  0.8868138  0.09764843
+  0.4  1          0.6               0.75       150      0.1345818  0.8941579  0.09216553
+  0.4  1          0.6               1.00        50      0.1516730  0.8655587  0.10823001
+  0.4  1          0.6               1.00       100      0.1419931  0.8820357  0.09867826
+  0.4  1          0.6               1.00       150      0.1375840  0.8892821  0.09386054
+  0.4  1          0.8               0.50        50      0.1516111  0.8660667  0.10879364
+  0.4  1          0.8               0.50       100      0.1424372  0.8822598  0.09939034
+  0.4  1          0.8               0.50       150      0.1388907  0.8883992  0.09572454
+  0.4  1          0.8               0.75        50      0.1487834  0.8705377  0.10637298
+  0.4  1          0.8               0.75       100      0.1401484  0.8850238  0.09712983
+  0.4  1          0.8               0.75       150      0.1371463  0.8898193  0.09376296
+  0.4  1          0.8               1.00        50      0.1474678  0.8728718  0.10596721
+  0.4  1          0.8               1.00       100      0.1388674  0.8870124  0.09714552
+  0.4  1          0.8               1.00       150      0.1340701  0.8946717  0.09222380
+  0.4  2          0.6               0.50        50      0.1422360  0.8824242  0.09737816
+  0.4  2          0.6               0.50       100      0.1385776  0.8888299  0.09312884
+  0.4  2          0.6               0.50       150      0.1372263  0.8910884  0.09228033
+  0.4  2          0.6               0.75        50      0.1380269  0.8883568  0.09377466
+  0.4  2          0.6               0.75       100      0.1345834  0.8940839  0.08935111
+  0.4  2          0.6               0.75       150      0.1333354  0.8961432  0.08786059
+  0.4  2          0.6               1.00        50      0.1341859  0.8941101  0.09331207
+  0.4  2          0.6               1.00       100      0.1308722  0.8994630  0.08930224
+  0.4  2          0.6               1.00       150      0.1296970  0.9012933  0.08784166
+  0.4  2          0.8               0.50        50      0.1386171  0.8880698  0.09637526
+  0.4  2          0.8               0.50       100      0.1370350  0.8912987  0.09350079
+  0.4  2          0.8               0.50       150      0.1367230  0.8916098  0.09240008
+  0.4  2          0.8               0.75        50      0.1450006  0.8775559  0.09821212
+  0.4  2          0.8               0.75       100      0.1416637  0.8838012  0.09344870
+  0.4  2          0.8               0.75       150      0.1412851  0.8845846  0.09215780
+  0.4  2          0.8               1.00        50      0.1403520  0.8843597  0.09435334
+  0.4  2          0.8               1.00       100      0.1373157  0.8894992  0.09019430
+  0.4  2          0.8               1.00       150      0.1359985  0.8917529  0.08880482
+  0.4  3          0.6               0.50        50      0.1410239  0.8841768  0.09597722
+  0.4  3          0.6               0.50       100      0.1415940  0.8837449  0.09725563
+  0.4  3          0.6               0.50       150      0.1429889  0.8817625  0.09810364
+  0.4  3          0.6               0.75        50      0.1393191  0.8870663  0.09449243
+  0.4  3          0.6               0.75       100      0.1385990  0.8885041  0.09407247
+  0.4  3          0.6               0.75       150      0.1394989  0.8873365  0.09464348
+  0.4  3          0.6               1.00        50      0.1361688  0.8913652  0.09090272
+  0.4  3          0.6               1.00       100      0.1337005  0.8956550  0.08777808
+  0.4  3          0.6               1.00       150      0.1342376  0.8948112  0.08805592
+  0.4  3          0.8               0.50        50      0.1416748  0.8832287  0.09586514
+  0.4  3          0.8               0.50       100      0.1444956  0.8797246  0.09869501
+  0.4  3          0.8               0.50       150      0.1458140  0.8775645  0.09971574
+  0.4  3          0.8               0.75        50      0.1404346  0.8850467  0.09326283
+  0.4  3          0.8               0.75       100      0.1391722  0.8878557  0.09203980
+  0.4  3          0.8               0.75       150      0.1393075  0.8875646  0.09176555
+  0.4  3          0.8               1.00        50      0.1392608  0.8862423  0.09361051
+  0.4  3          0.8               1.00       100      0.1384524  0.8879452  0.09201567
+  0.4  3          0.8               1.00       150      0.1380870  0.8885763  0.09128293
+
+Tuning parameter 'gamma' was held constant at a value of 0
+Tuning parameter 'min_child_weight' was held constant at a value of 1
+RMSE was used to select the optimal model using the smallest value.
+The final values used for the model were nrounds = 100, max_depth = 3, eta = 0.3, gamma = 0, colsample_bytree = 0.8, min_child_weight =
+ 1 and subsample = 0.75.
+0.1296751 	
+variable 18: MS_ZoningI_all has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 190: ElectricalUnknown has no variation.variable 18: MS_ZoningI_all has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 190: ElectricalUnknown has no variation.variable 18: MS_ZoningI_all has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 190: ElectricalUnknown has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 115: Exterior_1stStone has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 115: Exterior_1stStone has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 115: Exterior_1stStone has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 188: ElectricalMix has no variation.variable 47: NeighborhoodLandmark has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 131: Exterior_2ndStone has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 47: NeighborhoodLandmark has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 131: Exterior_2ndStone has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 47: NeighborhoodLandmark has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 131: Exterior_2ndStone has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 69: Condition_1RRNe has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 257: Sale_TypeVWD has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 69: Condition_1RRNe has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 257: Sale_TypeVWD has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 69: Condition_1RRNe has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 257: Sale_TypeVWD has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.Stochastic Gradient Boosting 
+
+2051 samples
+  59 predictor
+
+No pre-processing
+Resampling: Cross-Validated (5 fold, repeated 1 times) 
+Summary of sample sizes: 1641, 1642, 1639, 1641, 1641 
+Resampling results across tuning parameters:
+
+  interaction.depth  n.trees  RMSE       Rsquared   MAE       
+  1                   50      0.1699296  0.8521078  0.11504561
+  1                  100      0.1457682  0.8771223  0.09854958
+  1                  150      0.1395324  0.8858671  0.09285114
+  2                   50      0.1499592  0.8734659  0.10136425
+  2                  100      0.1365783  0.8903399  0.09030543
+  2                  150      0.1324106  0.8964569  0.08697351
+  3                   50      0.1427172  0.8822963  0.09568720
+  3                  100      0.1337627  0.8946366  0.08814372
+  3                  150      0.1312862  0.8986264  0.08649500
+
+Tuning parameter 'shrinkage' was held constant at a value of 0.1
+Tuning parameter 'n.minobsinnode' was held constant at a value of 10
+RMSE was used to select the optimal model using the smallest value.
+The final values used for the model were n.trees = 150, interaction.depth = 3, shrinkage = 0.1 and n.minobsinnode = 10.
+0.1212338 	eXtreme Gradient Boosting 
+
+2051 samples
+  59 predictor
+
+No pre-processing
+Resampling: Cross-Validated (5 fold, repeated 1 times) 
+Summary of sample sizes: 1640, 1640, 1640, 1642, 1642 
+Resampling results across tuning parameters:
+
+  eta  max_depth  colsample_bytree  subsample  nrounds  RMSE       Rsquared   MAE       
+  0.3  1          0.6               0.50        50      0.1542478  0.8603268  0.10793935
+  0.3  1          0.6               0.50       100      0.1449338  0.8775886  0.09929046
+  0.3  1          0.6               0.50       150      0.1394469  0.8863725  0.09592373
+  0.3  1          0.6               0.75        50      0.1527643  0.8630024  0.10777331
+  0.3  1          0.6               0.75       100      0.1421301  0.8812363  0.09819371
+  0.3  1          0.6               0.75       150      0.1362242  0.8910369  0.09294503
+  0.3  1          0.6               1.00        50      0.1508270  0.8663797  0.10647469
+  0.3  1          0.6               1.00       100      0.1414674  0.8825772  0.09824793
+  0.3  1          0.6               1.00       150      0.1369033  0.8900793  0.09381971
+  0.3  1          0.8               0.50        50      0.1509325  0.8661442  0.10479865
+  0.3  1          0.8               0.50       100      0.1451340  0.8764308  0.09909599
+  0.3  1          0.8               0.50       150      0.1420729  0.8816884  0.09567137
+  0.3  1          0.8               0.75        50      0.1505160  0.8671183  0.10614532
+  0.3  1          0.8               0.75       100      0.1413464  0.8825758  0.09742531
+  0.3  1          0.8               0.75       150      0.1372687  0.8894952  0.09348494
+  0.3  1          0.8               1.00        50      0.1503756  0.8671097  0.10482268
+  0.3  1          0.8               1.00       100      0.1405206  0.8840393  0.09617169
+  0.3  1          0.8               1.00       150      0.1364884  0.8907272  0.09200981
+  0.3  2          0.6               0.50        50      0.1438693  0.8791017  0.09711814
+  0.3  2          0.6               0.50       100      0.1396538  0.8866379  0.09219787
+  0.3  2          0.6               0.50       150      0.1395124  0.8872183  0.09111148
+  0.3  2          0.6               0.75        50      0.1442366  0.8789550  0.09517813
+  0.3  2          0.6               0.75       100      0.1378234  0.8892831  0.08842972
+  0.3  2          0.6               0.75       150      0.1358793  0.8925328  0.08633695
+  0.3  2          0.6               1.00        50      0.1417063  0.8823437  0.09444849
+  0.3  2          0.6               1.00       100      0.1361604  0.8915985  0.08909470
+  0.3  2          0.6               1.00       150      0.1353105  0.8932127  0.08724145
+  0.3  2          0.8               0.50        50      0.1479907  0.8718347  0.09782109
+  0.3  2          0.8               0.50       100      0.1432550  0.8796470  0.09315366
+  0.3  2          0.8               0.50       150      0.1416523  0.8827315  0.09106833
+  0.3  2          0.8               0.75        50      0.1380836  0.8881402  0.09422979
+  0.3  2          0.8               0.75       100      0.1343919  0.8942176  0.08863070
+  0.3  2          0.8               0.75       150      0.1327024  0.8969183  0.08654653
+  0.3  2          0.8               1.00        50      0.1386207  0.8876364  0.09162676
+  0.3  2          0.8               1.00       100      0.1350533  0.8934403  0.08751784
+  0.3  2          0.8               1.00       150      0.1334412  0.8961036  0.08590377
+  0.3  3          0.6               0.50        50      0.1476234  0.8735339  0.09702402
+  0.3  3          0.6               0.50       100      0.1465788  0.8757118  0.09417755
+  0.3  3          0.6               0.50       150      0.1472484  0.8746433  0.09408150
+  0.3  3          0.6               0.75        50      0.1385082  0.8882034  0.09051984
+  0.3  3          0.6               0.75       100      0.1363359  0.8916201  0.08779309
+  0.3  3          0.6               0.75       150      0.1362048  0.8919262  0.08724872
+  0.3  3          0.6               1.00        50      0.1401443  0.8855046  0.09082788
+  0.3  3          0.6               1.00       100      0.1377671  0.8894903  0.08782166
+  0.3  3          0.6               1.00       150      0.1374700  0.8903221  0.08685759
+  0.3  3          0.8               0.50        50      0.1428511  0.8809754  0.09478693
+  0.3  3          0.8               0.50       100      0.1418659  0.8823210  0.09273806
+  0.3  3          0.8               0.50       150      0.1413533  0.8832068  0.09221541
+  0.3  3          0.8               0.75        50      0.1420877  0.8825624  0.09109890
+  0.3  3          0.8               0.75       100      0.1387480  0.8882778  0.08721086
+  0.3  3          0.8               0.75       150      0.1384507  0.8887857  0.08659704
+  0.3  3          0.8               1.00        50      0.1389417  0.8877361  0.09005361
+  0.3  3          0.8               1.00       100      0.1363909  0.8921462  0.08723917
+  0.3  3          0.8               1.00       150      0.1356322  0.8934955  0.08605825
+  0.4  1          0.6               0.50        50      0.1548843  0.8592293  0.10866281
+  0.4  1          0.6               0.50       100      0.1452285  0.8764143  0.10123634
+  0.4  1          0.6               0.50       150      0.1412589  0.8835637  0.09667676
+  0.4  1          0.6               0.75        50      0.1493096  0.8697385  0.10637040
+  0.4  1          0.6               0.75       100      0.1399792  0.8857471  0.09827158
+  0.4  1          0.6               0.75       150      0.1358115  0.8922880  0.09423410
+  0.4  1          0.6               1.00        50      0.1507967  0.8664459  0.10654933
+  0.4  1          0.6               1.00       100      0.1410270  0.8834159  0.09717853
+  0.4  1          0.6               1.00       150      0.1358131  0.8919577  0.09290275
+  0.4  1          0.8               0.50        50      0.1546494  0.8601168  0.10850736
+  0.4  1          0.8               0.50       100      0.1450045  0.8763096  0.09866583
+  0.4  1          0.8               0.50       150      0.1398271  0.8851407  0.09504273
+  0.4  1          0.8               0.75        50      0.1553593  0.8582251  0.10937398
+  0.4  1          0.8               0.75       100      0.1443000  0.8778951  0.09882362
+  0.4  1          0.8               0.75       150      0.1384693  0.8876602  0.09436146
+  0.4  1          0.8               1.00        50      0.1501306  0.8673199  0.10691364
+  0.4  1          0.8               1.00       100      0.1406471  0.8839871  0.09741384
+  0.4  1          0.8               1.00       150      0.1363644  0.8910503  0.09257824
+  0.4  2          0.6               0.50        50      0.1477431  0.8726565  0.09971078
+  0.4  2          0.6               0.50       100      0.1417797  0.8827036  0.09360033
+  0.4  2          0.6               0.50       150      0.1417856  0.8825045  0.09277733
+  0.4  2          0.6               0.75        50      0.1445329  0.8787666  0.09563539
+  0.4  2          0.6               0.75       100      0.1379931  0.8893153  0.08975527
+  0.4  2          0.6               0.75       150      0.1379698  0.8893790  0.08924274
+  0.4  2          0.6               1.00        50      0.1426172  0.8811952  0.09534570
+  0.4  2          0.6               1.00       100      0.1378469  0.8890191  0.08973328
+  0.4  2          0.6               1.00       150      0.1367855  0.8907015  0.08815782
+  0.4  2          0.8               0.50        50      0.1460134  0.8755343  0.09883986
+  0.4  2          0.8               0.50       100      0.1429241  0.8806022  0.09341405
+  0.4  2          0.8               0.50       150      0.1409285  0.8838364  0.09220462
+  0.4  2          0.8               0.75        50      0.1429654  0.8812288  0.09456320
+  0.4  2          0.8               0.75       100      0.1377766  0.8902835  0.09000060
+  0.4  2          0.8               0.75       150      0.1351049  0.8943392  0.08785910
+  0.4  2          0.8               1.00        50      0.1393962  0.8861841  0.09398705
+  0.4  2          0.8               1.00       100      0.1357823  0.8921975  0.08982384
+  0.4  2          0.8               1.00       150      0.1331607  0.8964185  0.08741994
+  0.4  3          0.6               0.50        50      0.1491084  0.8706487  0.09871476
+  0.4  3          0.6               0.50       100      0.1513840  0.8670868  0.09751925
+  0.4  3          0.6               0.50       150      0.1509966  0.8678716  0.09783970
+  0.4  3          0.6               0.75        50      0.1435438  0.8798229  0.09282047
+  0.4  3          0.6               0.75       100      0.1424235  0.8818381  0.09150149
+  0.4  3          0.6               0.75       150      0.1424188  0.8818866  0.09145583
+  0.4  3          0.6               1.00        50      0.1415518  0.8835151  0.09088626
+  0.4  3          0.6               1.00       100      0.1389449  0.8880573  0.08854236
+  0.4  3          0.6               1.00       150      0.1385750  0.8887171  0.08817324
+  0.4  3          0.8               0.50        50      0.1485041  0.8716821  0.09773960
+  0.4  3          0.8               0.50       100      0.1496698  0.8696810  0.09690305
+  0.4  3          0.8               0.50       150      0.1502066  0.8695627  0.09678167
+  0.4  3          0.8               0.75        50      0.1437372  0.8795714  0.09383122
+  0.4  3          0.8               0.75       100      0.1410124  0.8843706  0.09115611
+  0.4  3          0.8               0.75       150      0.1423885  0.8823491  0.09116985
+  0.4  3          0.8               1.00        50      0.1358371  0.8910673  0.08989501
+  0.4  3          0.8               1.00       100      0.1322676  0.8970089  0.08672806
+  0.4  3          0.8               1.00       150      0.1322253  0.8973578  0.08650847
+
+Tuning parameter 'gamma' was held constant at a value of 0
+Tuning parameter 'min_child_weight' was held constant at a value of 1
+RMSE was used to select the optimal model using the smallest value.
+The final values used for the model were nrounds = 150, max_depth = 3, eta = 0.4, gamma = 0, colsample_bytree = 0.8, min_child_weight =
+ 1 and subsample = 1.
+0.1306371 	
+Undefined test categorical: Exter_Cond Poor 
+Training Levels: Fair Typical Good Excellent 
+Level_i 1 
+Level_i 2 
+Level_i 3 
+Level_i 4 
+Level_i 5 
+New Level: Fair 
+Undefined test categorical: Kitchen_Qual Poor 
+Training Levels: Fair Typical Good Excellent 
+Level_i 1 
+Level_i 2 
+Level_i 3 
+Level_i 4 
+Level_i 5 
+New Level: Fair 
+variable 18: MS_ZoningI_all has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 18: MS_ZoningI_all has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 18: MS_ZoningI_all has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 187: ElectricalMix has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 187: ElectricalMix has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 187: ElectricalMix has no variation.variable 47: NeighborhoodLandmark has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 120: Exterior_2ndAsphShn has no variation.variable 123: Exterior_2ndCBlock has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 255: Sale_TypeVWD has no variation.variable 47: NeighborhoodLandmark has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 120: Exterior_2ndAsphShn has no variation.variable 123: Exterior_2ndCBlock has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 255: Sale_TypeVWD has no variation.variable 47: NeighborhoodLandmark has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 120: Exterior_2ndAsphShn has no variation.variable 123: Exterior_2ndCBlock has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 255: Sale_TypeVWD has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 189: ElectricalUnknown has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 189: ElectricalUnknown has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 108: Exterior_1stCBlock has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 189: ElectricalUnknown has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.Stochastic Gradient Boosting 
+
+2051 samples
+  59 predictor
+
+No pre-processing
+Resampling: Cross-Validated (5 fold, repeated 1 times) 
+Summary of sample sizes: 1642, 1640, 1641, 1640, 1641 
+Resampling results across tuning parameters:
+
+  interaction.depth  n.trees  RMSE       Rsquared   MAE       
+  1                   50      0.1644309  0.8524483  0.11373367
+  1                  100      0.1400711  0.8810309  0.09598536
+  1                  150      0.1348973  0.8880725  0.09142806
+  2                   50      0.1435362  0.8787915  0.09754610
+  2                  100      0.1322320  0.8925295  0.08755202
+  2                  150      0.1296484  0.8964800  0.08522488
+  3                   50      0.1372109  0.8861454  0.09312371
+  3                  100      0.1296191  0.8967725  0.08646399
+  3                  150      0.1276037  0.8999851  0.08456118
+
+Tuning parameter 'shrinkage' was held constant at a value of 0.1
+Tuning parameter 'n.minobsinnode' was held constant at a value of 10
+RMSE was used to select the optimal model using the smallest value.
+The final values used for the model were n.trees = 150, interaction.depth = 3, shrinkage = 0.1 and n.minobsinnode = 10.
+0.1290482 	eXtreme Gradient Boosting 
+
+2051 samples
+  59 predictor
+
+No pre-processing
+Resampling: Cross-Validated (5 fold, repeated 1 times) 
+Summary of sample sizes: 1641, 1640, 1641, 1641, 1641 
+Resampling results across tuning parameters:
+
+  eta  max_depth  colsample_bytree  subsample  nrounds  RMSE       Rsquared   MAE       
+  0.3  1          0.6               0.50        50      0.1468467  0.8679065  0.10337899
+  0.3  1          0.6               0.50       100      0.1403595  0.8798609  0.09564157
+  0.3  1          0.6               0.50       150      0.1362070  0.8868906  0.09186088
+  0.3  1          0.6               0.75        50      0.1474455  0.8671219  0.10284471
+  0.3  1          0.6               0.75       100      0.1383259  0.8825339  0.09461646
+  0.3  1          0.6               0.75       150      0.1345390  0.8890219  0.09117309
+  0.3  1          0.6               1.00        50      0.1462632  0.8683724  0.10108991
+  0.3  1          0.6               1.00       100      0.1347839  0.8881331  0.09238577
+  0.3  1          0.6               1.00       150      0.1308430  0.8946508  0.08886668
+  0.3  1          0.8               0.50        50      0.1516733  0.8591361  0.10667108
+  0.3  1          0.8               0.50       100      0.1429793  0.8751693  0.09866252
+  0.3  1          0.8               0.50       150      0.1396344  0.8812804  0.09494919
+  0.3  1          0.8               0.75        50      0.1476248  0.8669440  0.10341997
+  0.3  1          0.8               0.75       100      0.1378905  0.8836933  0.09491567
+  0.3  1          0.8               0.75       150      0.1360818  0.8867866  0.09200983
+  0.3  1          0.8               1.00        50      0.1453760  0.8706514  0.10141801
+  0.3  1          0.8               1.00       100      0.1348141  0.8883272  0.09271585
+  0.3  1          0.8               1.00       150      0.1319194  0.8930475  0.08932145
+  0.3  2          0.6               0.50        50      0.1388821  0.8826687  0.09466295
+  0.3  2          0.6               0.50       100      0.1352443  0.8896473  0.08942731
+  0.3  2          0.6               0.50       150      0.1344301  0.8912758  0.08861214
+  0.3  2          0.6               0.75        50      0.1381052  0.8831570  0.09210736
+  0.3  2          0.6               0.75       100      0.1337195  0.8906876  0.08728921
+  0.3  2          0.6               0.75       150      0.1326806  0.8925137  0.08580125
+  0.3  2          0.6               1.00        50      0.1339862  0.8901695  0.08926577
+  0.3  2          0.6               1.00       100      0.1298424  0.8970275  0.08521617
+  0.3  2          0.6               1.00       150      0.1293327  0.8978783  0.08390356
+  0.3  2          0.8               0.50        50      0.1362246  0.8861939  0.09174499
+  0.3  2          0.8               0.50       100      0.1330025  0.8919308  0.08777814
+  0.3  2          0.8               0.50       150      0.1326692  0.8929343  0.08700849
+  0.3  2          0.8               0.75        50      0.1350561  0.8884133  0.09079428
+  0.3  2          0.8               0.75       100      0.1319763  0.8937426  0.08705655
+  0.3  2          0.8               0.75       150      0.1307492  0.8958568  0.08532013
+  0.3  2          0.8               1.00        50      0.1326592  0.8921238  0.09015610
+  0.3  2          0.8               1.00       100      0.1291245  0.8977913  0.08545504
+  0.3  2          0.8               1.00       150      0.1286596  0.8984074  0.08427642
+  0.3  3          0.6               0.50        50      0.1414172  0.8783646  0.09219698
+  0.3  3          0.6               0.50       100      0.1410996  0.8792794  0.09021239
+  0.3  3          0.6               0.50       150      0.1414073  0.8793838  0.09101529
+  0.3  3          0.6               0.75        50      0.1370738  0.8858115  0.08931701
+  0.3  3          0.6               0.75       100      0.1348161  0.8893418  0.08770254
+  0.3  3          0.6               0.75       150      0.1347117  0.8895844  0.08753931
+  0.3  3          0.6               1.00        50      0.1321499  0.8925606  0.08877602
+  0.3  3          0.6               1.00       100      0.1301779  0.8955466  0.08557783
+  0.3  3          0.6               1.00       150      0.1297825  0.8961628  0.08478613
+  0.3  3          0.8               0.50        50      0.1393435  0.8817172  0.09282508
+  0.3  3          0.8               0.50       100      0.1398759  0.8813942  0.09061060
+  0.3  3          0.8               0.50       150      0.1406744  0.8803847  0.09138210
+  0.3  3          0.8               0.75        50      0.1363239  0.8868976  0.08932893
+  0.3  3          0.8               0.75       100      0.1341659  0.8905464  0.08809368
+  0.3  3          0.8               0.75       150      0.1344076  0.8902831  0.08802646
+  0.3  3          0.8               1.00        50      0.1319341  0.8932646  0.08672636
+  0.3  3          0.8               1.00       100      0.1305821  0.8955507  0.08507878
+  0.3  3          0.8               1.00       150      0.1307363  0.8955275  0.08469355
+  0.4  1          0.6               0.50        50      0.1480997  0.8658571  0.10399119
+  0.4  1          0.6               0.50       100      0.1393820  0.8807274  0.09628097
+  0.4  1          0.6               0.50       150      0.1367030  0.8857395  0.09270091
+  0.4  1          0.6               0.75        50      0.1513347  0.8600072  0.10567910
+  0.4  1          0.6               0.75       100      0.1429966  0.8754230  0.09821741
+  0.4  1          0.6               0.75       150      0.1387066  0.8827169  0.09351581
+  0.4  1          0.6               1.00        50      0.1460865  0.8693208  0.10211537
+  0.4  1          0.6               1.00       100      0.1356267  0.8872438  0.09221650
+  0.4  1          0.6               1.00       150      0.1309752  0.8949196  0.08816881
+  0.4  1          0.8               0.50        50      0.1455581  0.8705961  0.10217480
+  0.4  1          0.8               0.50       100      0.1403386  0.8801857  0.09494522
+  0.4  1          0.8               0.50       150      0.1373758  0.8856237  0.09248892
+  0.4  1          0.8               0.75        50      0.1469042  0.8685267  0.10301698
+  0.4  1          0.8               0.75       100      0.1375661  0.8846100  0.09388632
+  0.4  1          0.8               0.75       150      0.1341401  0.8905594  0.09081708
+  0.4  1          0.8               1.00        50      0.1449269  0.8715599  0.10238650
+  0.4  1          0.8               1.00       100      0.1371725  0.8849245  0.09430083
+  0.4  1          0.8               1.00       150      0.1330066  0.8918040  0.09042965
+  0.4  2          0.6               0.50        50      0.1404853  0.8790892  0.09425471
+  0.4  2          0.6               0.50       100      0.1375695  0.8846229  0.09106331
+  0.4  2          0.6               0.50       150      0.1360366  0.8878522  0.09000554
+  0.4  2          0.6               0.75        50      0.1378211  0.8837143  0.09327791
+  0.4  2          0.6               0.75       100      0.1331939  0.8913301  0.08837676
+  0.4  2          0.6               0.75       150      0.1317627  0.8938525  0.08658807
+  0.4  2          0.6               1.00        50      0.1352540  0.8881210  0.09210791
+  0.4  2          0.6               1.00       100      0.1311353  0.8946519  0.08761337
+  0.4  2          0.6               1.00       150      0.1304966  0.8957952  0.08623276
+  0.4  2          0.8               0.50        50      0.1495001  0.8660582  0.09762152
+  0.4  2          0.8               0.50       100      0.1425392  0.8778200  0.09233999
+  0.4  2          0.8               0.50       150      0.1434366  0.8766492  0.09112704
+  0.4  2          0.8               0.75        50      0.1365189  0.8865523  0.09302004
+  0.4  2          0.8               0.75       100      0.1336957  0.8914263  0.08950683
+  0.4  2          0.8               0.75       150      0.1330366  0.8928406  0.08808410
+  0.4  2          0.8               1.00        50      0.1349912  0.8881828  0.09134922
+  0.4  2          0.8               1.00       100      0.1324691  0.8925731  0.08735167
+  0.4  2          0.8               1.00       150      0.1308776  0.8953164  0.08605398
+  0.4  3          0.6               0.50        50      0.1431631  0.8766023  0.09692097
+  0.4  3          0.6               0.50       100      0.1436562  0.8756437  0.09694089
+  0.4  3          0.6               0.50       150      0.1456823  0.8730105  0.09778964
+  0.4  3          0.6               0.75        50      0.1446373  0.8745964  0.09283429
+  0.4  3          0.6               0.75       100      0.1454847  0.8735391  0.09178027
+  0.4  3          0.6               0.75       150      0.1453496  0.8737105  0.09130931
+  0.4  3          0.6               1.00        50      0.1331409  0.8917868  0.08853372
+  0.4  3          0.6               1.00       100      0.1318750  0.8942768  0.08683095
+  0.4  3          0.6               1.00       150      0.1314983  0.8949961  0.08670252
+  0.4  3          0.8               0.50        50      0.1422719  0.8781959  0.09490874
+  0.4  3          0.8               0.50       100      0.1437453  0.8756894  0.09567614
+  0.4  3          0.8               0.50       150      0.1448966  0.8736711  0.09601762
+  0.4  3          0.8               0.75        50      0.1427516  0.8757072  0.09172132
+  0.4  3          0.8               0.75       100      0.1419238  0.8778197  0.09115347
+  0.4  3          0.8               0.75       150      0.1417712  0.8786996  0.09131365
+  0.4  3          0.8               1.00        50      0.1396046  0.8823397  0.09166725
+  0.4  3          0.8               1.00       100      0.1379300  0.8855224  0.08964368
+  0.4  3          0.8               1.00       150      0.1382527  0.8852564  0.09020308
+
+Tuning parameter 'gamma' was held constant at a value of 0
+Tuning parameter 'min_child_weight' was held constant at a value of 1
+RMSE was used to select the optimal model using the smallest value.
+The final values used for the model were nrounds = 150, max_depth = 2, eta = 0.3, gamma = 0, colsample_bytree = 0.8, min_child_weight =
+ 1 and subsample = 1.
+0.1396747 	
+variable 18: MS_ZoningI_all has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 114: Exterior_1stPreCast has no variation.variable 120: Exterior_2ndAsphShn has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 18: MS_ZoningI_all has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 114: Exterior_1stPreCast has no variation.variable 120: Exterior_2ndAsphShn has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 18: MS_ZoningI_all has no variation.variable 105: Exterior_1stAsphShn has no variation.variable 114: Exterior_1stPreCast has no variation.variable 120: Exterior_2ndAsphShn has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 137: Mas_Vnr_TypeCBlock has no variation.variable 18: MS_ZoningI_all has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 190: ElectricalUnknown has no variation.variable 18: MS_ZoningI_all has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 190: ElectricalUnknown has no variation.variable 18: MS_ZoningI_all has no variation.variable 111: Exterior_1stImStucc has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 190: ElectricalUnknown has no variation.variable 18: MS_ZoningI_all has no variation.variable 69: Condition_1RRNe has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 188: ElectricalMix has no variation.variable 18: MS_ZoningI_all has no variation.variable 69: Condition_1RRNe has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 188: ElectricalMix has no variation.variable 18: MS_ZoningI_all has no variation.variable 69: Condition_1RRNe has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 188: ElectricalMix has no variation.variable 18: MS_ZoningI_all has no variation.variable 47: NeighborhoodLandmark has no variation.variable 108: Exterior_1stCBlock has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 257: Sale_TypeVWD has no variation.variable 18: MS_ZoningI_all has no variation.variable 47: NeighborhoodLandmark has no variation.variable 108: Exterior_1stCBlock has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 257: Sale_TypeVWD has no variation.variable 18: MS_ZoningI_all has no variation.variable 47: NeighborhoodLandmark has no variation.variable 108: Exterior_1stCBlock has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 257: Sale_TypeVWD has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 18: MS_ZoningI_all has no variation.variable 44: NeighborhoodGreen_Hills has no variation.variable 79: House_StyleTwo_and_Half_Fin has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 18: MS_ZoningI_all has no variation.variable 44: NeighborhoodGreen_Hills has no variation.variable 79: House_StyleTwo_and_Half_Fin has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 2: MS_SubClassOne_and_Half_Story_PUD_All_Ages has no variation.variable 18: MS_ZoningI_all has no variation.variable 44: NeighborhoodGreen_Hills has no variation.variable 79: House_StyleTwo_and_Half_Fin has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.variable 18: MS_ZoningI_all has no variation.variable 114: Exterior_1stPreCast has no variation.variable 128: Exterior_2ndOther has no variation.variable 130: Exterior_2ndPreCast has no variation.Stochastic Gradient Boosting 
+
+2051 samples
+  59 predictor
+
+No pre-processing
+Resampling: Cross-Validated (5 fold, repeated 1 times) 
+Summary of sample sizes: 1641, 1641, 1640, 1641, 1641 
+Resampling results across tuning parameters:
+
+  interaction.depth  n.trees  RMSE       Rsquared   MAE       
+  1                   50      0.1691847  0.8534958  0.11461170
+  1                  100      0.1459812  0.8776574  0.09831560
+  1                  150      0.1404946  0.8854798  0.09322408
+  2                   50      0.1495203  0.8751747  0.10012446
+  2                  100      0.1378214  0.8897388  0.09038786
+  2                  150      0.1339331  0.8956248  0.08751855
+  3                   50      0.1415795  0.8858496  0.09401456
+  3                  100      0.1329203  0.8969536  0.08670803
+  3                  150      0.1298343  0.9017091  0.08442851
+
+Tuning parameter 'shrinkage' was held constant at a value of 0.1
+Tuning parameter 'n.minobsinnode' was held constant at a value of 10
+RMSE was used to select the optimal model using the smallest value.
+The final values used for the model were n.trees = 150, interaction.depth = 3, shrinkage = 0.1 and n.minobsinnode = 10.
+0.1209724 	eXtreme Gradient Boosting 
+
+2051 samples
+  59 predictor
+
+No pre-processing
+Resampling: Cross-Validated (5 fold, repeated 1 times) 
+Summary of sample sizes: 1640, 1642, 1641, 1641, 1640 
+Resampling results across tuning parameters:
+
+  eta  max_depth  colsample_bytree  subsample  nrounds  RMSE       Rsquared   MAE       
+  0.3  1          0.6               0.50        50      0.1515489  0.8679121  0.10622288
+  0.3  1          0.6               0.50       100      0.1398831  0.8869477  0.09709882
+  0.3  1          0.6               0.50       150      0.1363890  0.8927100  0.09289956
+  0.3  1          0.6               0.75        50      0.1484110  0.8730607  0.10476886
+  0.3  1          0.6               0.75       100      0.1387447  0.8888504  0.09647393
+  0.3  1          0.6               0.75       150      0.1342926  0.8956093  0.09205435
+  0.3  1          0.6               1.00        50      0.1497970  0.8703633  0.10602047
+  0.3  1          0.6               1.00       100      0.1394465  0.8872978  0.09729280
+  0.3  1          0.6               1.00       150      0.1349038  0.8946491  0.09310184
+  0.3  1          0.8               0.50        50      0.1505350  0.8697576  0.10661757
+  0.3  1          0.8               0.50       100      0.1400444  0.8871041  0.09739826
+  0.3  1          0.8               0.50       150      0.1371637  0.8913334  0.09441450
+  0.3  1          0.8               0.75        50      0.1483088  0.8730134  0.10367844
+  0.3  1          0.8               0.75       100      0.1390040  0.8881054  0.09514629
+  0.3  1          0.8               0.75       150      0.1351429  0.8943616  0.09185575
+  0.3  1          0.8               1.00        50      0.1492944  0.8710817  0.10441088
+  0.3  1          0.8               1.00       100      0.1392782  0.8874982  0.09555906
+  0.3  1          0.8               1.00       150      0.1346713  0.8949487  0.09138693
+  0.3  2          0.6               0.50        50      0.1442905  0.8799428  0.09722029
+  0.3  2          0.6               0.50       100      0.1380706  0.8901338  0.09169749
+  0.3  2          0.6               0.50       150      0.1358015  0.8939450  0.08985133
+  0.3  2          0.6               0.75        50      0.1377034  0.8913086  0.09178234
+  0.3  2          0.6               0.75       100      0.1321189  0.9000127  0.08728412
+  0.3  2          0.6               0.75       150      0.1300774  0.9029358  0.08545519
+  0.3  2          0.6               1.00        50      0.1385261  0.8889104  0.09260645
+  0.3  2          0.6               1.00       100      0.1336513  0.8969306  0.08774115
+  0.3  2          0.6               1.00       150      0.1317558  0.8999836  0.08573410
+  0.3  2          0.8               0.50        50      0.1396010  0.8883317  0.09279296
+  0.3  2          0.8               0.50       100      0.1345124  0.8959712  0.08842188
+  0.3  2          0.8               0.50       150      0.1333910  0.8982405  0.08764718
+  0.3  2          0.8               0.75        50      0.1349217  0.8942629  0.09253725
+  0.3  2          0.8               0.75       100      0.1282848  0.9047062  0.08675334
+  0.3  2          0.8               0.75       150      0.1268593  0.9069068  0.08539837
+  0.3  2          0.8               1.00        50      0.1341147  0.8956844  0.09125071
+  0.3  2          0.8               1.00       100      0.1282260  0.9047720  0.08600515
+  0.3  2          0.8               1.00       150      0.1269990  0.9065333  0.08432038
+  0.3  3          0.6               0.50        50      0.1382742  0.8902077  0.09132341
+  0.3  3          0.6               0.50       100      0.1381151  0.8906349  0.08967185
+  0.3  3          0.6               0.50       150      0.1378665  0.8911810  0.08980609
+  0.3  3          0.6               0.75        50      0.1330578  0.8970473  0.08917884
+  0.3  3          0.6               0.75       100      0.1300360  0.9017703  0.08598132
+  0.3  3          0.6               0.75       150      0.1286099  0.9040792  0.08491368
+  0.3  3          0.6               1.00        50      0.1312737  0.9000752  0.08764181
+  0.3  3          0.6               1.00       100      0.1290428  0.9037377  0.08518217
+  0.3  3          0.6               1.00       150      0.1282042  0.9050744  0.08430757
+  0.3  3          0.8               0.50        50      0.1418595  0.8842308  0.09411838
+  0.3  3          0.8               0.50       100      0.1379465  0.8908105  0.09099272
+  0.3  3          0.8               0.50       150      0.1363842  0.8939308  0.08997771
+  0.3  3          0.8               0.75        50      0.1314647  0.8998537  0.08814202
+  0.3  3          0.8               0.75       100      0.1281244  0.9048791  0.08533567
+  0.3  3          0.8               0.75       150      0.1277221  0.9056453  0.08452633
+  0.3  3          0.8               1.00        50      0.1314055  0.8995603  0.08739307
+  0.3  3          0.8               1.00       100      0.1292414  0.9031831  0.08457392
+  0.3  3          0.8               1.00       150      0.1284031  0.9045446  0.08356437
+  0.4  1          0.6               0.50        50      0.1500241  0.8707268  0.10643843
+  0.4  1          0.6               0.50       100      0.1449006  0.8793956  0.10007668
+  0.4  1          0.6               0.50       150      0.1388182  0.8887819  0.09542061
+  0.4  1          0.6               0.75        50      0.1457064  0.8773014  0.10373250
+  0.4  1          0.6               0.75       100      0.1358628  0.8935182  0.09426188
+  0.4  1          0.6               0.75       150      0.1331136  0.8982934  0.09057927
+  0.4  1          0.6               1.00        50      0.1471690  0.8748085  0.10500802
+  0.4  1          0.6               1.00       100      0.1351145  0.8941986  0.09350583
+  0.4  1          0.6               1.00       150      0.1309208  0.9008261  0.08936524
+  0.4  1          0.8               0.50        50      0.1523131  0.8660311  0.10588375
+  0.4  1          0.8               0.50       100      0.1440592  0.8802134  0.09864391
+  0.4  1          0.8               0.50       150      0.1420154  0.8837720  0.09614902
+  0.4  1          0.8               0.75        50      0.1529324  0.8651625  0.10821218
+  0.4  1          0.8               0.75       100      0.1414069  0.8847140  0.09821627
+  0.4  1          0.8               0.75       150      0.1372398  0.8916237  0.09335066
+  0.4  1          0.8               1.00        50      0.1499757  0.8693954  0.10467378
+  0.4  1          0.8               1.00       100      0.1387145  0.8883471  0.09494511
+  0.4  1          0.8               1.00       150      0.1345876  0.8950293  0.09144841
+  0.4  2          0.6               0.50        50      0.1472825  0.8758716  0.09794459
+  0.4  2          0.6               0.50       100      0.1433732  0.8827275  0.09323050
+  0.4  2          0.6               0.50       150      0.1415534  0.8858891  0.09190345
+  0.4  2          0.6               0.75        50      0.1376964  0.8897834  0.09179958
+  0.4  2          0.6               0.75       100      0.1350013  0.8936999  0.08809001
+  0.4  2          0.6               0.75       150      0.1331775  0.8970880  0.08589701
+  0.4  2          0.6               1.00        50      0.1350227  0.8946808  0.09122897
+  0.4  2          0.6               1.00       100      0.1308214  0.9013174  0.08679698
+  0.4  2          0.6               1.00       150      0.1281831  0.9055085  0.08426133
+  0.4  2          0.8               0.50        50      0.1462074  0.8772356  0.09851576
+  0.4  2          0.8               0.50       100      0.1414995  0.8853370  0.09325476
+  0.4  2          0.8               0.50       150      0.1414411  0.8860616  0.09169469
+  0.4  2          0.8               0.75        50      0.1368204  0.8924226  0.09269412
+  0.4  2          0.8               0.75       100      0.1343964  0.8964406  0.08873727
+  0.4  2          0.8               0.75       150      0.1338140  0.8976501  0.08761584
+  0.4  2          0.8               1.00        50      0.1372442  0.8912577  0.09332775
+  0.4  2          0.8               1.00       100      0.1327119  0.8983430  0.08836737
+  0.4  2          0.8               1.00       150      0.1310015  0.9009406  0.08672201
+  0.4  3          0.6               0.50        50      0.1437653  0.8812091  0.09659362
+  0.4  3          0.6               0.50       100      0.1426540  0.8835333  0.09504504
+  0.4  3          0.6               0.50       150      0.1424942  0.8842049  0.09453450
+  0.4  3          0.6               0.75        50      0.1374792  0.8903529  0.09073215
+  0.4  3          0.6               0.75       100      0.1369889  0.8918388  0.08919006
+  0.4  3          0.6               0.75       150      0.1362397  0.8933143  0.08935078
+  0.4  3          0.6               1.00        50      0.1428376  0.8822445  0.09144699
+  0.4  3          0.6               1.00       100      0.1418164  0.8841385  0.08999898
+  0.4  3          0.6               1.00       150      0.1406856  0.8860058  0.08906116
+  0.4  3          0.8               0.50        50      0.1398530  0.8870862  0.09474518
+  0.4  3          0.8               0.50       100      0.1391981  0.8883936  0.09300525
+  0.4  3          0.8               0.50       150      0.1389548  0.8888053  0.09288981
+  0.4  3          0.8               0.75        50      0.1376010  0.8898668  0.09179199
+  0.4  3          0.8               0.75       100      0.1346661  0.8944704  0.08909413
