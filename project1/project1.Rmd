@@ -5,7 +5,7 @@ output: pdf_document
 ---
 
 ```{r}
-mypackages = c("randomForest","gbm","glmnet","psych", "xgboost")   # required packages
+mypackages = c("randomForest","gbm","glmnet","psych", "xgboost", "caret")   # required packages
 tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
 if (length(tmp) > 0) install.packages(tmp)
 lapply(mypackages, require, character.only = TRUE)
@@ -239,10 +239,8 @@ process_categorical = function(train_data, test_data){
 
       #Replace with the closest ordered categorical value
       if(sum(!test_levels %in% train_levels) > 0) {
-       
-        cat("Undefined test cate:", name, "\n")
-        cat("Undefined test value:", test_levels[!test_levels %in% train_levels], "\n")
-        cat("Levels:", train_levels, "\n")
+        cat("Undefined test categorical:", name, test_levels[!test_levels %in% train_levels],"\n")
+        cat("Training Levels:", train_levels, "\n")
  
         #Reset to full level
         test_data[,name] = ordered(test_data[,name], levels = CategoricalLevels[[name]])
@@ -357,7 +355,6 @@ preprocess_data = function(train_data, test_data){
   
   list(train_data = r$train_data, test_data = r$test_data)
 }
-
 ```
 
 
@@ -367,29 +364,44 @@ library(randomForest)
 library(gbm)
 library(glmnet)
 library(xgboost)
+library(caret)
 
 set.seed(6682)
 
 rf_predict = function(train_data, test_data) {
   x_train = train_data[, !colnames(train_data) %in% c("Sale_Price")]
   
-  rfModel = randomForest(x_train, train_data$Sale_Price,importance = T, ntree=400); 
+  rfModel = randomForest(x_train, train_data$Sale_Price, ntree=500); 
+  cat("training rmse:",sqrt(rfModel$mse[length(rfModel$mse)]), "\n")
   
   predict(rfModel, test_data)
 }
 
 gbm_predict = function(train_data, test_data) {
-  gbmModel = gbm(Sale_Price ~ ., data = train_data, distribution = "gaussian", n.trees = 5000,
-               shrinkage = 0.05, interaction.depth = 6, bag.fraction = 0.5, cv.folds = 5, verbose = FALSE)
+  # gbmModel = gbm(Sale_Price ~ ., data = train_data, distribution = "gaussian", n.trees = 5000,
+  #              shrinkage = 0.001, interaction.depth = 4, bag.fraction = 0.5, cv.folds = 5,
+  #              verbose = FALSE)
+  # 
+  # opt.size = gbm.perf(gbmModel, method="cv")
+  # predict(gbmModel, test_data, n.trees = opt.size)
   
-  opt.size = gbm.perf(gbmModel, method="cv")
-  print(opt.size)
-  predict(gbmModel, test_data, n.trees = opt.size)
+  fitControl <- trainControl(method = "repeatedcv", number = 5)
+  gbmGrid =  expand.grid(interaction.depth = c(1, 5, 9),
+                          n.trees = (1:30)*50,
+                          shrinkage = c(0.1, 0.01),
+                          n.minobsinnode = 20)
+
+  gbmFit = train(Sale_Price ~ ., data = train_data, method = "gbm",
+                 trControl = fitControl, verbose = FALSE,
+                 distribution = "gaussian", tuneGrid = gbmGrid)
+
+  predict(gbmFit, test_data)
 }
 
 lasso_predict = function(train_data, test_data) {
   X_train = train_data[, colnames(train_data) != 'Sale_Price']
   X_train = model.matrix(~., X_train)
+  #X_train = predict(dummyVars(~., data = X_train), newdata = X_train)
   
   Y_train = train_data$Sale_Price
   
@@ -397,6 +409,7 @@ lasso_predict = function(train_data, test_data) {
   
   X_test = test_data[, colnames(test_data) != 'Sale_Price']
   X_test = model.matrix(~. -PID, X_test)
+  #X_test = predict(dummyVars(~. -PID, data = X_test), newdata = X_test)
   
   predict(cv.out, s = cv.out$lambda.min, newx = X_test)
 }
@@ -418,10 +431,25 @@ xgb_predict = function(train_data, test_data) {
 }
 
 #regression_functions = c(xgb_predict)
-regression_functions = c(gbm_predict, xgb_predict)
-#regression_functions = c(rf_predict, gbm_predict, lasso_predict, xgb_predict)
-rmse = matrix(0, 10, length(regression_functions))
+#regression_functions = c(gbm_predict, xgb_predict)
+#regression_functions = list(
+#                             RandomForest = rf_predict, 
+#                             GBM = gbm_predict, 
+#                             Lasso = lasso_predict,
+#                             Xgboost = xgb_predict
+#                             )
+regression_functions = list(
+                            GBM = gbm_predict
+                            )
 
+# regression_functions = list(
+#                             Lasso = lasso_predict
+#                             )
+
+rmse = matrix(0, 10, length(regression_functions))
+colnames(rmse) = names(regression_functions)
+
+start_time = proc.time()
 #for (i in c(3,6,9)){
 for (i in 1:10){
   test_pid = Project1_test_id[,i]
@@ -438,75 +466,18 @@ for (i in 1:10){
     stop("NA value found!")
   }
   
-  for (f in 1:length(regression_functions)){
+  for (f in 1:length(regression_functions)) {
     yhat_test = regression_functions[[f]](train_data, test_data)
     rmse[i, f] = get_RMSE(yhat_test, r$test_data$Sale_Price)
     cat(rmse[i, f], "\t")
   }
   cat("\n")
 }
+
 print(rmse)
 cat("\n Avg", colMeans(rmse), "\n" )
+cat("Computing time:", (proc.time() - start_time)[3], "\n")
 ```
-
-
-```{r}
-library(gbm)
-
-gbm_rmse = rep(0, 10)
-
-for (i in 1:length(gbm_rmse)){
-  test_pid = Project1_test_id[,i]
-
-  train_data = all_data[!all_data$PID %in% test_pid,]
-  test_data = all_data[all_data$PID %in% test_pid,]
-
-  r = preprocess_data(train_data, test_data)
-  
-  gbmModel = gbm(Sale_Price ~ ., data = r$train_data, distribution = "gaussian", n.trees = 5000,
-               shrinkage = 0.01, interaction.depth = 6, bag.fraction = 0.5, cv.folds = 5)
-  
-  opt.size = gbm.perf(gbmModel)
-  y.pred = predict(gbmModel, r$test_data, n.trees = opt.size)
-  gbm_rmse[i] = get_RMSE(y.pred, r$test_data$Sale_Price)
-  print(gbm_rmse[i])
-}
-
-cat("\n Avg", mean(gbm_rmse), "\n" )
-```
-
-Lasso with lambda.1se (R_min, R_1se)
-```{r}
-library(glmnet)
-
-lasso_rmse = rep(0, 10)
-
-for (i in 1:length(lasso_rmse)){
-  test_pid = Project1_test_id[,i]
-
-  train_data = all_data[!all_data$PID %in% test_pid,]
-  test_data = all_data[all_data$PID %in% test_pid,]
-  r = preprocess_data(train_data, test_data)
-  
-  X_train = r$train_data[, colnames(r$train_data) != 'Sale_Price']
-  X_train = model.matrix(~. -PID, X_train)
-  
-  Y_train = r$train_data$Sale_Price
-  
-  cv.out = cv.glmnet(X_train, Y_train, alpha = 1)
-  
-  X_test = r$test_data[, colnames(r$test_data) != 'Sale_Price']
-  X_test = model.matrix(~. -PID, X_test)
-  
-  Ytest_pred = predict(cv.out, s = cv.out$lambda.min, newx = X_test)
-  
-  lasso_rmse[i] = get_RMSE(Ytest_pred, r$test_data$Sale_Price)
-  print(lasso_rmse[i])
-}
-
-cat("\n Avg", mean(lasso_rmse), "\n" )
-```
-
 
 
 ```{r}
