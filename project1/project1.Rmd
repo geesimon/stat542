@@ -447,31 +447,43 @@ mylasso_mypredict = function(X, beta) {
   beta[1] + as.matrix(X) %*% beta[-1]
 }
 
-cv.mylasso_fit = function(train_data, cv_fold = 5) {
+cv.mylasso = function(train_data, cv_fold = 5) {
   all_lambda = exp(seq(-10, 10, 0.2))
+  #all_lambda = c(1, 10, 100)
   X_train = train_data[, colnames(train_data) != 'Sale_Price']
   X_train = model.matrix(~., X_train)[, -1]
   Y_train = train_data$Sale_Price
   
   cv_rmse = rep(0, length(all_lambda))
   cv_beta = matrix(0, length(all_lambda), dim(X_train)[2] + 1)
-  all_test_ids = matrix(0, cv_fold, nrow(X_train) / cv_fold)
+  
+  all_ids = sample(1:nrow(X_train), nrow(X_train))
+  all_test_ids = list()
+  size = ceiling(nrow(X_train) / cv_fold)
+  start = 1
   for (i in 1:cv_fold){
-      all_test_ids[i,] = sample(1:nrow(X_train), nrow(X_train) / cv_fold)
+      end = start + size - 1
+      if(end > nrow(X_train)) end = nrow(X_train)
+      
+      all_test_ids[[i]] = all_ids[start:end]
+      
+      start = end + 1
   }
   
   for (lambda_i in 1:length(all_lambda)) {
     for (i in 1:cv_fold){
-      X_train_split = X_train[-all_test_ids[i,],]
-      Y_train_split = Y_train[-all_test_ids[i,]]
-      X_test_split = X_train[all_test_ids[i,],]
-      Y_test_split = Y_train[all_test_ids[i,]]
+      X_train_split = X_train[-all_test_ids[[i]],]
+      Y_train_split = Y_train[-all_test_ids[[i]]]
+      X_test_split = X_train[all_test_ids[[i]],]
+      Y_test_split = Y_train[all_test_ids[[i]]]
       
-      beta = mylasso_myfit(X_train, Y_train, all_lambda[lambda_i], cv_beta[lambda_i,])
+      beta = mylasso_myfit(X_train, Y_train, all_lambda[lambda_i])
       yhat_test = mylasso_mypredict(X_test_split, beta)
       cv_rmse[lambda_i] = cv_rmse[lambda_i] + get_RMSE(yhat_test, Y_test_split)
+      #cat("lambda", all_lambda[lambda_i], "\trmse", cv_rmse[lambda_i], "\n")
     }
     cv_rmse[lambda_i] = cv_rmse[lambda_i] / cv_fold
+    cat("lambda:", all_lambda[lambda_i], "\trmse:", cv_rmse[lambda_i], "\n")
   }
   
   min.lambda = all_lambda[which.min(cv_rmse)]
@@ -492,9 +504,6 @@ mylasso_predict = function(train_data, test_data) {
   if(sum(names(X_train) != names(X_test)) > 0) stop("Unmatched train and test data")
   mylasso_mypredict(X_test, beta)
 }
-
-
-
 
 ```
 ```{r, eval=FALSE, include=FALSE}
