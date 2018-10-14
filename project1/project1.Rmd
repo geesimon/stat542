@@ -230,7 +230,9 @@ Remove_Variables = function(train_data, test_data){
 process_categorical = function(train_data, test_data){
   for (name in names(CategoricalLevels)) {
     if(!name %in% colnames(train_data)) next;
+    
     n = length(CategoricalLevels[[name]])
+    
     if(CategoricalLevels[[name]][n] != "Misc") {
       train_levels = CategoricalLevels[[name]][CategoricalLevels[[name]] %in% unique(train_data[,name])]
       test_levels = CategoricalLevels[[name]][CategoricalLevels[[name]] %in% unique(test_data[,name])]
@@ -247,7 +249,6 @@ process_categorical = function(train_data, test_data){
                 
         train_i = which(CategoricalLevels[[name]] %in% train_levels)
         for(level_i in 1:length(test_levels)){
-          cat("Level_i", level_i, "\n")
           level = test_levels[level_i]
           if(level %in% train_levels) next;
           
@@ -265,13 +266,21 @@ process_categorical = function(train_data, test_data){
         cat("train:",unique(train_data[,name]), "\n")
         cat("levels:", CategoricalLevels[[name]], "\n")        
       }
-    } else {
-      test_data[,name] = factor(test_data[,name], levels = levels(train_data[,name]))
-      max_level = names(sort(table(train_data[,name]), decreasing = TRUE))[1]
       
-      if(sum(is.na(test_data[,name])) > 0) cat(name, "\tna\t", sum(is.na(test_data[,name])))
-      
-      test_data[,name][is.na(test_data[,name])] = max_level
+      # train_data[,name] = as.numeric(train_data[,name])
+      # test_data[,name] = as.numeric(test_data[,name])
+    } 
+    else {
+      train_data[,name] = factor(train_data[,name])
+      test_data[,name] = factor(test_data[,name], levels=levels(train_data[,name]))
+
+      if(sum(is.na(test_data[,name])) > 0) {
+        max_level = names(sort(table(train_data[,name]), decreasing = TRUE))[1]
+        cat(name, "\tna\t", sum(is.na(test_data[,name])), " replace with", max_level, "\n")
+        test_data[,name][is.na(test_data[,name])] = max_level
+      }
+      # train_data[,name] = as.numeric(train_data[,name])
+      # test_data[,name] = as.numeric(test_data[,name])
     }
   }
   
@@ -352,9 +361,144 @@ preprocess_data = function(train_data, test_data){
   #                                             "Mas_Vnr_Area","BsmtFin_SF_2", "Second_Flr_SF",
   #                                             "Bedroom_AbvGr", "Kitchen_AbvGr", "Garage_Cars",
   #                                             "Wood_Deck_SF"))
-  
+
   list(train_data = r$train_data, test_data = r$test_data)
 }
+```
+
+
+```{r}
+one_step_lasso = function(r, x, lam){
+  length(r)
+  length(x)
+  xx = sum(x^2)
+  xr = sum(r*x)
+  b = (abs(xr) -lam/2)/xx
+  b = sign(xr)*ifelse(b>0, b, 0)
+  return(b)
+}
+
+mylasso_myfit = function(X, y, lam, beta = NULL)
+{
+  # X: n-by-p design matrix without the intercept
+  # y: n-by-1 response vector
+  # lam: lambda value
+  # n.iter: number of iterations
+  n.iter = 2000
+  p = dim(X)[2]
+  
+  #Remove column with zero variation and later will need to set the corresponsing beta to 0
+  full_b = rep(0, p)
+  for(i in 1:p) {
+    if(length(unique(X[,i])) <= 1) full_b[i] = 1
+  }
+  p = p - sum(full_b)
+  X = X[,full_b ==0]
+  
+  # Center and scale X and y.
+  X = scale(X)
+  y = scale(y)
+  x_center = attr(X, "scaled:center")
+  x_scale = attr(X, "scaled:scale")
+  y_center = attr(y, "scaled:center")
+  y_scale = attr(y, "scaled:scale")    
+
+  # Initial values for residual and coefficient vector b
+  if(is.null(beta)) b = rep(0, p)
+  else b = beta
+  r = y
+  
+  rss_saved = 0
+  rss_changed = 1000
+  
+  for(step in 1:n.iter){
+    if (rss_changed < 1e-08) break;
+    for(j in 1:p){
+      r = r + X[,j] * b[j]
+      b[j] = one_step_lasso(r, X[, j], lam)
+      r = r - X[, j] * b[j]
+    }
+    rss = sum(r^2)
+    rss_changed = abs(rss_saved - rss)
+    rss_saved = rss
+  }
+  cat("rss_chnaged",rss_changed, "step", step, "\n")
+  
+  # Scale back b and add intercept b0
+  b = b * y_scale / x_scale
+  b0 = y_center - sum(b * x_center)
+  
+  #Fill beta of invariate predictor with zero
+  j = 1
+  for(i in 1:length(full_b)){
+    if(full_b[i] == 1) {
+      full_b[i] = 0
+      next;
+    }
+    full_b[i] = b[j]
+    j = j + 1
+  }
+  b = full_b
+  
+  return(c(b0, b))
+}
+
+mylasso_mypredict = function(X, beta) {
+  beta[1] + as.matrix(X) %*% beta[-1]
+}
+
+cv.mylasso_fit = function(train_data, cv_fold = 5) {
+  all_lambda = exp(seq(-10, 10, 0.2))
+  X_train = train_data[, colnames(train_data) != 'Sale_Price']
+  X_train = model.matrix(~., X_train)[, -1]
+  Y_train = train_data$Sale_Price
+  
+  cv_rmse = rep(0, length(all_lambda))
+  cv_beta = matrix(0, length(all_lambda), dim(X_train)[2] + 1)
+  all_test_ids = matrix(0, cv_fold, nrow(X_train) / cv_fold)
+  for (i in 1:cv_fold){
+      all_test_ids[i,] = sample(1:nrow(X_train), nrow(X_train) / cv_fold)
+  }
+  
+  for (lambda_i in 1:length(all_lambda)) {
+    for (i in 1:cv_fold){
+      X_train_split = X_train[-all_test_ids[i,],]
+      Y_train_split = Y_train[-all_test_ids[i,]]
+      X_test_split = X_train[all_test_ids[i,],]
+      Y_test_split = Y_train[all_test_ids[i,]]
+      
+      beta = mylasso_myfit(X_train, Y_train, all_lambda[lambda_i], cv_beta[lambda_i,])
+      yhat_test = mylasso_mypredict(X_test_split, beta)
+      cv_rmse[lambda_i] = cv_rmse[lambda_i] + get_RMSE(yhat_test, Y_test_split)
+    }
+    cv_rmse[lambda_i] = cv_rmse[lambda_i] / cv_fold
+  }
+  
+  min.lambda = all_lambda[which.min(cv_rmse)]
+  mylasso_myfit(X_train, Y_train, min.lambda)
+}
+  
+mylasso_predict = function(train_data, test_data) {
+  X_train = train_data[, colnames(train_data) != 'Sale_Price']
+  X_train = model.matrix(~., X_train)[, -1]
+
+  Y_train = train_data$Sale_Price
+  
+  beta = mylasso_myfit(X_train, Y_train, 10)
+  
+  X_test = test_data[, colnames(test_data) != 'Sale_Price']
+  X_test = model.matrix(~. -PID, X_test)[, -1]
+  
+  if(sum(names(X_train) != names(X_test)) > 0) stop("Unmatched train and test data")
+  mylasso_mypredict(X_test, beta)
+}
+
+
+
+
+```
+```{r, eval=FALSE, include=FALSE}
+get_RMSE(mylasso_predict(train_data, test_data), r$test_data$Sale_Price)
 ```
 
 
@@ -370,11 +514,19 @@ set.seed(6682)
 
 rf_predict = function(train_data, test_data) {
   x_train = train_data[, !colnames(train_data) %in% c("Sale_Price")]
-  
-  rfModel = randomForest(x_train, train_data$Sale_Price, ntree=500); 
-  cat("training rmse:",sqrt(rfModel$mse[length(rfModel$mse)]), "\n")
-  
+
+  rfModel = randomForest(x_train, train_data$Sale_Price, ntree=500);
   predict(rfModel, test_data)
+  
+  # fitControl = trainControl(method = "repeatedcv", number = 3)
+  # rfGrid =  expand.grid(mtry = c(sqrt(dim(train_data)[2]),
+  #                                   dim(train_data)[2] / 2,
+  #                                    dim(train_data)[2] / 3),
+  #                       ntree=c(200, 400, 600))
+  # rfFit = train(Sale_Price ~ ., data = train_data, method = "extraTrees",
+  #                trControl = fitControl)#, tuneGrid = rfGrid)
+  # print(rfFit)
+  # predict(rfFit, test_data)
 }
 
 gbm_predict = function(train_data, test_data) {
@@ -401,7 +553,7 @@ gbm_predict = function(train_data, test_data) {
 
 lasso_predict = function(train_data, test_data) {
   X_train = train_data[, colnames(train_data) != 'Sale_Price']
-  X_train = model.matrix(~., X_train)
+  X_train = model.matrix(~., X_train)[, -1]
   #X_train = predict(dummyVars(~., data = X_train), newdata = X_train)
   
   Y_train = train_data$Sale_Price
@@ -409,12 +561,11 @@ lasso_predict = function(train_data, test_data) {
   cv.out = cv.glmnet(X_train, Y_train, alpha = 1)
   
   X_test = test_data[, colnames(test_data) != 'Sale_Price']
-  X_test = model.matrix(~. -PID, X_test)
+  X_test = model.matrix(~. -PID, X_test)[, -1]
   #X_test = predict(dummyVars(~. -PID, data = X_test), newdata = X_test)
-  
+  print(cv.out$lambda.min)
   predict(cv.out, s = cv.out$lambda.min, newx = X_test)
 }
-
 
 xgb_predict = function(train_data, test_data) {
   # X_train = train_data[, colnames(train_data) != 'Sale_Price']
@@ -454,15 +605,19 @@ xgb_predict = function(train_data, test_data) {
 #                             Xgboost = xgb_predict
 #                             )
 # regression_functions = list(
-#                             GBM = gbm_predict
+#                             RandomForest = rf_predict
 #                             )
-regression_functions = list(
-                            GBM = gbm_predict,
-                            Xgboost = xgb_predict
-                            )
+# regression_functions = list(
+#                             GBM = gbm_predict,
+#                             Xgboost = xgb_predict
+#                             )
 # regression_functions = list(
 #                             Lasso = lasso_predict
 #                             )
+regression_functions = list(
+                            Lasso = lasso_predict,
+                            My_Lasso = mylasso_predict
+                            )
 
 rmse = matrix(0, dim(Project1_test_id)[2], length(regression_functions))
 colnames(rmse) = names(regression_functions)
@@ -499,89 +654,22 @@ cat("Computing time:", (proc.time() - start_time)[3], "\n")
 
 
 ```{r}
-one_step_lasso = function(r, x, lam){
-  length(r)
-  length(x)
-  xx = sum(x^2)
-  xr = sum(r*x)
-  b = (abs(xr) -lam/2)/xx
-  b = sign(xr)*ifelse(b>0, b, 0)
-  return(b)
-}
+test.id = seq(1, 2930, by=3)
+train_data = all_data[-test.id,]
+test_data = all_data[test.id,]
+r = preprocess_data(train_data, test_data)
 
-mylasso_fit = function(X, y, lam, n.iter = 500)
-{
-  # X: n-by-p design matrix without the intercept
-  # y: n-by-1 response vector
-  # lam: lambda value
-  # n.iter: number of iterations
-  p = dim(X)[2]
-  
-  # Center and scale X and y.
-  X = scale(X)
-  y = scale(y)
-  x_center = attr(X, "scaled:center")
-  x_scale = attr(X, "scaled:scale")
-  y_center = attr(y, "scaled:center")
-  y_scale = attr(y, "scaled:scale")    
-
-  # Initial values for residual and coefficient vector b
-  b = rep(0, p)
-  r = y
-  
-  rss_saved = 0
-  rss_changed = 1000
-  
-  for(step in 1:n.iter){
-    if (rss_changed < 1e-08) break;
-    for(j in 1:p){
-      # 1) Update the residual vector to be the one
-      # in blue on p37 of [lec_W3_VariableSelection.pdf]. 
-      # r <-- current residual + X[, j] * b[j]
-      r = r + X[,j] * b[j]
-
-      # 2) Apply one_step_lasso to update beta_j
-      # b[j] = one_step_lasso(r, X[, j], lam)
-      b[j] = one_step_lasso(r, X[, j], lam)
-      
-      # 3) Update the current residual vector
-      # r <-- r - X[, j] * b[j]
-      r = r - X[, j] * b[j]
-    }
-    rss = sum(r^2)
-    #print(rss)
-    rss_changed = abs(rss_saved - rss)
-    rss_saved = rss
-    #print(rss_changed)
-    #print(step)
-  }
-
-  # Scale back b and add intercept b0
-  # For b0, check p13 of [lec_W3_VariableSelection.pdf]. 
-  b = b / x_scale
-  b0 = y_center - sum(b * x_center)
-  
-  return(c(b0, b))
-}
-
-mylasso_predict = function(X, beta) {
-  beta[1] + as.matrix(X) %*% beta[-1]
-}
-```
-
-```{r}
-X_train = train_data[, !colnames(train_data) %in% c('PID','Sale_Price')]
+X_train = r$train_data[, !colnames(r$train_data) %in% c('PID','Sale_Price')]
 X_train = model.matrix(~., X_train)[,-1]
+Y_train = r$train_data$Sale_Price
 
-Y_train = train_data$Sale_Price
-
-X_test = test_data[, !colnames(test_data) %in% c('PID','Sale_Price')]
+X_test = r$test_data[, !colnames(r$test_data) %in% c('PID','Sale_Price')]
 X_test = model.matrix(~., X_test)[,-1]
-Y_test = test_data$Sale_Price
+Y_test = r$test_data$Sale_Price
 
-beta = mylasso_fit(X_train, Y_train, 1)
+beta = mylasso_myfit(X_train, Y_train, 10)
 
-Ytest_pred = mylasso_predict(X_test, beta)
-get_RMSE(Ytest_pred, test_data$Sale_Price)
+Ytest_pred = mylasso_mypredict(X_test, beta)
+get_RMSE(Ytest_pred, Y_test)
 ```
 
