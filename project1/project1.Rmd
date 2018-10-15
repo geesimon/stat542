@@ -5,7 +5,7 @@ output: pdf_document
 ---
 
 ```{r}
-mypackages = c("randomForest","gbm","glmnet","psych", "xgboost", "caret")   # required packages
+mypackages = c("randomForest","gbm","glmnet","psych", "xgboost")   # required packages
 tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
 if (length(tmp) > 0) install.packages(tmp)
 lapply(mypackages, require, character.only = TRUE)
@@ -13,31 +13,28 @@ lapply(mypackages, require, character.only = TRUE)
 
 ```{r, eval=FALSE, include=FALSE}
 all_data = read.csv("Ames_data.csv")
-n = nrow(all_data)
-ntest = round(n * 0.3)
-test_ids = sample(1:n, ntest)
+Project1_test_id =  read.table("Project1_test_id.txt", quote="\"", comment.char="")
 
-train_data = all_data[-test_ids,]
-test_data = all_data[test_ids,]
+test_batch = sample(1:dim(Project1_test_id)[2], 1)
+test_pid = Project1_test_id[,test_batch]
+cat("Select:", test_batch, "\n")
+
+train_data = all_data[!all_data$PID %in% test_pid,]
+test_data = all_data[all_data$PID %in% test_pid,!colnames(all_data) %in% c("Sale_Price")]
+test_data_1 = all_data[all_data$PID %in% test_pid,]
 
 write.csv(train_data, "train.csv", row.names = FALSE)
 write.csv(test_data, "test.csv", row.names = FALSE)
 ```
 
 ```{r}
-all_data = read.csv("Ames_data.csv")
 TRAIN_FILE_NAME = 'train.csv'
 TEST_FILE_NAME = 'test.csv'
+
+train_data = read.csv(TRAIN_FILE_NAME)
+test_data = read.csv(TEST_FILE_NAME)
 ```
 
-```{r}
-Project1_test_id =  read.table("Project1_test_id.txt", quote="\"", comment.char="")
-#train_data = read.csv(TRAIN_FILE_NAME)
-#test_data = read.csv(TEST_FILE_NAME)
-```
-
-
-Handle na value
 ```{r}
 log_RMSE = function (true_value, predicted_value) {
   sqrt(mean((log(predicted_value) - log(true_value))^2))
@@ -74,9 +71,6 @@ Winsorizing2 = function (data, exclude_fields, multiple=3)
     y = data[,i] - med
     sc = mad(y, center=0) * multiple
 
-    # med = mean(data[,i])
-    # y = data[,i] - med
-    # sc = sd(train_data$Garage_Cars) * multiple
     y[ y > sc ] = sc
     y[ y < -sc ] = -sc
     
@@ -279,8 +273,6 @@ process_categorical = function(train_data, test_data){
         cat(name, "\tna\t", sum(is.na(test_data[,name])), " replace with", max_level, "\n")
         test_data[,name][is.na(test_data[,name])] = max_level
       }
-      # train_data[,name] = as.numeric(train_data[,name])
-      # test_data[,name] = as.numeric(test_data[,name])
     }
   }
   
@@ -291,6 +283,7 @@ process_categorical = function(train_data, test_data){
 
 Pre-processing
 ```{r}
+#Increase the granularity of the categorical predictors
 cate_to_numeric = function(train_data, test_data){
   cond_levels = c("Poor", "Average", "Good", "Excellent")
   cond_map=c("Poor", "Poor", "Average", "Average", "Average", "Good", 
@@ -516,13 +509,11 @@ get_RMSE(mylasso_predict(train_data, test_data), r$test_data$Sale_Price)
 
 Build random forest model
 ```{r}
-library(randomForest)
-library(gbm)
-library(glmnet)
-library(xgboost)
-library(caret)
-
-set.seed(6682)
+# library(randomForest)
+# library(gbm)
+# library(glmnet)
+# library(xgboost)
+# library(caret)
 
 rf_predict = function(train_data, test_data) {
   x_train = train_data[, !colnames(train_data) %in% c("Sale_Price")]
@@ -609,8 +600,45 @@ xgb_predict = function(train_data, test_data) {
   # predict(xgbFit, test_data)
 }
 
-#regression_functions = c(xgb_predict)
-#regression_functions = c(gbm_predict, xgb_predict)
+test_all = function (all_data, all_test_pid, reg_func) {
+  rmse = matrix(0, dim(all_test_pid)[2], length(reg_func))
+  colnames(rmse) = names(reg_func)
+  
+  start_time = proc.time()
+  #for (i in c(3,6,9)){
+  for (i in 1:10){
+    test_pid = all_test_pid[,i]
+  
+    train_data = all_data[!all_data$PID %in% test_pid,]
+    test_data = all_data[all_data$PID %in% test_pid,]
+  
+    r = preprocess_data(train_data, test_data)
+  
+    train_data = r$train_data[, !colnames(r$train_data) %in% c('PID')] #Remove 'PID' column
+    test_data = r$test_data[, !colnames(r$test_data) %in% c('Sale_Price')] #Remove "Sale_Price" column
+    
+    if(sum(is.na(r$train_data)) > 0 || sum(is.na(r$test_data)) > 0) {
+      stop("NA value found!")
+    }
+    
+    for (f in 1:length(reg_func)) {
+      yhat_test = reg_func[[f]](train_data, test_data)
+      rmse[i, f] = get_RMSE(yhat_test, r$test_data$Sale_Price)
+      cat(rmse[i, f], "\t")
+    }
+    cat("\n")
+  }
+  
+  cat("\n Avg", colMeans(rmse), "\n" )
+  cat("Computing time:", (proc.time() - start_time)[3], "\n")
+  
+  rmse
+}
+```
+
+```{r}
+set.seed(6682)
+
 #regression_functions = list(
 #                             RandomForest = rf_predict, 
 #                             GBM = gbm_predict, 
@@ -621,7 +649,7 @@ xgb_predict = function(train_data, test_data) {
 #                             RandomForest = rf_predict
 #                             )
 regression_functions = list(
-                            # GBM = gbm_predict,
+                            #GBM = gbm_predict
                             Xgboost = xgb_predict
                             )
 # regression_functions = list(
@@ -632,40 +660,11 @@ regression_functions = list(
 #                             My_Lasso = mylasso_predict
 #                             )
 
-rmse = matrix(0, dim(Project1_test_id)[2], length(regression_functions))
-colnames(rmse) = names(regression_functions)
-
-start_time = proc.time()
-#for (i in c(3,6,9)){
-for (i in 1:10){
-  test_pid = Project1_test_id[,i]
-
-  train_data = all_data[!all_data$PID %in% test_pid,]
-  test_data = all_data[all_data$PID %in% test_pid,]
-
-  r = preprocess_data(train_data, test_data)
-
-  train_data = r$train_data[, !colnames(r$train_data) %in% c('PID')] #Remove 'PID' column
-  test_data = r$test_data[, !colnames(r$test_data) %in% c('Sale_Price')] #Remove "Sale_Price" column
-  
-  if(sum(is.na(r$train_data)) > 0 || sum(is.na(r$test_data)) > 0) {
-    stop("NA value found!")
-  }
-  
-  for (f in 1:length(regression_functions)) {
-    yhat_test = regression_functions[[f]](train_data, test_data)
-    rmse[i, f] = get_RMSE(yhat_test, r$test_data$Sale_Price)
-    cat(rmse[i, f], "\t")
-  }
-  cat("\n")
-}
-
-print(rmse)
-cat("\n Avg", colMeans(rmse), "\n" )
-cat("Computing time:", (proc.time() - start_time)[3], "\n")
+test_all(all_data, Project1_test_id, regression_functions)
 ```
 
 
+Part 2
 ```{r}
 test.id = seq(1, 2930, by=3)
 train_data = all_data[-test.id,]
