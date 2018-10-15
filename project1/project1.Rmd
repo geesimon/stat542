@@ -422,7 +422,7 @@ mylasso_myfit = function(X, y, lam, beta = NULL)
     rss_changed = abs(rss_saved - rss)
     rss_saved = rss
   }
-  cat("rss_chnaged",rss_changed, "step", step, "\n")
+  cat("rss_changed",rss_changed, "step", step, "\n")
   
   # Scale back b and add intercept b0
   b = b * y_scale / x_scale
@@ -450,7 +450,7 @@ mylasso_mypredict = function(X, beta) {
 cv.mylasso = function(train_data, cv_fold = 5) {
   all_lambda = exp(seq(-10, 10, 0.2))
   #all_lambda = c(1, 10, 100)
-  X_train = train_data[, colnames(train_data) != 'Sale_Price']
+  X_train = train_data[, !colnames(train_data) %in% c('PID','Sale_Price')]
   X_train = model.matrix(~., X_train)[, -1]
   Y_train = train_data$Sale_Price
   
@@ -477,7 +477,9 @@ cv.mylasso = function(train_data, cv_fold = 5) {
       X_test_split = X_train[all_test_ids[[i]],]
       Y_test_split = Y_train[all_test_ids[[i]]]
       
-      beta = mylasso_myfit(X_train, Y_train, all_lambda[lambda_i])
+      # cv_beta[lambda_i,] = mylasso_myfit(X_train, Y_train, all_lambda[lambda_i], cv_beta[lambda_i,])
+      # yhat_test = mylasso_mypredict(X_test_split, cv_beta[lambda_i,])
+      beta = mylasso_myfit(X_train_split, Y_train_split, all_lambda[lambda_i])
       yhat_test = mylasso_mypredict(X_test_split, beta)
       cv_rmse[lambda_i] = cv_rmse[lambda_i] + get_RMSE(yhat_test, Y_test_split)
       #cat("lambda", all_lambda[lambda_i], "\trmse", cv_rmse[lambda_i], "\n")
@@ -487,6 +489,7 @@ cv.mylasso = function(train_data, cv_fold = 5) {
   }
   
   min.lambda = all_lambda[which.min(cv_rmse)]
+  print(min.lambda)
   mylasso_myfit(X_train, Y_train, min.lambda)
 }
   
@@ -563,46 +566,47 @@ gbm_predict = function(train_data, test_data) {
 lasso_predict = function(train_data, test_data) {
   X_train = train_data[, colnames(train_data) != 'Sale_Price']
   X_train = model.matrix(~., X_train)[, -1]
-  #X_train = predict(dummyVars(~., data = X_train), newdata = X_train)
-  
+
   Y_train = train_data$Sale_Price
   
   cv.out = cv.glmnet(X_train, Y_train, alpha = 1)
   
   X_test = test_data[, colnames(test_data) != 'Sale_Price']
   X_test = model.matrix(~. -PID, X_test)[, -1]
-  #X_test = predict(dummyVars(~. -PID, data = X_test), newdata = X_test)
-  print(cv.out$lambda.min)
+  #print(cv.out$lambda.min)
   predict(cv.out, s = cv.out$lambda.min, newx = X_test)
 }
 
 xgb_predict = function(train_data, test_data) {
-  # X_train = train_data[, colnames(train_data) != 'Sale_Price']
-  # X_train = model.matrix(~., X_train)[,-1]
-  # 
-  # Y_train = train_data$Sale_Price
-  # 
-  # xgb_model = xgboost(data = X_train, label=Y_train, max_depth = 6, 
-  #                     eta = 0.05, nthread = 4, nrounds = 5000, verbose = FALSE)
-  # 
-  # X_test = test_data[, colnames(test_data) != 'Sale_Price']
-  # X_test = model.matrix(~. - PID, X_test)[,-1]
-  # predict(xgb_model, X_test)
+  X_train = train_data[, colnames(train_data) != 'Sale_Price']
+  X_train = model.matrix(~., X_train)[,-1]
+
+  Y_train = train_data$Sale_Price
+
+  xgb_model = xgboost(data = X_train, label=Y_train, max_depth = 6,
+                      eta = 0.05, nrounds = 5000,
+                      colsample_bytree = 0.6,
+                      subsample = 0.5,
+                      verbose = FALSE)
+
+  X_test = test_data[, colnames(test_data) != 'Sale_Price']
+  X_test = model.matrix(~. - PID, X_test)[,-1]
+  predict(xgb_model, X_test)
   
-  fitControl = trainControl(method = "repeatedcv", number = 5)
-  xgbGrid =  expand.grid(max_depth = c(3, 6, 9),
-                          nrounds = (20:40)*50,
-                          eta = c(0.3, 0.1, 0.01),
-                          colsample_bytree = c(0.6, 0.8),
-                          subsample = c(0.5, 0.75, 1),
-                          min_child_weight = 1,
-                          gamma = 1)
-  
-  xgbFit = train(Sale_Price ~ ., data = train_data, method = "xgbTree",
-                 trControl = fitControl, verbose = FALSE)#, tuneGrid = xgbGrid)
-  print(xgbFit)
-  
-  predict(xgbFit, test_data)
+  # fitControl = trainControl(method = "repeatedcv", number = 5)
+  # xgbGrid =  expand.grid(max_depth = c(3, 6, 9),
+  #                         nrounds = (20:40)*50,
+  #                         eta = c(0.3, 0.1, 0.01),
+  #                         colsample_bytree = c(0.6, 0.8),
+  #                         subsample = c(0.5, 0.75, 1),
+  #                         min_child_weight = 1,
+  #                         gamma = 1)
+  # 
+  # xgbFit = train(Sale_Price ~ ., data = train_data, method = "xgbTree",
+  #                trControl = fitControl, verbose = FALSE)#, tuneGrid = xgbGrid)
+  # print(xgbFit)
+  # 
+  # predict(xgbFit, test_data)
 }
 
 #regression_functions = c(xgb_predict)
@@ -616,17 +620,17 @@ xgb_predict = function(train_data, test_data) {
 # regression_functions = list(
 #                             RandomForest = rf_predict
 #                             )
-# regression_functions = list(
-#                             GBM = gbm_predict,
-#                             Xgboost = xgb_predict
-#                             )
+regression_functions = list(
+                            # GBM = gbm_predict,
+                            Xgboost = xgb_predict
+                            )
 # regression_functions = list(
 #                             Lasso = lasso_predict
 #                             )
-regression_functions = list(
-                            Lasso = lasso_predict,
-                            My_Lasso = mylasso_predict
-                            )
+# regression_functions = list(
+#                             Lasso = lasso_predict,
+#                             My_Lasso = mylasso_predict
+#                             )
 
 rmse = matrix(0, dim(Project1_test_id)[2], length(regression_functions))
 colnames(rmse) = names(regression_functions)
@@ -676,9 +680,26 @@ X_test = r$test_data[, !colnames(r$test_data) %in% c('PID','Sale_Price')]
 X_test = model.matrix(~., X_test)[,-1]
 Y_test = r$test_data$Sale_Price
 
-beta = mylasso_myfit(X_train, Y_train, 10)
+beta = mylasso_myfit(X_train, Y_train, 29)
 
 Ytest_pred = mylasso_mypredict(X_test, beta)
 get_RMSE(Ytest_pred, Y_test)
+```
+
+```{r}
+test.id = seq(1, 2930, by=3)
+train_data = all_data[-test.id,]
+test_data = all_data[test.id,]
+r = preprocess_data(train_data, test_data)
+
+best_beta = cv.mylasso(r$train_data)
+
+X_test = r$test_data[, !colnames(r$test_data) %in% c('PID','Sale_Price')]
+X_test = model.matrix(~., X_test)[,-1]
+Y_test = r$test_data$Sale_Price
+
+Ytest_pred = mylasso_mypredict(X_test, best_beta)
+get_RMSE(Ytest_pred, Y_test)
+
 ```
 
