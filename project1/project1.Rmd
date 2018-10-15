@@ -21,7 +21,7 @@ cat("Select:", test_batch, "\n")
 
 train_data = all_data[!all_data$PID %in% test_pid,]
 test_data = all_data[all_data$PID %in% test_pid,!colnames(all_data) %in% c("Sale_Price")]
-test_data_1 = all_data[all_data$PID %in% test_pid,]
+true_test_value = all_data[all_data$PID %in% test_pid,]$Sale_Price
 
 write.csv(train_data, "train.csv", row.names = FALSE)
 write.csv(test_data, "test.csv", row.names = FALSE)
@@ -317,13 +317,14 @@ process_numeric = function(train_data, test_data) {
   test_data$Mo_Sold[is.na(test_data$Mo_Sold)] = max_level
 
   for (i in 2:dim(train_data)[2]){
-    if(colnames(train_data)[i] %in% c("Sale_Price", names(CategoricalLevels)) ||
+    col_name = colnames(train_data)[i]
+    if(col_name %in% c("Sale_Price", names(CategoricalLevels)) ||
        !is.numeric(train_data[, i])) next;
 
-    if(skew(train_data[, i]) > 0.8) {
-      #print(colnames(train_data)[i])
-      train_data[, i] = log(train_data[, i] + 1)
-      test_data[, i] = log(test_data[, i] + 1)
+    if(skew(train_data[, col_name]) > 0.8) {
+      #print(col_name)
+      train_data[, col_name] = log(train_data[, col_name] + 1)
+      test_data[, col_name] = log(test_data[, col_name] + 1)
     }
   }
   
@@ -334,7 +335,9 @@ process_numeric = function(train_data, test_data) {
 ```{r}
 process_output = function (train_data, test_data) {
   train_data$Sale_Price = log(train_data$Sale_Price)
-  test_data$Sale_Price = log(test_data$Sale_Price)
+  if(hasName(test_data, "Sale_Price")) {
+    test_data$Sale_Price = log(test_data$Sale_Price)
+  }
   
   list(train_data = train_data, test_data = test_data)
 }
@@ -350,12 +353,26 @@ preprocess_data = function(train_data, test_data){
   #r = cate_to_numeric(r$train_data, r$test_data)
   r = process_numeric(r$train_data, r$test_data)
   r = process_output(r$train_data, r$test_data)
-  # r$train_data = Winsorizing2(r$train_data, c("PIC", "Overall_Qual","Overall_Cond",
+  # r$train_data = Winsorizing2(r$train_data, c("PID", "Overall_Qual","Overall_Cond",
   #                                             "Mas_Vnr_Area","BsmtFin_SF_2", "Second_Flr_SF",
   #                                             "Bedroom_AbvGr", "Kitchen_AbvGr", "Garage_Cars",
   #                                             "Wood_Deck_SF"))
 
-  list(train_data = r$train_data, test_data = r$test_data)
+  #Remove unnecessary columnes if any
+  r$train_data = r$train_data[, !colnames(r$train_data) %in% c('PID')] #Remove 'PID' column
+  if(hasName(r$test_data, "Sale_Price")){
+    true_test_y = r$test_data$Sale_Price
+    r$test_data = r$test_data[, !colnames(r$test_data) %in% c('Sale_Price')] #Remove "Sale_Price" column  
+  } else {
+    true_test_y = NULL
+  }
+  
+  
+  if(sum(is.na(r$train_data)) > 0 || sum(is.na(r$test_data)) > 0) {
+      stop("NA value found!")
+  }
+  
+  list(train_data = r$train_data, test_data = r$test_data, true_test_value = true_test_y)
 }
 ```
 
@@ -509,12 +526,6 @@ get_RMSE(mylasso_predict(train_data, test_data), r$test_data$Sale_Price)
 
 Build random forest model
 ```{r}
-# library(randomForest)
-# library(gbm)
-# library(glmnet)
-# library(xgboost)
-# library(caret)
-
 rf_predict = function(train_data, test_data) {
   x_train = train_data[, !colnames(train_data) %in% c("Sale_Price")]
 
@@ -600,40 +611,46 @@ xgb_predict = function(train_data, test_data) {
   # predict(xgbFit, test_data)
 }
 
+
+
 test_all = function (all_data, all_test_pid, reg_func) {
   rmse = matrix(0, dim(all_test_pid)[2], length(reg_func))
   colnames(rmse) = names(reg_func)
   
-  start_time = proc.time()
   #for (i in c(3,6,9)){
-  for (i in 1:10){
+  for (i in 1:dim(all_test_pid)[2]){
     test_pid = all_test_pid[,i]
   
     train_data = all_data[!all_data$PID %in% test_pid,]
     test_data = all_data[all_data$PID %in% test_pid,]
-  
+
     r = preprocess_data(train_data, test_data)
-  
-    train_data = r$train_data[, !colnames(r$train_data) %in% c('PID')] #Remove 'PID' column
-    test_data = r$test_data[, !colnames(r$test_data) %in% c('Sale_Price')] #Remove "Sale_Price" column
-    
-    if(sum(is.na(r$train_data)) > 0 || sum(is.na(r$test_data)) > 0) {
-      stop("NA value found!")
-    }
     
     for (f in 1:length(reg_func)) {
-      yhat_test = reg_func[[f]](train_data, test_data)
-      rmse[i, f] = get_RMSE(yhat_test, r$test_data$Sale_Price)
-      cat(rmse[i, f], "\t")
+      yhat_test = reg_func[[f]](r$train_data, r$test_data)
+      rmse[i, f] = get_RMSE(yhat_test, r$true_test_value)
+      cat(rmse[i, f], "\n")
     }
-    cat("\n")
   }
-  
-  cat("\n Avg", colMeans(rmse), "\n" )
-  cat("Computing time:", (proc.time() - start_time)[3], "\n")
   
   rmse
 }
+
+train_predict = function(train_data, test_data, reg_func, output_filename, true_test_y = NULL){
+  r = preprocess_data(train_data, test_data)
+  
+  yhat_test = exp(reg_func(r$train_data, r$test_data))
+  
+  if (!is.null(true_test_y)){
+    cat("RMSE:", log_RMSE(yhat_test, true_test_y), "\n")
+  }
+  
+  output = cbind(test_data$PID, yhat_test)
+  colnames(output) = c("PID", "Sale_Price")
+  
+  write.csv(output, output_filename, row.names = FALSE)
+}
+
 ```
 
 ```{r}
@@ -648,19 +665,33 @@ set.seed(6682)
 # regression_functions = list(
 #                             RandomForest = rf_predict
 #                             )
-regression_functions = list(
-                            #GBM = gbm_predict
-                            Xgboost = xgb_predict
-                            )
 # regression_functions = list(
-#                             Lasso = lasso_predict
+#                             #GBM = gbm_predict
+#                             Xgboost = xgb_predict
 #                             )
+regression_functions = list(
+                            Lasso = lasso_predict
+                            )
 # regression_functions = list(
 #                             Lasso = lasso_predict,
 #                             My_Lasso = mylasso_predict
 #                             )
 
-test_all(all_data, Project1_test_id, regression_functions)
+start_time = proc.time()
+
+rmse = test_all(all_data, Project1_test_id, regression_functions)
+cat("\n Avg", colMeans(rmse), "\n" )
+
+if(!exists("true_test_value")) true_test_value = NULL
+
+train_predict(train_data, test_data, lasso_predict, "mysubmission1.txt", true_test_value)
+
+cat("Computing time:", (proc.time() - start_time)[3], "\n")
+
+```
+
+```{r}
+train_predict(train_data, test_data, lasso_predict, "mysubmission1.txt")
 ```
 
 
@@ -669,6 +700,9 @@ Part 2
 test.id = seq(1, 2930, by=3)
 train_data = all_data[-test.id,]
 test_data = all_data[test.id,]
+```
+
+```{r eval=FALSE, include=FALSE}
 r = preprocess_data(train_data, test_data)
 
 X_train = r$train_data[, !colnames(r$train_data) %in% c('PID','Sale_Price')]
@@ -686,19 +720,33 @@ get_RMSE(Ytest_pred, Y_test)
 ```
 
 ```{r}
-test.id = seq(1, 2930, by=3)
-train_data = all_data[-test.id,]
-test_data = all_data[test.id,]
-r = preprocess_data(train_data, test_data)
+train_mylasso = function(train_data, test_data, output_filename) {
+  r = preprocess_data(train_data, test_data)
 
-best_beta = cv.mylasso(r$train_data)
+  X_train = r$train_data[, !colnames(r$train_data) %in% c('PID','Sale_Price')]
+  X_train = model.matrix(~., X_train)[,-1]
+  Y_train = r$train_data$Sale_Price
+  
+  X_test = r$test_data[, !colnames(r$test_data) %in% c('PID','Sale_Price')]
+  X_test = model.matrix(~., X_test)[,-1]
 
-X_test = r$test_data[, !colnames(r$test_data) %in% c('PID','Sale_Price')]
-X_test = model.matrix(~., X_test)[,-1]
-Y_test = r$test_data$Sale_Price
+  #best_beta = cv.mylasso(r$train_data)
+  best_beta = mylasso_myfit(X_train, Y_train, 29)
 
-Ytest_pred = mylasso_mypredict(X_test, best_beta)
-get_RMSE(Ytest_pred, Y_test)
+  yhat_test = exp(mylasso_mypredict(X_test, best_beta))
+  
+  if(!is.null(r$true_test_value)){
+    cat("RMSE:", log_RMSE(yhat_test, exp(r$true_test_value)), "\n")
+  }
+  
+  output = cbind(test_data$PID, yhat_test)
+  colnames(output) = c("PID", "Sale_Price")
+  
+  write.csv(output, output_filename, row.names = FALSE)
+}
+```
 
+```{r}
+train_mylasso(train_data, test_data, "mysubmission3.txt")
 ```
 
