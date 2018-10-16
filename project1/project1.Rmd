@@ -57,7 +57,7 @@ Several approaches are taken to pre-process the data.
     - TotalPorchSF: combine space of all porches.
 - Remove predictors: remove some highly correlated and dominate categorical variables predictors.
 
-Note: Winsorizing is not used because per my testing, it doesn't improve the accuracy.
+Note: Winsorization is not used because per my testing, it doesn't improve the accuracy.
 
 ```{r include=FALSE}
 ###### Utility Functions ######
@@ -70,7 +70,7 @@ get_RMSE = function (true_value, predicted_value) {
   sqrt(mean((predicted_value - true_value)^2))
 }
 
-Winsorizing = function (data, filter_by, fraction=.05)
+Winsorization = function (data, filter_by, fraction=.05)
 {
    if(length(fraction) != 1 || fraction < 0 ||
          fraction > 0.5) {
@@ -84,7 +84,7 @@ Winsorizing = function (data, filter_by, fraction=.05)
    data
 }
 
-Winsorizing2 = function (data, exclude_fields, multiple=3)
+Winsorization2 = function (data, exclude_fields, multiple=3)
 {
   if(length(multiple) != 1 || multiple <= 0) {
     stop("bad value for 'multiple'")
@@ -303,16 +303,29 @@ process_categorical = function(train_data, test_data){
 }
 
 #Increase the granularity of the categorical predictors
-cate_to_numeric = function(train_data, test_data){
-  cond_levels = c("Poor", "Average", "Good", "Excellent")
-  cond_map=c("Poor", "Poor", "Average", "Average", "Average", "Good", 
-             "Good", "Excellent", "Excellent", "Excellent")
-
-  train_data$Overall_Qual = ordered(cond_map[as.numeric(train_data$Overall_Qual)], levels=cond_levels)
-  train_data$Overall_Cond = ordered(cond_map[as.numeric(train_data$Overall_Cond)], levels=cond_levels)
+make_bin = function(train_data, test_data){
+  # cond_levels = c("Poor", "Average", "Above_Average", "Good", "Very_Good", "Excellent")
+  # cond_map=c("Poor", "Poor", "Poor", "Poor", "Average", "Above_Average",
+  #            "Good", "Very_Good", "Excellent", "Excellent")
+  # 
+  # train_data$Overall_Qual = ordered(cond_map[as.numeric(train_data$Overall_Qual)], levels=cond_levels)
+  # train_data$Overall_Cond = ordered(cond_map[as.numeric(train_data$Overall_Cond)], levels=cond_levels)
+  # 
+  # test_data$Overall_Qual = ordered(cond_map[as.numeric(test_data$Overall_Qual)], levels=cond_levels)
+  # test_data$Overall_Cond = ordered(cond_map[as.numeric(test_data$Overall_Cond)], levels=cond_levels)
   
-  test_data$Overall_Qual = ordered(cond_map[as.numeric(test_data$Overall_Qual)], levels=cond_levels)
-  test_data$Overall_Cond = ordered(cond_map[as.numeric(test_data$Overall_Cond)], levels=cond_levels)
+  train_data$Year_Built[train_data$Year_Built > 2005] = 2006
+  train_data$Year_Built[train_data$Year_Built >1985 & train_data$Year_Built <= 2005] = 1986
+  train_data$Year_Built[train_data$Year_Built > 1973 & train_data$Year_Built <= 1985] = 1974
+  train_data$Year_Built[train_data$Year_Built <= 1973] = 1973
+  train_data$Year_Built = as.ordered(train_data$Year_Built)
+  
+  test_data$Year_Built[test_data$Year_Built > 2005] = 2006
+  test_data$Year_Built[test_data$Year_Built >1985 & test_data$Year_Built <= 2005] = 1986
+  test_data$Year_Built[test_data$Year_Built > 1973 & test_data$Year_Built <= 1985] = 1974
+  test_data$Year_Built[test_data$Year_Built <= 1973] = 1973
+  test_data$Year_Built = as.ordered(test_data$Year_Built)
+
 
   list(train_data = train_data, test_data = test_data)
 }
@@ -359,10 +372,10 @@ preprocess_data = function(train_data, test_data){
   r = Add_Variables(r$train_data, r$test_data)
   r = Remove_Variables(r$train_data, r$test_data)
   r = process_categorical(r$train_data, r$test_data)
-  #r = cate_to_numeric(r$train_data, r$test_data)
+  #r = make_bin(r$train_data, r$test_data)
   r = process_numeric(r$train_data, r$test_data)
   r = process_output(r$train_data, r$test_data)
-  # r$train_data = Winsorizing2(r$train_data, c("PID", "Overall_Qual","Overall_Cond",
+  # r$train_data = Winsorization2(r$train_data, c("PID", "Overall_Qual","Overall_Cond",
   #                                             "Mas_Vnr_Area","BsmtFin_SF_2", "Second_Flr_SF",
   #                                             "Bedroom_AbvGr", "Kitchen_AbvGr", "Garage_Cars",
   #                                             "Wood_Deck_SF"))
@@ -476,7 +489,6 @@ mylasso_mypredict = function(X, beta) {
 
 cv.mylasso = function(train_data, cv_fold = 5) {
   all_lambda = exp(seq(-10, 10, 0.2))
-  #all_lambda = c(1, 10, 100)
   X_train = train_data[, !colnames(train_data) %in% c('PID','Sale_Price')]
   X_train = model.matrix(~., X_train)[, -1]
   Y_train = train_data$Sale_Price
@@ -624,8 +636,8 @@ test_all = function (all_data, all_test_pid, reg_func) {
   rmse = matrix(0, dim(all_test_pid)[2], length(reg_func))
   colnames(rmse) = names(reg_func)
   
-  #for (i in c(3,6,9)){
-  for (i in 1:dim(all_test_pid)[2]){
+  for (i in c(3)){
+  #for (i in 1:dim(all_test_pid)[2]){
     test_pid = all_test_pid[,i]
   
     train_data = all_data[!all_data$PID %in% test_pid,]
@@ -665,15 +677,15 @@ I tested all 10 test dataset against these models. The RMSEs are:
 ```{r include=FALSE}
 set.seed(6682)
 regression_functions = list(
-                            RandomForest = rf_predict,
+                            # RandomForest = rf_predict,
                             # GBM = gbm_predict,
-                            Lasso = lasso_predict,
-                            Xgboost = xgb_predict,
-                            My_Lasso = mylasso_predict
+                            Lasso = lasso_predict
+                            # Xgboost = xgb_predict,
+                            # My_Lasso = mylasso_predict
                             )
 ```
 
-```{r, include=FALSE}
+```{r}
 all_data = read.csv("Ames_data.csv")
 Project1_test_id =  read.table("Project1_test_id.txt", quote="\"", comment.char="")
 
