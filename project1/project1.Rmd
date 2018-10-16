@@ -14,10 +14,10 @@ output: pdf_document
 - OS: Windows 10 Professional 64bit
 - R: 3.5.1
 - R Packages:
-  - randomForest_4.6-14
-  - glmnet_2.0-16
-  - xgboost_0.71.2
-  - psych_1.8.4
+    - randomForest_4.6-14
+    - glmnet_2.0-16
+    - xgboost_0.71.2
+    - psych_1.8.4
 
 ```{r, include=FALSE}
 mypackages = c("randomForest","glmnet","psych", "xgboost")   # required packages
@@ -30,22 +30,6 @@ lapply(mypackages, require, character.only = TRUE)
 
 In this part, I pre-processed the data and built 2 models (boosting and lasso) to make the training and evaluations.
 
-```{r, eval=FALSE, include=FALSE}
-all_data = read.csv("Ames_data.csv")
-Project1_test_id =  read.table("Project1_test_id.txt", quote="\"", comment.char="")
-
-test_batch = sample(1:dim(Project1_test_id)[2], 1)
-test_pid = Project1_test_id[,test_batch]
-cat("Select:", test_batch, "\n")
-
-train_data = all_data[!all_data$PID %in% test_pid,]
-test_data = all_data[all_data$PID %in% test_pid,!colnames(all_data) %in% c("Sale_Price")]
-true_test_value = all_data[all_data$PID %in% test_pid,]$Sale_Price
-
-write.csv(train_data, "train.csv", row.names = FALSE)
-write.csv(test_data, "test.csv", row.names = FALSE)
-```
-
 ```{r include=FALSE}
 TRAIN_FILE_NAME = 'train.csv'
 TEST_FILE_NAME = 'test.csv'
@@ -56,14 +40,22 @@ test_data = read.csv(TEST_FILE_NAME)
 
 ## Preprocessing and Feature Engineering
 
-I take several approaches to pre-process the data.
+Several approaches are taken to pre-process the data.
 
 - Missing value: 'Garage_Yr_Blt' has some missing values, 'Year_Built' is used to fill the value. Note: 'Garage_Yr_Blt' is removed due to low importance, I still leave this step for generailize the processing pipeline.
-- Add more predictor
-- Remove predictors
-- Categorical predictor:
-- process_numeric
-- Loglize the output
+- Handle categorical value mismatch between train and test dataset:
+    - For categorical value only exists in test predictor, the value is replaced with the `most frequent` categorical value of the same training predictor.
+    - For ordered value only exists in test predictor, the value is replaced with the `closest` value of the same training predictor.
+- Fix the skewness of numeric predictors: take the log for all numeric predictors with an absolute skew greater than 0.8.
+- Take log for response variable: Sale_Price.
+- Add more predictor to help prediction: 
+    - Total bath: combine all full and half bath rooms.
+    - Age: how old the house was when sold.
+    - IsNew: whether this is a new house when sold.
+    - Remodeled: This is seen as some sort of penalty parameter that indicates that if the Age is based on a remodeling date, it is probably worth less than houses that were built from scratch in that same year.
+    - TotalSqFeet: combine space in living area and basement.
+    - TotalPorchSF: combine space of all porches.
+- Remove predictors: remove some highly correlated and dominate categorical variables predictors.
 
 Note: Winsorizing is not used because per my testing, it doesn't improve the accuracy.
 
@@ -113,11 +105,8 @@ Winsorizing2 = function (data, exclude_fields, multiple=3)
   
   data
 }
-```
 
-Pre-processing
-```{r}
-###### Pre-processing Functions ######
+###### Pre-processing and Feature Engineering Functions ######
 
 #Make numerical na value as year built
 handle_missing = function(train_data, test_data){
@@ -170,7 +159,8 @@ Add_Variables = function(train_data, test_data){
 Remove_Variables = function(train_data, test_data){
   #Remove highly correlated, consolidated variables and dominate categorical variables
   dropVars = c('Year_Remod_Add', 'Garage_Yr_Blt', 'Garage_Area', 'Garage_Cond', 'Total_Bsmt_SF', 
-               'TotRms_AbvGrd', 'BsmtFin_SF_1', 
+               'TotRms_AbvGrd', 'BsmtFin_SF_1',
+               'First_Flr_SF', 'Second_Flr_SF', 'Bedroom_AbvGr', #'Gr_Liv_Area', #Extra
                'Full_Bath', 'Half_Bath', 'Bsmt_Full_Bath', 'Bsmt_Half_Bath',
                'Open_Porch_SF', 'Enclosed_Porch', 'Three_season_porch', 'Screen_Porch',
                'Street','Utilities','Land_Slope','Condition_2', 'Roof_Matl', 
@@ -182,11 +172,8 @@ Remove_Variables = function(train_data, test_data){
 
   list(train_data = train_data, test_data = test_data)
 }
-```
 
-
-```{r}
-  CategoricalLevels = list(
+CategoricalLevels = list(
     MS_SubClass = c("One_Story_1946_and_Newer_All_Styles","Two_Story_1946_and_Newer",
                     "One_and_Half_Story_Finished_All_Ages", "One_Story_PUD_1946_and_Newer",
                     "One_Story_1945_and_Older", "Two_Story_PUD_1946_and_Newer",
@@ -255,7 +242,7 @@ Remove_Variables = function(train_data, test_data){
     
     Remodeled = c("Misc"),
     IsNew = c("Misc")
-  )
+)
 
 process_categorical = function(train_data, test_data){
   for (name in names(CategoricalLevels)) {
@@ -315,10 +302,6 @@ process_categorical = function(train_data, test_data){
   list(train_data = train_data, test_data = test_data)
 }
 
-```
-
-Pre-processing
-```{r}
 #Increase the granularity of the categorical predictors
 cate_to_numeric = function(train_data, test_data){
   cond_levels = c("Poor", "Average", "Good", "Excellent")
@@ -333,11 +316,6 @@ cate_to_numeric = function(train_data, test_data){
 
   list(train_data = train_data, test_data = test_data)
 }
-```
-
-Process numeric data
-```{r}
-library(psych)
 
 process_numeric = function(train_data, test_data) {
   #Make Year_Sold and Mo_Sold as factor
@@ -366,9 +344,7 @@ process_numeric = function(train_data, test_data) {
   
   list(train_data = train_data, test_data = test_data)
 }
-```
 
-```{r}
 process_output = function (train_data, test_data) {
   train_data$Sale_Price = log(train_data$Sale_Price)
   if(hasName(test_data, "Sale_Price")) {
@@ -377,10 +353,7 @@ process_output = function (train_data, test_data) {
   
   list(train_data = train_data, test_data = test_data)
 }
-```
 
-
-```{r}
 preprocess_data = function(train_data, test_data){
   r = handle_missing(train_data, test_data)
   r = Add_Variables(r$train_data, r$test_data)
@@ -412,8 +385,16 @@ preprocess_data = function(train_data, test_data){
 }
 ```
 
-## Algorithm
-```{r}
+## Models
+
+For evaluation purpose, I build 4 models,
+
+- RandomForest
+- Boosting (Xgboost)
+- Lasso
+- MyLasso (self-implemented lasso)
+
+```{r include=FALSE}
 one_step_lasso = function(r, x, lam){
   length(r)
   length(x)
@@ -554,14 +535,6 @@ mylasso_predict = function(train_data, test_data) {
   mylasso_mypredict(X_test, beta)
 }
 
-```
-```{r, eval=FALSE, include=FALSE}
-get_RMSE(mylasso_predict(train_data, test_data), r$test_data$Sale_Price)
-```
-
-
-## Test Results
-```{r}
 rf_predict = function(train_data, test_data) {
   x_train = train_data[, !colnames(train_data) %in% c("Sale_Price")]
 
@@ -647,8 +620,6 @@ xgb_predict = function(train_data, test_data) {
   # predict(xgbFit, test_data)
 }
 
-
-
 test_all = function (all_data, all_test_pid, reg_func) {
   rmse = matrix(0, dim(all_test_pid)[2], length(reg_func))
   colnames(rmse) = names(reg_func)
@@ -686,48 +657,73 @@ train_predict = function(train_data, test_data, reg_func, output_filename, true_
   
   write.csv(output, output_filename, row.names = FALSE)
 }
-
 ```
 
-```{r}
+## Evaluation
+
+I tested all 10 test dataset against these models. The RMSEs are:
+```{r include=FALSE}
 set.seed(6682)
-
 regression_functions = list(
-                            # RandomForest = rf_predict,
+                            RandomForest = rf_predict,
                             # GBM = gbm_predict,
-                            Lasso = lasso_predict
-                            # Xgboost = xgb_predict,
-                            # My_Lasso = mylasso_predict
+                            Lasso = lasso_predict,
+                            Xgboost = xgb_predict,
+                            My_Lasso = mylasso_predict
                             )
+```
 
+```{r, include=FALSE}
+all_data = read.csv("Ames_data.csv")
+Project1_test_id =  read.table("Project1_test_id.txt", quote="\"", comment.char="")
 
+test_batch = sample(1:dim(Project1_test_id)[2], 1)
+test_pid = Project1_test_id[,test_batch]
+cat("Select:", test_batch, "\n")
+
+train_data = all_data[!all_data$PID %in% test_pid,]
+test_data = all_data[all_data$PID %in% test_pid,!colnames(all_data) %in% c("Sale_Price")]
+true_test_value = all_data[all_data$PID %in% test_pid,]$Sale_Price
+
+write.csv(train_data, "train.csv", row.names = FALSE)
+write.csv(test_data, "test.csv", row.names = FALSE)
 start_time = proc.time()
-
 rmse = test_all(all_data, Project1_test_id, regression_functions)
-cat("\n Avg", colMeans(rmse), "\n" )
-
-if(!exists("true_test_value")) true_test_value = NULL
-
-train_predict(train_data, test_data, lasso_predict, "mysubmission1.txt", true_test_value)
-
-cat("Computing time:", (proc.time() - start_time)[3], "\n")
 ```
 
 ```{r}
-train_predict(train_data, test_data, lasso_predict, "mysubmission1.txt")
+print(rmse)
+cat("\n Avg:", colMeans(rmse), "\n" )
+```
+
+Computing time: `r (proc.time() - start_time)[3]` seconds
+
+```{r, include=FALSE}
+start_time = proc.time()
+if(!exists("true_test_value")) true_test_value = NULL
+train_predict(train_data, test_data, lasso_predict, "mysubmission1.txt", true_test_value)
 ```
 
 # PART 2
 
-In this part, I use my own lasso implementation to predict the test set.
+In this part, I use my own lasso implementation to predict the test set. In order to find the best $\lambda$, A cross validation function: `cv.mylasso` is implemented. Here I used the pre-found $\lambda$=30 to shorten the computation time.
 
-```{r}
+```{r, include=FALSE}
+all_data = read.csv("Ames_data.csv")
 test.id = seq(1, 2930, by=3)
 train_data = all_data[-test.id,]
 test_data = all_data[test.id,]
+write.csv(train_data, "train.csv", row.names = FALSE)
+write.csv(test_data, "test.csv", row.names = FALSE)
 ```
 
-```{r}
+```{r include=FALSE}
+TRAIN_FILE_NAME = 'train.csv'
+TEST_FILE_NAME = 'test.csv'
+
+train_data = read.csv(TRAIN_FILE_NAME)
+test_data = read.csv(TEST_FILE_NAME)
+
 train_mylasso = function(train_data, test_data, output_filename) {
   r = preprocess_data(train_data, test_data)
 
@@ -738,28 +734,42 @@ train_mylasso = function(train_data, test_data, output_filename) {
   X_test = r$test_data[, !colnames(r$test_data) %in% c('PID','Sale_Price')]
   X_test = model.matrix(~., X_test)[,-1]
 
-  best_beta = cv.mylasso(r$train_data)
-  #best_beta = mylasso_myfit(X_train, Y_train, 29.9641)
+  #best_beta = cv.mylasso(r$train_data)
+  best_beta = mylasso_myfit(X_train, Y_train, 29.9641)
 
   yhat_test = exp(mylasso_mypredict(X_test, best_beta))
   
   if(!is.null(r$true_test_value)){
-    cat("RMSE:", log_RMSE(yhat_test, exp(r$true_test_value)), "\n")
+    rmse = log_RMSE(yhat_test, exp(r$true_test_value))
+  } else {
+    rmse = NULL
   }
   
   output = cbind(test_data$PID, yhat_test)
   colnames(output) = c("PID", "Sale_Price")
   
   write.csv(output, output_filename, row.names = FALSE)
+  rmse
+}
+
+start_time = proc.time()
+rmse = train_mylasso(train_data, test_data, "mysubmission3.txt")
+#cat("Computing time:", (proc.time() - start_time)[3], "\n")
+```
+
+Run against the test set, the results are:
+
+- Test Accuracy: `r rmse`
+- Computation Time: `r (proc.time() - start_time)[3]` seconds
+
+```{r, include=FALSE}
+form_numeric = function(df) {
+  numeric_name = c()
+  for (name in colnames(df)) {
+    if(is.numeric(df[,name])) numeric_name = c(numeric_name, name)
+  }
+  
+  df[, colnames(df) %in% numeric_name]
 }
 ```
 
-```{r}
-start_time = proc.time()
-train_mylasso(train_data, test_data, "mysubmission3.txt")
-cat("Computing time:", (proc.time() - start_time)[3], "\n")
-```
-
-
-- Test Accuracy:
-- Computation Time:
