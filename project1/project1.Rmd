@@ -690,23 +690,6 @@ train_data = all_data[-test.id,]
 test_data = all_data[test.id,]
 ```
 
-```{r eval=FALSE, include=FALSE}
-r = preprocess_data(train_data, test_data)
-
-X_train = r$train_data[, !colnames(r$train_data) %in% c('PID','Sale_Price')]
-X_train = model.matrix(~., X_train)[,-1]
-Y_train = r$train_data$Sale_Price
-
-X_test = r$test_data[, !colnames(r$test_data) %in% c('PID','Sale_Price')]
-X_test = model.matrix(~., X_test)[,-1]
-Y_test = r$test_data$Sale_Price
-
-beta = mylasso_myfit(X_train, Y_train, 29)
-
-Ytest_pred = mylasso_mypredict(X_test, beta)
-get_RMSE(Ytest_pred, Y_test)
-```
-
 ```{r}
 train_mylasso = function(train_data, test_data, output_filename) {
   r = preprocess_data(train_data, test_data)
@@ -718,8 +701,8 @@ train_mylasso = function(train_data, test_data, output_filename) {
   X_test = r$test_data[, !colnames(r$test_data) %in% c('PID','Sale_Price')]
   X_test = model.matrix(~., X_test)[,-1]
 
-  #best_beta = cv.mylasso(r$train_data)
-  best_beta = mylasso_myfit(X_train, Y_train, 30)
+  best_beta = cv.mylasso(r$train_data)
+  #best_beta = mylasso_myfit(X_train, Y_train, 29.9641)
 
   yhat_test = exp(mylasso_mypredict(X_test, best_beta))
   
@@ -735,6 +718,8 @@ train_mylasso = function(train_data, test_data, output_filename) {
 ```
 
 ```{r}
+start_time = proc.time()
 train_mylasso(train_data, test_data, "mysubmission3.txt")
+cat("Computing time:", (proc.time() - start_time)[3], "\n")
 ```
 
