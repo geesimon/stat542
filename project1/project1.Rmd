@@ -5,13 +5,19 @@ output: pdf_document
 ---
 # Computer System
 
-Hardware
-- Dell:
-- CPU:
-- Memory:
-_
+## Hardware
+- Dell Precision Tower 5810
+- CPU: Intel Xeon E5-1607 @ 3.10GHz
+- Memory: 32GB
 
-# PART 1
+## Software
+- OS: Windows 10 Professional 64bit
+- R: 3.5.1
+- R Packages:
+  - randomForest_4.6-14
+  - glmnet_2.0-16
+  - xgboost_0.71.2
+  - psych_1.8.4
 
 ```{r, include=FALSE}
 mypackages = c("randomForest","glmnet","psych", "xgboost")   # required packages
@@ -19,6 +25,10 @@ tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be
 if (length(tmp) > 0) install.packages(tmp)
 lapply(mypackages, require, character.only = TRUE)
 ```
+
+# PART 1
+
+In this part, I pre-processed the data and built 2 models (boosting and lasso) to make the training and evaluations.
 
 ```{r, eval=FALSE, include=FALSE}
 all_data = read.csv("Ames_data.csv")
@@ -36,7 +46,7 @@ write.csv(train_data, "train.csv", row.names = FALSE)
 write.csv(test_data, "test.csv", row.names = FALSE)
 ```
 
-```{r}
+```{r include=FALSE}
 TRAIN_FILE_NAME = 'train.csv'
 TEST_FILE_NAME = 'test.csv'
 
@@ -44,9 +54,22 @@ train_data = read.csv(TRAIN_FILE_NAME)
 test_data = read.csv(TEST_FILE_NAME)
 ```
 
-## Preprocessing
+## Preprocessing and Feature Engineering
 
-```{r}
+I take several approaches to pre-process the data.
+
+- Missing value: 'Garage_Yr_Blt' has some missing values, 'Year_Built' is used to fill the value. Note: 'Garage_Yr_Blt' is removed due to low importance, I still leave this step for generailize the processing pipeline.
+- Add more predictor
+- Remove predictors
+- Categorical predictor:
+- process_numeric
+- Loglize the output
+
+Note: Winsorizing is not used because per my testing, it doesn't improve the accuracy.
+
+```{r include=FALSE}
+###### Utility Functions ######
+
 log_RMSE = function (true_value, predicted_value) {
   sqrt(mean((log(predicted_value) - log(true_value))^2))
 }
@@ -94,6 +117,8 @@ Winsorizing2 = function (data, exclude_fields, multiple=3)
 
 Pre-processing
 ```{r}
+###### Pre-processing Functions ######
+
 #Make numerical na value as year built
 handle_missing = function(train_data, test_data){
   train_data$Garage_Yr_Blt[is.na(train_data$Garage_Yr_Blt)] =
@@ -686,7 +711,6 @@ if(!exists("true_test_value")) true_test_value = NULL
 train_predict(train_data, test_data, lasso_predict, "mysubmission1.txt", true_test_value)
 
 cat("Computing time:", (proc.time() - start_time)[3], "\n")
-
 ```
 
 ```{r}
@@ -694,6 +718,9 @@ train_predict(train_data, test_data, lasso_predict, "mysubmission1.txt")
 ```
 
 # PART 2
+
+In this part, I use my own lasso implementation to predict the test set.
+
 ```{r}
 test.id = seq(1, 2930, by=3)
 train_data = all_data[-test.id,]
