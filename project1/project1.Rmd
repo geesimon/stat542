@@ -1,10 +1,19 @@
 ---
-title: "STAT542 - - Project 1"
+title: "CS598 - Project 1"
 author: "Xiaoming Ji"
 output: pdf_document
 ---
+# Computer System
 
-```{r}
+Hardware
+- Dell:
+- CPU:
+- Memory:
+_
+
+# PART 1
+
+```{r, include=FALSE}
 mypackages = c("randomForest","glmnet","psych", "xgboost")   # required packages
 tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
 if (length(tmp) > 0) install.packages(tmp)
@@ -34,6 +43,8 @@ TEST_FILE_NAME = 'test.csv'
 train_data = read.csv(TRAIN_FILE_NAME)
 test_data = read.csv(TEST_FILE_NAME)
 ```
+
+## Preprocessing
 
 ```{r}
 log_RMSE = function (true_value, predicted_value) {
@@ -79,7 +90,10 @@ Winsorizing2 = function (data, exclude_fields, multiple=3)
   
   data
 }
+```
 
+Pre-processing
+```{r}
 #Make numerical na value as year built
 handle_missing = function(train_data, test_data){
   train_data$Garage_Yr_Blt[is.na(train_data$Garage_Yr_Blt)] =
@@ -89,10 +103,7 @@ handle_missing = function(train_data, test_data){
   
   list(train_data = train_data, test_data = test_data)
 }
-```
 
-Pre-processing
-```{r}
 Add_Variables = function(train_data, test_data){
   #Add total bath variable
   train_data$TotBathrooms = train_data$Full_Bath + (train_data$Half_Bath * 0.5) +
@@ -376,7 +387,7 @@ preprocess_data = function(train_data, test_data){
 }
 ```
 
-
+## Algorithm
 ```{r}
 one_step_lasso = function(r, x, lam){
   length(r)
@@ -524,7 +535,7 @@ get_RMSE(mylasso_predict(train_data, test_data), r$test_data$Sale_Price)
 ```
 
 
-Build random forest model
+## Test Results
 ```{r}
 rf_predict = function(train_data, test_data) {
   x_train = train_data[, !colnames(train_data) %in% c("Sale_Price")]
@@ -682,8 +693,7 @@ cat("Computing time:", (proc.time() - start_time)[3], "\n")
 train_predict(train_data, test_data, lasso_predict, "mysubmission1.txt")
 ```
 
-
-Part 2
+# PART 2
 ```{r}
 test.id = seq(1, 2930, by=3)
 train_data = all_data[-test.id,]
@@ -723,3 +733,6 @@ train_mylasso(train_data, test_data, "mysubmission3.txt")
 cat("Computing time:", (proc.time() - start_time)[3], "\n")
 ```
 
+
+- Test Accuracy:
+- Computation Time:
