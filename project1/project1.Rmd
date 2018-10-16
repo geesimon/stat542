@@ -5,7 +5,7 @@ output: pdf_document
 ---
 
 ```{r}
-mypackages = c("randomForest","gbm","glmnet","psych", "xgboost")   # required packages
+mypackages = c("randomForest","glmnet","psych", "xgboost")   # required packages
 tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
 if (length(tmp) > 0) install.packages(tmp)
 lapply(mypackages, require, character.only = TRUE)
@@ -656,26 +656,14 @@ train_predict = function(train_data, test_data, reg_func, output_filename, true_
 ```{r}
 set.seed(6682)
 
-#regression_functions = list(
-#                             RandomForest = rf_predict, 
-#                             GBM = gbm_predict, 
-#                             Lasso = lasso_predict,
-#                             Xgboost = xgb_predict
-#                             )
-# regression_functions = list(
-#                             RandomForest = rf_predict
-#                             )
-# regression_functions = list(
-#                             #GBM = gbm_predict
-#                             Xgboost = xgb_predict
-#                             )
 regression_functions = list(
+                            # RandomForest = rf_predict,
+                            # GBM = gbm_predict,
                             Lasso = lasso_predict
+                            # Xgboost = xgb_predict,
+                            # My_Lasso = mylasso_predict
                             )
-# regression_functions = list(
-#                             Lasso = lasso_predict,
-#                             My_Lasso = mylasso_predict
-#                             )
+
 
 start_time = proc.time()
 
@@ -731,7 +719,7 @@ train_mylasso = function(train_data, test_data, output_filename) {
   X_test = model.matrix(~., X_test)[,-1]
 
   #best_beta = cv.mylasso(r$train_data)
-  best_beta = mylasso_myfit(X_train, Y_train, 29)
+  best_beta = mylasso_myfit(X_train, Y_train, 30)
 
   yhat_test = exp(mylasso_mypredict(X_test, best_beta))
   
