@@ -729,7 +729,16 @@ Computation time: `r (proc.time() - start_time)[3]` seconds
 ```{r, include=FALSE}
 start_time = proc.time()
 if(!exists("true_test_value")) true_test_value = NULL
-train_predict(train_data, test_data, lasso_predict, "mysubmission1.txt", true_test_value)
+
+model_functions = list(
+                        Lasso = lasso_predict,
+                        Xgboost = xgb_predict
+                      )
+output_filenames = c("mysubmission1.txt", "mysubmission2.txt")
+
+for (f in 1:length(model_functions)) {
+  train_predict(train_data, test_data, model_functions[[f]], output_filenames[f], true_test_value)
+}
 ```
 
 According to the results, we select `Boosting` and `Lasso` models to make prediction on the test set. And the computation time is: `r (proc.time() - start_time)[3]` seconds
