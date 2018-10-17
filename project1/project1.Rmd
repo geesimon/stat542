@@ -43,7 +43,6 @@ test_data = read.csv(TEST_FILE_NAME)
 Several approaches are taken to pre-process the data.
 
 - Missing value: 'Garage_Yr_Blt' has some missing values, 'Year_Built' is used to fill the value. Note: 'Garage_Yr_Blt' is later removed due to low importance, I still leave this step to generailize the processing pipeline.
-- Remove outliers: manually removed outliers (902207130, 910251050, 908154195, 908154205, 908154235).
 - Handle missing categorical level in test dataset:
     - For categorical level, the value is replaced with the `most frequent` categorical level of the same training predictor.
     - For ordered categorical level, the value is replaced with the `closest` value of the same training predictor.
@@ -664,13 +663,13 @@ test_all = function (all_data, all_test_pid, reg_func) {
   rmse
 }
 
-train_predict = function(train_data, test_data, reg_func, output_filename, true_test_y = NULL){
+train_predict = function(train_data, test_data, reg_func, output_filename){
   r = preprocess_data(train_data, test_data)
   
   yhat_test = exp(reg_func(r$train_data, r$test_data))
   
-  if (!is.null(true_test_y)){
-    cat("RMSE:", log_RMSE(yhat_test, true_test_y), "\n")
+  if(!is.null(r$true_test_value)){
+    cat("RMSE:", log_RMSE(yhat_test, exp(r$true_test_value)), "\n")
   }
   
   output = cbind(test_data$PID, yhat_test)
@@ -688,16 +687,28 @@ set.seed(6682)
 ```
 
 ```{r, include=FALSE}
-regression_functions = list(
-                            RandomForest = rf_predict,
-                            # GBM = gbm_predict,
-                            Lasso = lasso_predict,
-                            Xgboost = xgb_predict,
-                            My_Lasso = mylasso_predict
-                            )
-
 all_data = read.csv("Ames_data.csv")
 Project1_test_id =  read.table("Project1_test_id.txt", quote="\"", comment.char="")
+
+test_batch = sample(1:dim(Project1_test_id)[2], 1)
+test_pid = Project1_test_id[,test_batch]
+cat("Select:", test_batch, "\n")
+
+train_data = all_data[!all_data$PID %in% test_pid,]
+test_data = all_data[all_data$PID %in% test_pid,]
+
+write.csv(train_data, "train.csv", row.names = FALSE)
+write.csv(test_data[, !colnames(test_data) %in% c("Sale_Price")], "test.csv", row.names = FALSE)
+```
+
+```{r include=FALSE}
+regression_functions = list(
+                            # RandomForest = rf_predict,
+                            # GBM = gbm_predict,
+                            Lasso = lasso_predict
+                            # Xgboost = xgb_predict,
+                            # My_Lasso = mylasso_predict
+                            )
 
 all_test_id = list()
 #bad_pid = c(902207130, 910251050, 908154195, 908154205, 908154235)
@@ -706,16 +717,6 @@ for (i in 1:dim(Project1_test_id)[2]){
   all_test_id[[i]] = Project1_test_id[,i][!Project1_test_id[,i] %in% bad_pid]
 }
 
-test_batch = sample(1:dim(Project1_test_id)[2], 1)
-test_pid = Project1_test_id[,test_batch]
-cat("Select:", test_batch, "\n")
-
-train_data = all_data[!all_data$PID %in% test_pid,]
-test_data = all_data[all_data$PID %in% test_pid,!colnames(all_data) %in% c("Sale_Price")]
-true_test_value = all_data[all_data$PID %in% test_pid,]$Sale_Price
-
-write.csv(train_data, "train.csv", row.names = FALSE)
-write.csv(test_data, "test.csv", row.names = FALSE)
 start_time = proc.time()
 rmse = test_all(all_data, all_test_id, regression_functions)
 ```
@@ -729,7 +730,6 @@ Computation time: `r (proc.time() - start_time)[3]` seconds
 
 ```{r, include=FALSE}
 start_time = proc.time()
-if(!exists("true_test_value")) true_test_value = NULL
 
 model_functions = list(
                         Lasso = lasso_predict,
@@ -738,7 +738,7 @@ model_functions = list(
 output_filenames = c("mysubmission1.txt", "mysubmission2.txt")
 
 for (f in 1:length(model_functions)) {
-  train_predict(train_data, test_data, model_functions[[f]], output_filenames[f], true_test_value)
+  train_predict(train_data, test_data, model_functions[[f]], output_filenames[f])
 }
 ```
 

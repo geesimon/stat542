@@ -1,3 +1,9 @@
+###### Prepare Package ######
+mypackages = c("randomForest","glmnet","psych", "xgboost")   # required packages
+tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
+if (length(tmp) > 0) install.packages(tmp)
+lapply(mypackages, require, character.only = TRUE)
+
 ###### Utility Functions ######
 
 log_RMSE = function (true_value, predicted_value) {
@@ -591,13 +597,13 @@ test_all = function (all_data, all_test_pid, reg_func) {
   rmse
 }
 
-train_predict = function(train_data, test_data, reg_func, output_filename, true_test_y = NULL){
+train_predict = function(train_data, test_data, reg_func, output_filename){
   r = preprocess_data(train_data, test_data)
   
   yhat_test = exp(reg_func(r$train_data, r$test_data))
   
-  if (!is.null(true_test_y)){
-    cat("RMSE:", log_RMSE(yhat_test, true_test_y), "\n")
+  if(!is.null(r$true_test_value)){
+    cat("RMSE:", log_RMSE(yhat_test, exp(r$true_test_value)), "\n")
   }
   
   output = cbind(test_data$PID, yhat_test)
@@ -618,7 +624,6 @@ train_data = read.csv(TRAIN_FILE_NAME)
 test_data = read.csv(TEST_FILE_NAME)
 
 start_time = proc.time()
-if(!exists("true_test_value")) true_test_value = NULL
 
 model_functions = list(
   Lasso = lasso_predict,
@@ -627,5 +632,5 @@ model_functions = list(
 output_filenames = c("mysubmission1.txt", "mysubmission2.txt")
 
 for (f in 1:length(model_functions)) {
-  train_predict(train_data, test_data, model_functions[[f]], output_filenames[f], true_test_value)
+  train_predict(train_data, test_data, model_functions[[f]], output_filenames[f])
 }
