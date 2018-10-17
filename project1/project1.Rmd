@@ -43,6 +43,7 @@ test_data = read.csv(TEST_FILE_NAME)
 Several approaches are taken to pre-process the data.
 
 - Missing value: 'Garage_Yr_Blt' has some missing values, 'Year_Built' is used to fill the value. Note: 'Garage_Yr_Blt' is later removed due to low importance, I still leave this step to generailize the processing pipeline.
+- Remove outliers: manually removed outliers (902207130, 910251050, 908154195, 908154205, 908154235).
 - Handle missing categorical level in test dataset:
     - For categorical level, the value is replaced with the `most frequent` categorical level of the same training predictor.
     - For ordered categorical level, the value is replaced with the `closest` value of the same training predictor.
@@ -108,7 +109,6 @@ Winsorization2 = function (data, exclude_fields, multiple=3)
 
 ###### Pre-processing and Feature Engineering Functions ######
 
-#Make numerical na value as year built
 handle_missing = function(train_data, test_data){
   train_data$Garage_Yr_Blt[is.na(train_data$Garage_Yr_Blt)] =
     train_data$Year_Built[is.na(train_data$Garage_Yr_Blt)]
@@ -118,7 +118,15 @@ handle_missing = function(train_data, test_data){
   list(train_data = train_data, test_data = test_data)
 }
 
-Add_Variables = function(train_data, test_data){
+remove_outlier = function(train_data, test_data){
+  outlier_pid = c(902207130, 910251050, 908154195, 908154205, 908154235)
+  
+  train_data =  train_data[!train_data$PID %in% outlier_pid,]
+  
+  list(train_data = train_data, test_data = test_data)
+}
+  
+add_variables = function(train_data, test_data){
   #Add total bath variable
   train_data$TotBathrooms = train_data$Full_Bath + (train_data$Half_Bath * 0.5) +
                             train_data$Bsmt_Full_Bath + (train_data$Bsmt_Half_Bath * 0.5)
@@ -154,7 +162,7 @@ Add_Variables = function(train_data, test_data){
   list(train_data = train_data, test_data = test_data)
 }
 
-Remove_Variables = function(train_data, test_data){
+remove_variables = function(train_data, test_data){
   #Remove highly correlated, consolidated variables and dominate categorical variables
   dropVars = c('Year_Remod_Add', 'Garage_Yr_Blt', 'Garage_Area', 'Garage_Cond', 'Total_Bsmt_SF', 
                'TotRms_AbvGrd', 'BsmtFin_SF_1',
@@ -354,8 +362,9 @@ process_output = function (train_data, test_data) {
 
 preprocess_data = function(train_data, test_data){
   r = handle_missing(train_data, test_data)
-  r = Add_Variables(r$train_data, r$test_data)
-  r = Remove_Variables(r$train_data, r$test_data)
+  #r = remove_outlier(train_data, test_data)
+  r = add_variables(r$train_data, r$test_data)
+  r = remove_variables(r$train_data, r$test_data)
   r = process_categorical(r$train_data, r$test_data)
   #r = cate_to_numeric(r$train_data, r$test_data)
   r = process_numeric(r$train_data, r$test_data)
@@ -367,9 +376,9 @@ preprocess_data = function(train_data, test_data){
 
   #Remove unnecessary columnes if any
   r$train_data = r$train_data[, !colnames(r$train_data) %in% c('PID')] #Remove 'PID' column
-  if(hasName(r$test_data, "Sale_Price")){
+  if(hasName(r$test_data, "Sale_Price")){   #Remove "Sale_Price" column in test data
     true_test_y = r$test_data$Sale_Price
-    r$test_data = r$test_data[, !colnames(r$test_data) %in% c('Sale_Price')] #Remove "Sale_Price" column  
+    r$test_data = r$test_data[, !colnames(r$test_data) %in% c('Sale_Price')] 
   } else {
     true_test_y = NULL
   }
@@ -593,7 +602,7 @@ xgb_predict = function(train_data, test_data) {
   Y_train = train_data$Sale_Price
 
   xgb_model = xgboost(data = X_train, label=Y_train, max_depth = 6,
-                      eta = 0.05, nrounds = 5000,
+                      eta = 0.03, nrounds = 5000,
                       colsample_bytree = 0.6,
                       subsample = 0.5,
                       verbose = FALSE)
@@ -618,13 +627,22 @@ xgb_predict = function(train_data, test_data) {
   # predict(xgbFit, test_data)
 }
 
+top_n_order = function (x, n) {
+  x = abs(x)
+  index = rep(0, n)
+  for (i in 1:n){
+    index[i] = which.max(x)
+    x[index[i]] = -Inf
+  }
+  index
+}
+
 test_all = function (all_data, all_test_pid, reg_func) {
-  rmse = matrix(0, dim(all_test_pid)[2], length(reg_func))
+  rmse = matrix(0, length(all_test_pid), length(reg_func))
   colnames(rmse) = names(reg_func)
   
-  #for (i in c(3,6,9)){
-  for (i in 1:dim(all_test_pid)[2]){
-    test_pid = all_test_pid[,i]
+  for (i in 1:length(all_test_pid)){
+    test_pid = all_test_pid[[i]]
   
     train_data = all_data[!all_data$PID %in% test_pid,]
     test_data = all_data[all_data$PID %in% test_pid,]
@@ -634,6 +652,11 @@ test_all = function (all_data, all_test_pid, reg_func) {
     for (f in 1:length(reg_func)) {
       yhat_test = reg_func[[f]](r$train_data, r$test_data)
       rmse[i, f] = get_RMSE(yhat_test, r$true_test_value)
+      
+      top_error_id = top_n_order(yhat_test - r$true_test_value, 5)
+      cat("Model:", names(reg_func)[f], "\n")
+      cat("Top Error ID:", test_data[top_error_id,]$PID, "\n")
+      cat("Top Error:", abs(yhat_test - r$true_test_value)[top_error_id], "\n")
       cat(rmse[i, f], "\n")
     }
   }
@@ -675,6 +698,13 @@ regression_functions = list(
 all_data = read.csv("Ames_data.csv")
 Project1_test_id =  read.table("Project1_test_id.txt", quote="\"", comment.char="")
 
+all_test_id = list()
+#bad_pid = c(902207130, 910251050, 908154195, 908154205, 908154235)
+bad_pid = c(902207130, 910251050)
+for (i in 1:dim(Project1_test_id)[2]){
+  all_test_id[[i]] = Project1_test_id[,i][!Project1_test_id[,i] %in% bad_pid]
+}
+
 test_batch = sample(1:dim(Project1_test_id)[2], 1)
 test_pid = Project1_test_id[,test_batch]
 cat("Select:", test_batch, "\n")
@@ -686,17 +716,15 @@ true_test_value = all_data[all_data$PID %in% test_pid,]$Sale_Price
 write.csv(train_data, "train.csv", row.names = FALSE)
 write.csv(test_data, "test.csv", row.names = FALSE)
 start_time = proc.time()
-rmse = test_all(all_data, Project1_test_id, regression_functions)
+rmse = test_all(all_data, all_test_id, regression_functions)
 ```
 
-```{r}
+```{r, echo=FALSE}
 print(rmse)
 cat("\n Avg:", colMeans(rmse), "\n" )
 ```
 
 Computation time: `r (proc.time() - start_time)[3]` seconds
-
-According to the results, we select `Boosting` and `Lasso` to make prediction of the test set.
 
 ```{r, include=FALSE}
 start_time = proc.time()
@@ -704,7 +732,7 @@ if(!exists("true_test_value")) true_test_value = NULL
 train_predict(train_data, test_data, lasso_predict, "mysubmission1.txt", true_test_value)
 ```
 
-Computation time: `r (proc.time() - start_time)[3]` seconds
+According to the results, we select `Boosting` and `Lasso` models to make prediction on the test set. And the computation time is: `r (proc.time() - start_time)[3]` seconds
 
 # PART 2
 
@@ -773,5 +801,30 @@ form_numeric = function(df) {
   
   df[, colnames(df) %in% numeric_name]
 }
+```
+
+```{r}
+data = read.csv("Ames_data.csv")
+y = log(data$Sale_Price)
+stem(y)  # notice that two samples are at the left tail of y. 
+testID = read.table(file="Project1_test_id.txt", sep="")
+
+cbind(1:10, apply(testID, 2, function(x) sum(x==data$PID[182])), 
+                 apply(testID, 2, function(x) sum(x==data$PID[1554])))
+
+# Find where the two houses are located. 
+# There is an empty block in the middle of the houses, 
+# which is the university campus. 
+plot(data$Longitude, data$Latitude, pch=".")
+points(data$Longitude[182], data$Latitude[182], 
+           pch="+", col="red")
+points(data$Longitude[1499], data$Latitude[1499], 
+           pch="+", col="blue")
+points(data$Longitude[1554], data$Latitude[1554], 
+           pch="+", col="yellow")
+points(data$Longitude[2181], data$Latitude[2181], 
+           pch="+", col="green")
+points(data$Longitude[2182], data$Latitude[2182], 
+           pch="+", col="red")
 ```
 
