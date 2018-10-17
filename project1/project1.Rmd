@@ -703,11 +703,11 @@ write.csv(test_data[, !colnames(test_data) %in% c("Sale_Price")], "test.csv", ro
 
 ```{r include=FALSE}
 regression_functions = list(
-                            # RandomForest = rf_predict,
+                            RandomForest = rf_predict,
                             # GBM = gbm_predict,
                             Lasso = lasso_predict
-                            # Xgboost = xgb_predict,
-                            # My_Lasso = mylasso_predict
+                            Xgboost = xgb_predict,
+                            My_Lasso = mylasso_predict
                             )
 
 all_test_id = list()
