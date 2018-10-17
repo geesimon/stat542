@@ -28,7 +28,7 @@ lapply(mypackages, require, character.only = TRUE)
 
 # PART 1
 
-In this part, I pre-processed the data and built 2 models (boosting and lasso) to make the training and evaluations.
+In this part, I pre-processed the data and select 2 best performed models (boosting and lasso) to make the training and output the predictions.
 
 ```{r include=FALSE}
 TRAIN_FILE_NAME = 'train.csv'
@@ -42,20 +42,20 @@ test_data = read.csv(TEST_FILE_NAME)
 
 Several approaches are taken to pre-process the data.
 
-- Missing value: 'Garage_Yr_Blt' has some missing values, 'Year_Built' is used to fill the value. Note: 'Garage_Yr_Blt' is removed due to low importance, I still leave this step for generailize the processing pipeline.
-- Handle categorical value mismatch between train and test dataset:
-    - For categorical value only exists in test predictor, the value is replaced with the `most frequent` categorical value of the same training predictor.
-    - For ordered value only exists in test predictor, the value is replaced with the `closest` value of the same training predictor.
+- Missing value: 'Garage_Yr_Blt' has some missing values, 'Year_Built' is used to fill the value. Note: 'Garage_Yr_Blt' is later removed due to low importance, I still leave this step to generailize the processing pipeline.
+- Handle missing categorical level in test dataset:
+    - For categorical level, the value is replaced with the `most frequent` categorical level of the same training predictor.
+    - For ordered categorical level, the value is replaced with the `closest` value of the same training predictor.
 - Fix the skewness of numeric predictors: take the log for all numeric predictors with an absolute skew greater than 0.8.
-- Take log for response variable: Sale_Price.
-- Add more predictor to help prediction: 
+- Take log for response variable `Sale_Price`.
+- Build new predictors to help prediction: 
     - Total bath: combine all full and half bath rooms.
     - Age: how old the house was when sold.
     - IsNew: whether this is a new house when sold.
-    - Remodeled: This is seen as some sort of penalty parameter that indicates that if the Age is based on a remodeling date, it is probably worth less than houses that were built from scratch in that same year.
+    - Remodeled: if the `Age` is based on a remodeling date, it is probably worth less than houses that were built from scratch in that same year.
     - TotalSqFeet: combine space in living area and basement.
     - TotalPorchSF: combine space of all porches.
-- Remove predictors: remove some highly correlated and dominate categorical variables predictors.
+- Remove predictors: remove some highly correlated and dominate categorical predictors.
 
 Note: Winsorization is not used because per my testing, it doesn't improve the accuracy.
 
@@ -151,8 +151,6 @@ Add_Variables = function(train_data, test_data){
   test_data$TotalPorchSF =  test_data$Open_Porch_SF + test_data$Enclosed_Porch + 
                             test_data$Three_season_porch + test_data$Screen_Porch
 
-  
-    
   list(train_data = train_data, test_data = test_data)
 }
 
@@ -303,29 +301,16 @@ process_categorical = function(train_data, test_data){
 }
 
 #Increase the granularity of the categorical predictors
-make_bin = function(train_data, test_data){
-  # cond_levels = c("Poor", "Average", "Above_Average", "Good", "Very_Good", "Excellent")
-  # cond_map=c("Poor", "Poor", "Poor", "Poor", "Average", "Above_Average",
-  #            "Good", "Very_Good", "Excellent", "Excellent")
-  # 
-  # train_data$Overall_Qual = ordered(cond_map[as.numeric(train_data$Overall_Qual)], levels=cond_levels)
-  # train_data$Overall_Cond = ordered(cond_map[as.numeric(train_data$Overall_Cond)], levels=cond_levels)
-  # 
-  # test_data$Overall_Qual = ordered(cond_map[as.numeric(test_data$Overall_Qual)], levels=cond_levels)
-  # test_data$Overall_Cond = ordered(cond_map[as.numeric(test_data$Overall_Cond)], levels=cond_levels)
-  
-  train_data$Year_Built[train_data$Year_Built > 2005] = 2006
-  train_data$Year_Built[train_data$Year_Built >1985 & train_data$Year_Built <= 2005] = 1986
-  train_data$Year_Built[train_data$Year_Built > 1973 & train_data$Year_Built <= 1985] = 1974
-  train_data$Year_Built[train_data$Year_Built <= 1973] = 1973
-  train_data$Year_Built = as.ordered(train_data$Year_Built)
-  
-  test_data$Year_Built[test_data$Year_Built > 2005] = 2006
-  test_data$Year_Built[test_data$Year_Built >1985 & test_data$Year_Built <= 2005] = 1986
-  test_data$Year_Built[test_data$Year_Built > 1973 & test_data$Year_Built <= 1985] = 1974
-  test_data$Year_Built[test_data$Year_Built <= 1973] = 1973
-  test_data$Year_Built = as.ordered(test_data$Year_Built)
+cate_to_numeric = function(train_data, test_data){
+  cond_levels = c("Poor", "Average", "Good", "Excellent")
+  cond_map=c("Poor", "Poor", "Average", "Average", "Average", "Good", 
+             "Good", "Excellent", "Excellent", "Excellent")
 
+  train_data$Overall_Qual = ordered(cond_map[as.numeric(train_data$Overall_Qual)], levels=cond_levels)
+  train_data$Overall_Cond = ordered(cond_map[as.numeric(train_data$Overall_Cond)], levels=cond_levels)
+  
+  test_data$Overall_Qual = ordered(cond_map[as.numeric(test_data$Overall_Qual)], levels=cond_levels)
+  test_data$Overall_Cond = ordered(cond_map[as.numeric(test_data$Overall_Cond)], levels=cond_levels)
 
   list(train_data = train_data, test_data = test_data)
 }
@@ -372,7 +357,7 @@ preprocess_data = function(train_data, test_data){
   r = Add_Variables(r$train_data, r$test_data)
   r = Remove_Variables(r$train_data, r$test_data)
   r = process_categorical(r$train_data, r$test_data)
-  #r = make_bin(r$train_data, r$test_data)
+  #r = cate_to_numeric(r$train_data, r$test_data)
   r = process_numeric(r$train_data, r$test_data)
   r = process_output(r$train_data, r$test_data)
   # r$train_data = Winsorization2(r$train_data, c("PID", "Overall_Qual","Overall_Cond",
@@ -489,6 +474,7 @@ mylasso_mypredict = function(X, beta) {
 
 cv.mylasso = function(train_data, cv_fold = 5) {
   all_lambda = exp(seq(-10, 10, 0.2))
+  #all_lambda = c(1, 10, 100)
   X_train = train_data[, !colnames(train_data) %in% c('PID','Sale_Price')]
   X_train = model.matrix(~., X_train)[, -1]
   Y_train = train_data$Sale_Price
@@ -636,8 +622,8 @@ test_all = function (all_data, all_test_pid, reg_func) {
   rmse = matrix(0, dim(all_test_pid)[2], length(reg_func))
   colnames(rmse) = names(reg_func)
   
-  for (i in c(3)){
-  #for (i in 1:dim(all_test_pid)[2]){
+  #for (i in c(3,6,9)){
+  for (i in 1:dim(all_test_pid)[2]){
     test_pid = all_test_pid[,i]
   
     train_data = all_data[!all_data$PID %in% test_pid,]
@@ -677,15 +663,15 @@ I tested all 10 test dataset against these models. The RMSEs are:
 ```{r include=FALSE}
 set.seed(6682)
 regression_functions = list(
-                            # RandomForest = rf_predict,
+                            RandomForest = rf_predict,
                             # GBM = gbm_predict,
-                            Lasso = lasso_predict
-                            # Xgboost = xgb_predict,
-                            # My_Lasso = mylasso_predict
+                            Lasso = lasso_predict,
+                            Xgboost = xgb_predict,
+                            My_Lasso = mylasso_predict
                             )
 ```
 
-```{r}
+```{r, include=FALSE}
 all_data = read.csv("Ames_data.csv")
 Project1_test_id =  read.table("Project1_test_id.txt", quote="\"", comment.char="")
 
@@ -708,13 +694,17 @@ print(rmse)
 cat("\n Avg:", colMeans(rmse), "\n" )
 ```
 
-Computing time: `r (proc.time() - start_time)[3]` seconds
+Computation time: `r (proc.time() - start_time)[3]` seconds
+
+According to the results, we select `Boosting` and `Lasso` to make prediction of the test set.
 
 ```{r, include=FALSE}
 start_time = proc.time()
 if(!exists("true_test_value")) true_test_value = NULL
 train_predict(train_data, test_data, lasso_predict, "mysubmission1.txt", true_test_value)
 ```
+
+Computation time: `r (proc.time() - start_time)[3]` seconds
 
 # PART 2
 
