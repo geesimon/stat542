@@ -141,6 +141,7 @@ mylasso_predict = function(train_data, test_data) {
 #######################################
 ###### Train, Predict and Output ######
 #######################################
+set.seed(6682)
 
 TRAIN_FILE_NAME = 'train.csv'
 TEST_FILE_NAME = 'test.csv'
