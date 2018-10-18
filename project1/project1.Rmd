@@ -56,6 +56,7 @@ Several approaches are taken to pre-process the data.
     - TotalSqFeet: combine space in living area and basement.
     - TotalPorchSF: combine space of all porches.
 - Remove predictors: remove some highly correlated and dominate categorical predictors.
+    - `Garage_Yr_Blt`, `Garage_Area`, `Garage_Cond`, `Total_Bsmt_SF`, `TotRms_AbvGrd`, `BsmtFin_SF_1`, `First_Flr_SF`, `Second_Flr_SF`, `Bedroom_AbvGr`, `Full_Bath`, `Half_Bath`, `Bsmt_Full_Bath`, `Bsmt_Half_Bath`, `Open_Porch_SF`, `Enclosed_Porch`, `Three_season_porch`, `Screen_Porch`, `Street`, `Utilities`, `Land_Slope`, `Condition_2`, `Roof_Matl`,  `Heating`, `Pool_QC`, `Misc_Feature`, `Low_Qual_Fin_SF`, `Pool_Area`, `Misc_Val`, `Longitude`, `Latitude`
 
 Note: Winsorization is not used because per my testing, it doesn't improve the accuracy.
 
@@ -601,12 +602,12 @@ xgb_predict = function(train_data, test_data) {
   Y_train = train_data$Sale_Price
 
   xgb_model = xgboost(data = X_train, label=Y_train, max_depth = 6,
-                      eta = 0.03, nrounds = 5000,
+                      eta = 0.03, nrounds = 500,
                       colsample_bytree = 0.6,
-                      subsample = 0.5,
+                      subsample = 0.75,
                       verbose = FALSE)
 
-  X_test = test_data[, colnames(test_data) != 'Sale_Price']
+  X_test = test_data[, colnames(test_data) != 'Sale_Pri ce']
   X_test = model.matrix(~. - PID, X_test)[,-1]
   predict(xgb_model, X_test)
   
@@ -620,7 +621,7 @@ xgb_predict = function(train_data, test_data) {
   #                         gamma = 1)
   # 
   # xgbFit = train(Sale_Price ~ ., data = train_data, method = "xgbTree",
-  #                trControl = fitControl, verbose = FALSE)#, tuneGrid = xgbGrid)
+  #                trControl = fitControl, verbose = FALSE, tuneGrid = xgbGrid)
   # print(xgbFit)
   # 
   # predict(xgbFit, test_data)
@@ -703,11 +704,11 @@ write.csv(test_data[, !colnames(test_data) %in% c("Sale_Price")], "test.csv", ro
 
 ```{r include=FALSE}
 regression_functions = list(
-                            RandomForest = rf_predict,
-                            # GBM = gbm_predict,
-                            Lasso = lasso_predict,
-                            Xgboost = xgb_predict,
-                            My_Lasso = mylasso_predict
+                            # RandomForest = rf_predict,
+                            # # GBM = gbm_predict,
+                            # Lasso = lasso_predict,
+                            Xgboost = xgb_predict
+                            # My_Lasso = mylasso_predict
                             )
 
 all_test_id = list()
@@ -742,7 +743,13 @@ for (f in 1:length(model_functions)) {
 }
 ```
 
-According to the results, we select `Boosting` and `Lasso` models to make prediction on the test set. And the computation time is: `r (proc.time() - start_time)[3]` seconds
+According to the testing results, I choose `Boosting` (xgboost) and `Lasso` models to make the prediction. The parameters are:
+
+- Xgboost: max_depth = 6, eta = 0.03, nrounds = 500, colsample_bytree = 0.6, subsample = 0.75
+- Lasso: use cv.glmnet to choose best lambda and use lambda.min to make prediction.
+
+
+The computation time is: `r (proc.time() - start_time)[3]` seconds
 
 # PART 2
 
