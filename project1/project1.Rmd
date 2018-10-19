@@ -42,23 +42,23 @@ test_data = read.csv(TEST_FILE_NAME)
 
 Several approaches are taken to pre-process the data.
 
-- Missing value: 'Garage_Yr_Blt' has some missing values, 'Year_Built' is used to fill the value. Note: 'Garage_Yr_Blt' is later removed due to low importance, I still leave this step to generailize the processing pipeline.
+- Missing value: 'Garage_Yr_Blt' has some missing values, 'Year_Built' is used to fill the value. Note: 'Garage_Yr_Blt' is later removed due to low importance, I still leave this step to generalize the processing pipeline.
 - Handle missing categorical level in test dataset:
     - For categorical level, the value is replaced with the `most frequent` categorical level of the same training predictor.
     - For ordered categorical level, the value is replaced with the `closest` value of the same training predictor.
 - Fix the skewness of numeric predictors: take the log for all numeric predictors with an absolute skew greater than 0.8.
 - Take log for response variable `Sale_Price`.
-- Build new predictors to help prediction: 
-    - Total bath: combine all full and half bath rooms.
-    - Age: how old the house was when sold.
-    - IsNew: whether this is a new house when sold.
-    - Remodeled: if the `Age` is based on a remodeling date, it is probably worth less than houses that were built from scratch in that same year.
-    - TotalSqFeet: combine space in living area and basement.
-    - TotalPorchSF: combine space of all porches.
+- Build new predictors to help training/prediction: 
+    - `TotBathrooms`: combine all full and half bath rooms.
+    - `Age`: how old the house was when sold.
+    - `IsNew`: whether this is a new house when sold.
+    - `Remodeled: if the `Age` is based on a remodeling date, it is probably worth less than houses that were built from scratch in that same year.
+    - `TotalSqFeet`: combine space in living area and basement.
+    - `TotalPorchSF`: combine space of all porches.
 - Remove predictors: remove some highly correlated and dominate categorical predictors.
     - `Garage_Yr_Blt`, `Garage_Area`, `Garage_Cond`, `Total_Bsmt_SF`, `TotRms_AbvGrd`, `BsmtFin_SF_1`, `First_Flr_SF`, `Second_Flr_SF`, `Bedroom_AbvGr`, `Full_Bath`, `Half_Bath`, `Bsmt_Full_Bath`, `Bsmt_Half_Bath`, `Open_Porch_SF`, `Enclosed_Porch`, `Three_season_porch`, `Screen_Porch`, `Street`, `Utilities`, `Land_Slope`, `Condition_2`, `Roof_Matl`,  `Heating`, `Pool_QC`, `Misc_Feature`, `Low_Qual_Fin_SF`, `Pool_Area`, `Misc_Val`, `Longitude`, `Latitude`
 
-Note: Winsorization is not used because per my testing, it doesn't improve the accuracy.
+*Note*: Winsorization is not used because per my testing, it doesn't improve the accuracy.
 
 ```{r include=FALSE}
 ###### Utility Functions ######
@@ -545,7 +545,7 @@ mylasso_predict = function(train_data, test_data) {
 rf_predict = function(train_data, test_data) {
   x_train = train_data[, !colnames(train_data) %in% c("Sale_Price")]
 
-  rfModel = randomForest(x_train, train_data$Sale_Price, ntree=500);
+  rfModel = randomForest(x_train, train_data$Sale_Price, ntree=1000);
   predict(rfModel, test_data)
   
   # fitControl = trainControl(method = "repeatedcv", number = 3)
@@ -704,11 +704,11 @@ write.csv(test_data[, !colnames(test_data) %in% c("Sale_Price")], "test.csv", ro
 
 ```{r include=FALSE}
 regression_functions = list(
-                            # RandomForest = rf_predict,
-                            # # GBM = gbm_predict,
-                            # Lasso = lasso_predict,
-                            Xgboost = xgb_predict
-                            # My_Lasso = mylasso_predict
+                            # GBM = gbm_predict,
+                            RandomForest = rf_predict,
+                            Lasso = lasso_predict,
+                            Xgboost = xgb_predict,
+                            My_Lasso = mylasso_predict
                             )
 
 all_test_id = list()
@@ -724,10 +724,18 @@ rmse = test_all(all_data, all_test_id, regression_functions)
 
 ```{r, echo=FALSE}
 print(rmse)
-cat("\n Avg:", colMeans(rmse), "\n" )
+cat("Overall Mean:", colMeans(rmse), "\n" )
+
+worst_3 = rep(0, length(regression_functions))
+for(i in 1:length(worst_3)){
+  worst_3[i] = mean(sort(rmse[,i], decreasing = TRUE)[1:3])
+}
+cat("Mean of Worst Three:", worst_3)
 ```
 
 Computation time: `r (proc.time() - start_time)[3]` seconds
+
+*Note*: Xgboost on my Mac (same R and xgboost versions) perform badly when `colsample_bytree` and `subsample` are not defaults (1). I believe such discrepancy is due to the default Xgboost on Mac is not optimized. Having said that, if I leave these 2 parameters to the defaults, I can still get decent test results on all 10 test dataset (mean:0.1144079, mean over worst three:0.1206602).
 
 ```{r, include=FALSE}
 start_time = proc.time()
@@ -743,11 +751,10 @@ for (f in 1:length(model_functions)) {
 }
 ```
 
-According to the testing results, I choose `Boosting` (xgboost) and `Lasso` models to make the prediction. The parameters are:
+According to the testing results, I choose `Boosting` (xgboost) and `Lasso` models to make the prediction. The parameters for building the models are:
 
-- Xgboost: max_depth = 6, eta = 0.03, nrounds = 500, colsample_bytree = 0.6, subsample = 0.75
+- Xgboost: max_depth = 6, eta = 0.03, nrounds = 500, colsample_bytree = 0.6, subsample = 0.75 
 - Lasso: use cv.glmnet to choose best lambda and use lambda.min to make prediction.
-
 
 The computation time is: `r (proc.time() - start_time)[3]` seconds
 
@@ -820,7 +827,7 @@ form_numeric = function(df) {
 }
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 data = read.csv("Ames_data.csv")
 y = log(data$Sale_Price)
 stem(y)  # notice that two samples are at the left tail of y. 
