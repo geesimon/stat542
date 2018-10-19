@@ -478,7 +478,7 @@ mylasso_predict = function(train_data, test_data) {
 rf_predict = function(train_data, test_data) {
   x_train = train_data[, !colnames(train_data) %in% c("Sale_Price")]
   
-  rfModel = randomForest(x_train, train_data$Sale_Price, ntree=500);
+  rfModel = randomForest(x_train, train_data$Sale_Price, ntree=1000);
   predict(rfModel, test_data)
   
   # fitControl = trainControl(method = "repeatedcv", number = 3)
@@ -535,29 +535,14 @@ xgb_predict = function(train_data, test_data) {
   Y_train = train_data$Sale_Price
   
   xgb_model = xgboost(data = X_train, label=Y_train, max_depth = 6,
-                      eta = 0.03, nrounds = 5000,
-                      # colsample_bytree = 0.6,
-                      # subsample = 0.5,
+                      eta = 0.03, nrounds = 500,
+                      colsample_bytree = 0.6,
+                      subsample = 0.75,
                       verbose = FALSE)
   
   X_test = test_data[, colnames(test_data) != 'Sale_Price']
   X_test = model.matrix(~. - PID, X_test)[,-1]
   predict(xgb_model, X_test)
-  
-  # fitControl = trainControl(method = "repeatedcv", number = 5)
-  # xgbGrid =  expand.grid(max_depth = c(3, 6, 9),
-  #                         nrounds = (20:40)*50,
-  #                         eta = c(0.3, 0.1, 0.01),
-  #                         colsample_bytree = c(0.6, 0.8),
-  #                         subsample = c(0.5, 0.75, 1),
-  #                         min_child_weight = 1,
-  #                         gamma = 1)
-  # 
-  # xgbFit = train(Sale_Price ~ ., data = train_data, method = "xgbTree",
-  #                trControl = fitControl, verbose = FALSE)#, tuneGrid = xgbGrid)
-  # print(xgbFit)
-  # 
-  # predict(xgbFit, test_data)
 }
 
 top_n_order = function (x, n) {
