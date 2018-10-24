@@ -112,31 +112,31 @@ backward.prob = function(x, A, B, w){
 }
 
 
+# myViterbi = function(x, A, B, w){
+#   T = length(x)
+#   mz = nrow(A)
+# 
+#   delta = matrix(0, T, mz)
+# 
+#   delta[1,] = w*B[, x[1]]
+#   
+#   for (t in 2:T){
+#     for (i in 1:mz){
+#       delta[t,i] = max(delta[t - 1,] * A[,i]) * B[i, x[t]]
+#     }
+#   }
+#   
+#   Z = rep(0, T)
+#   
+#   Z[T] = which.max(delta[T,])
+#   for (t in (T - 1):1){
+#     Z[t] = which.max(delta[t,] * A[, Z[t+1]])
+#   }
+#   
+#   return (Z)
+# }
+
 myViterbi = function(x, A, B, w){
-  T = length(x)
-  mz = nrow(A)
-
-  delta = matrix(0, T, mz)
-
-  delta[1,] = w*B[, x[1]]
-  
-  for (t in 2:T){
-    for (i in 1:mz){
-      delta[t,i] = max(delta[t - 1,] * A[,i]) * B[i, x[t]]
-    }
-  }
-  
-  Z = rep(0, T)
-  
-  Z[T] = which.max(delta[T,])
-  for (t in (T - 1):1){
-    Z[t] = which.max(delta[t,] * A[, Z[t+1]])
-  }
-  
-  return (Z)
-}
-
-myViterbi_log = function(x, A, B, w){
   T = length(x)
   mz = nrow(A)
 
@@ -175,8 +175,7 @@ ini.B = ini.B/rowSums(ini.B)
 ini.w = c(1/2, 1/2)
 
 myout = myBW(data$X, ini.A, ini.B, ini.w, n.iter = 100)
-#myout.Z = myViterbi(data$X, myout$A, myout$B, ini.w)
-myout.Z = myViterbi_log(data$X, myout$A, myout$B, ini.w)
+myout.Z = myViterbi(data$X, myout$A, myout$B, ini.w)
 
 myout.Z = char_map[myout.Z]
 write.table(myout.Z, file = "Coding3_HMM_Viterbi_Output.txt", 
