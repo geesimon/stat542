@@ -1,0 +1,13 @@
+---
+title: "CS598 - Coding Assignment 3"
+author: "Xiaoming Ji"
+output: pdf_document
+---
+
+```{r, include=FALSE}
+mypackages = c("HMM")   # required packages
+tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
+if (length(tmp) > 0) install.packages(tmp)
+lapply(mypackages, require, character.only = TRUE)
+```
+
