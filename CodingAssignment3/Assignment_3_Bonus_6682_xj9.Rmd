@@ -1,13 +1,79 @@
 ---
-title: "CS598 - Coding Assignment 3"
+title: "CS598 - Coding Assignment 3 (Bonus)"
 author: "Xiaoming Ji"
 output: pdf_document
 ---
 
 ```{r, include=FALSE}
-mypackages = c("HMM")   # required packages
-tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
-if (length(tmp) > 0) install.packages(tmp)
-lapply(mypackages, require, character.only = TRUE)
+lo.lev <- function(x1, sp){
+  ## YOUR CODE: compute the diagonal entries of the smoother
+  ##             matrix S, stored in vector "lev"
+  ## Tip: check how we compute the smoother matrix
+  ##      for smoothing spline models
+  n = length(x1);
+  lev = matrix(0, n, n);
+  for(i in 1:n){
+         y = rep(0, n); y[i]=1;
+         yi = loess(y ~ x1, span = sp, control = loess.control(surface = "direct"))$fitted;
+         lev[,i]= yi;
+  }
+  
+  return((lev+t(lev))/2)
+}
+
+onestep_CV <- function(x1, y1, sp){
+  
+  ## YOUR CODE: 
+  ## 1) fit a loess model y1 ~ x1 with span = sp, and extract 
+  ##    the corresponding residual vector
+  ## 2) call lo.lev to obtain the diagonal entries of S
+  ## 3) compute LOO-CV and GCV using formula from lecture notes
+  ##    [lec_W5_NonlinearRegression.pdf] page 33. 
+  n = length(x1);
+  lev = lo.lev(x1, sp)
+  m = loess(y1 ~ x1, span = sp, control = loess.control(surface = "direct"));
+  
+  cv = mean((m$residuals/(1-diag(lev)))^2)
+  gcv = mean((m$residuals/(1 - sum(diag(lev))/n)) ^ 2)
+  
+  return(list(cv = cv, gcv = gcv))
+}
+
+myCV <- function(x1, y1, span){
+  ## x1, y1: two vectors
+  ## span: a sequence of values for "span"
+  
+  m = length(span)
+  cv = rep(0, m)
+  gcv = rep(0, m)
+  for(i in 1:m){
+    tmp = onestep_CV(x1, y1, span[i])
+    cv[i] = tmp$cv
+    gcv[i] = tmp$gcv
+  }
+  return(list(cv = cv, gcv = gcv))
+}
 ```
 
+
+```{r}
+mydata = read.csv(file = "Coding3_Bonus_Data.csv")
+
+span1 = seq(from = 0.2, by = 0.05, length = 15 )
+cv.out = myCV(mydata$x, mydata$y, span1)
+cbind(CV=cv.out$cv, GCV=cv.out$gcv)
+```
+
+```{r, echo=FALSE}
+par(mfrow=c(1,2))
+plot(span1, cv.out$gcv, type = "n", xlab = "span", ylab = "GCV")
+points(span1, cv.out$gcv, pch = 3, col = "blue")
+plot(span1, cv.out$cv, type = "n", xlab = "span", ylab = "CV")
+points(span1, cv.out$cv, pch = 3, col = "blue")
+```
+
+```{r}
+span1[which.min(cv.out$gcv)]
+span1[which.min(cv.out$cv)]
+```
+Both achieve their minimals at 0.5.
