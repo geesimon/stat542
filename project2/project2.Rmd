@@ -25,9 +25,7 @@ lapply(mypackages, require, character.only = TRUE)
 ```
 
 ```{r}
-#source("mymain.R")
-library(readr)
-library(tibble)
+source("mymain.R")
 
 # read in train / test dataframes
 train <- readr::read_csv('train.csv')
@@ -45,6 +43,7 @@ wae <- tibble(
     model_three = rep(0, num_folds)
 )
 
+start_time = proc.time()
 # time-series CV
 for (t in 1:num_folds) {
   # *** THIS IS YOUR PREDICTION FUNCTION ***
@@ -66,6 +65,8 @@ for (t in 1:num_folds) {
   weights <- if_else(scoring_tbl$IsHoliday.x, 5, 1)
   wae[t, ] <- colSums(weights * abs(actuals - preds)) / sum(weights)
 }
+
+print((proc.time() - start_time)[3])
 
 # save results to a file for grading
 readr::write_csv(wae, 'Error.csv')
