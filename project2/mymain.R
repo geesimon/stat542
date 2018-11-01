@@ -22,10 +22,10 @@ flatten_forecast = function(f_model) {
 update_forecast = function(test_month, dept_preds, dept, num_model) {
   dept_preds = flatten_forecast(dept_preds)
   
-  pred.d <- test_month %>%
-    filter(Dept == dept) %>%
-    select('Store', 'Date') %>%
-    left_join(dept_preds, by = c('Store', 'Date'))
+  # pred.d <- test_month %>%
+  #   filter(Dept == dept) %>%
+  #   select('Store', 'Date') %>%
+  #   left_join(dept_preds, by = c('Store', 'Date'))
   
   pred.d.idx <- test_month$Dept == dept
   pred.d <- test_month[pred.d.idx, c('Store', 'Date')] %>%

@@ -64,6 +64,7 @@ for (t in 1:num_folds) {
   preds <- select(scoring_tbl, contains('Weekly_Pred'))
   weights <- if_else(scoring_tbl$IsHoliday.x, 5, 1)
   wae[t, ] <- colSums(weights * abs(actuals - preds)) / sum(weights)
+  print(wae[t,])
 }
 
 print((proc.time() - start_time)[3])
