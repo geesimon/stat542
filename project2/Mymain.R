@@ -58,6 +58,7 @@ update_test <- function(test_month) {
 
 ##### Model Building Functions #####
 
+
 # Forecasts out the last observation in the training data
 naive_model<- function(train_ts, test_ts){
   num_forecasts <- nrow(test_ts)
