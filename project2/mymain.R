@@ -72,6 +72,17 @@ naive_model = function(train_ts, test_ts){
   test_ts
 }
 
+snaive_model = function(train_ts, test_ts){
+  num_forecasts <- nrow(test_ts)
+  train_ts[is.na(train_ts)] <- 0
+  
+  # naive forecast per store
+  for(j in 2:ncol(train_ts)){
+    store_ts <- ts(train_ts[, j], frequency=52)
+    test_ts[, j] <- snaive(store_ts, num_forecasts)$mean
+  }
+  test_ts
+}
 
 ##### Prediction Loop #####
 
@@ -141,6 +152,9 @@ mypredict = function() {
     f_naive <- naive_model(train_dept_ts, test_dept_ts)
     test_month <- update_forecast(test_month, f_naive, dept, 1)
     
+    # snaive forecast
+    f_snaive <- snaive_model(train_dept_ts, test_dept_ts)
+    test_month <- update_forecast(test_month, f_snaive, dept, 2)
   }
   
   # update global test dataframe
