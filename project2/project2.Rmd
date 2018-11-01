@@ -1,0 +1,73 @@
+---
+title: "CS598 - Project 1"
+author: "Xiaoming Ji"
+output: pdf_document
+---
+# Computer System
+
+## Hardware
+- Dell Precision Tower 5810
+- CPU: Intel Xeon E5-1607 @ 3.10GHz
+- Memory: 32GB
+
+## Software
+- OS: Windows 10 Professional 64bit
+- R: 3.5.1
+- R Packages:
+    - forecast_8.4
+
+
+```{r, include=FALSE}
+mypackages = c("forecast", "tidyverse")   # required packages
+tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
+if (length(tmp) > 0) install.packages(tmp)
+lapply(mypackages, require, character.only = TRUE)
+```
+
+```{r}
+#source("mymain.R")
+library(readr)
+library(tibble)
+
+# read in train / test dataframes
+train <- readr::read_csv('train.csv')
+test <- read_csv('test.csv', col_types = list(
+    Weekly_Pred1 = col_double(),
+    Weekly_Pred2 = col_double(),
+    Weekly_Pred3 = col_double()
+))
+
+# save weighted mean absolute error WMAE
+num_folds <- 10
+wae <- tibble(
+    model_one = rep(0, num_folds), 
+    model_two = rep(0, num_folds), 
+    model_three = rep(0, num_folds)
+)
+
+# time-series CV
+for (t in 1:num_folds) {
+  # *** THIS IS YOUR PREDICTION FUNCTION ***
+  mypredict()
+  
+  # Load fold file 
+  # You should add this to your training data in the next call 
+  # to mypredict()
+  fold_file <- paste0('fold_', t, '.csv')
+  new_test <- readr::read_csv(fold_file)
+
+  # extract predictions matching up to the current fold
+  scoring_tbl <- new_test %>% 
+      left_join(test, by = c('Date', 'Store', 'Dept'))
+  
+  # compute WMAE
+  actuals <- scoring_tbl$Weekly_Sales
+  preds <- select(scoring_tbl, contains('Weekly_Pred'))
+  weights <- if_else(scoring_tbl$IsHoliday.x, 5, 1)
+  wae[t, ] <- colSums(weights * abs(actuals - preds)) / sum(weights)
+}
+
+# save results to a file for grading
+readr::write_csv(wae, 'Error.csv')
+```
+
