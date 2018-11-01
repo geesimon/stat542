@@ -70,6 +70,7 @@ for (t in 1:num_folds) {
 print((proc.time() - start_time)[3])
 
 # save results to a file for grading
-readr::write_csv(wae, 'Error.csv')
+#readr::write_csv(wae, 'Error.csv')
+colMeans(wae)
 ```
 
