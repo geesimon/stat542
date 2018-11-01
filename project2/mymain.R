@@ -13,14 +13,14 @@ pacman::p_load(
 
 # converts a Date x num_store forecast to a dataframe
 # with Date, Store, value = Weekly_Price columns
-flatten_forecast <- function(f_model) {
+flatten_forecast = function(f_model) {
   f_model %>%
     gather(Store, value, -Date, convert = TRUE)
 }
 
 # Adds forecasts to the testing dataframe
-update_forecast <- function(test_month, dept_preds, dept, num_model) {
-  dept_preds <- flatten_forecast(dept_preds)
+update_forecast = function(test_month, dept_preds, dept, num_model) {
+  dept_preds = flatten_forecast(dept_preds)
   
   pred.d <- test_month %>%
     filter(Dept == dept) %>%
@@ -43,7 +43,7 @@ update_forecast <- function(test_month, dept_preds, dept, num_model) {
 }
 
 # update forecasts in the global test dataframe
-update_test <- function(test_month) {
+update_test = function(test_month) {
   test <<- test %>%
     dplyr::left_join(test_month,
                      by = c('Date', 'Store', 'Dept', 'IsHoliday')) %>%
@@ -60,7 +60,7 @@ update_test <- function(test_month) {
 
 
 # Forecasts out the last observation in the training data
-naive_model<- function(train_ts, test_ts){
+naive_model = function(train_ts, test_ts){
   num_forecasts <- nrow(test_ts)
   train_ts[is.na(train_ts)] <- 0
   
@@ -75,7 +75,7 @@ naive_model<- function(train_ts, test_ts){
 
 ##### Prediction Loop #####
 
-mypredict <- function() {
+mypredict = function() {
   ###### Create train and test time-series #######
   if (t > 1) {
     # append the previous periods test data to the current training data
