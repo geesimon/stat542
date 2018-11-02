@@ -1,6 +1,6 @@
 ################ Load Environment ##################
 # clean workspace
-rm(list = ls())
+#rm(list = ls())
 
 # load necessary packages
 if (!require("pacman")) install.packages("pacman")
@@ -13,13 +13,13 @@ pacman::p_load(
 
 # converts a Date x num_store forecast to a dataframe
 # with Date, Store, value = Weekly_Price columns
-flatten_forecast = function(f_model) {
+flatten_forecast <- function(f_model) {
   f_model %>%
     gather(Store, value, -Date, convert = TRUE)
 }
 
 # Adds forecasts to the testing dataframe
-update_forecast = function(test_month, dept_preds, dept, num_model) {
+update_forecast <- function(test_month, dept_preds, dept, num_model) {
   dept_preds = flatten_forecast(dept_preds)
   
   # pred.d <- test_month %>%
@@ -43,7 +43,7 @@ update_forecast = function(test_month, dept_preds, dept, num_model) {
 }
 
 # update forecasts in the global test dataframe
-update_test = function(test_month) {
+update_test <- function(test_month) {
   test <<- test %>%
     dplyr::left_join(test_month,
                      by = c('Date', 'Store', 'Dept', 'IsHoliday')) %>%
@@ -58,9 +58,8 @@ update_test = function(test_month) {
 
 ##### Model Building Functions #####
 
-
 # Forecasts out the last observation in the training data
-naive_model = function(train_ts, test_ts){
+naive_model <- function(train_ts, test_ts){
   num_forecasts <- nrow(test_ts)
   train_ts[is.na(train_ts)] <- 0
   
@@ -72,7 +71,7 @@ naive_model = function(train_ts, test_ts){
   test_ts
 }
 
-snaive_model = function(train_ts, test_ts){
+snaive_model <- function(train_ts, test_ts){
   num_forecasts <- nrow(test_ts)
   train_ts[is.na(train_ts)] <- 0
   
@@ -84,9 +83,48 @@ snaive_model = function(train_ts, test_ts){
   test_ts
 }
 
-##### Prediction Loop #####
+stlf_model <- function(train_ts, test_ts){
+  num_forecasts <- nrow(test_ts)
+  train_ts <- na.interp(train_ts)
+  
+  # naive forecast per store
+  for(j in 2:ncol(train_ts)){
+    store_ts <- ts(train_ts[, j], frequency=52.18)
+    test_ts[, j] <- stlf(store_ts, num_forecasts)$mean
+  }
+  test_ts
+}
 
-mypredict = function() {
+handle_na <- function(train_ts){
+  # cat("-", sum(is.na(train_ts)), "-")
+  if(length(train_ts) - sum(is.na(train_ts)) > 2){
+    train_ts <-  na.interp(train_ts)
+  } 
+
+  train_ts[is.na(train_ts)] <- 0
+
+  return (train_ts)
+}
+
+naive_forecast <- function(train_ts, test_ts){
+  num_forecasts <- nrow(test_ts)
+  train_ts <- handle_na(train_ts)
+
+  return (naive(train_ts, num_forecasts)$mean)
+}
+
+snaive_forecast <- function(train_ts, test_ts){
+  num_forecasts <- nrow(test_ts)
+  train_ts <- handle_na(train_ts)
+  
+  return (naive(strain_ts, num_forecasts)$mean)
+}
+
+##### Prediction Loop #####
+# forecast.functions = c(naive_forecast, snaive_forecast)
+forecast.functions = c(naive_forecast)
+
+mypredict <- function() {
   ###### Create train and test time-series #######
   if (t > 1) {
     # append the previous periods test data to the current training data
@@ -127,7 +165,10 @@ mypredict = function() {
   )
   
   #### Perform a individual forecasts for each department
-  for (dept in test_depts) {
+  pb <- txtProgressBar(min = 0, max = length(test_depts), style = 3)
+  for (dept_i in 1:length(test_depts)) {
+    dept = test_depts[dept_i]
+    #cat("dept:", dept, "\n")
     # filter for the particular department in the training data
     train_dept_ts <- train %>%
       filter(Dept == dept) %>%
@@ -147,14 +188,28 @@ mypredict = function() {
       spread(Store, Weekly_Sales)
     
     ###### Model Fitting / Forecasting ######
+    for(store.index in 2:ncol(train_dept_ts)) {
+      # cat("store:", store.index, "\n")
+      store_ts <- ts(train_dept_ts[, store.index], frequency=52.18)
+      for (func.i in 1:length(forecast.functions)){
+        test_dept_ts[, store.index] <-  forecast.functions[[func.i]](store_ts, test_dept_ts[, 1:2])
+        
+        test_month <- update_forecast(test_month, test_dept_ts, dept, func.i)
+      }
+    }
     
-    # naive forecast
-    f_naive <- naive_model(train_dept_ts, test_dept_ts)
-    test_month <- update_forecast(test_month, f_naive, dept, 1)
-    
-    # snaive forecast
-    f_snaive <- snaive_model(train_dept_ts, test_dept_ts)
-    test_month <- update_forecast(test_month, f_snaive, dept, 2)
+    setTxtProgressBar(pb, dept_i)
+    # # naive forecast
+    # f_naive <- naive_model(train_dept_ts, test_dept_ts)
+    # test_month <- update_forecast(test_month, f_naive, dept, 1)
+    # 
+    # # snaive forecast
+    # f_snaive <- snaive_model(train_dept_ts, test_dept_ts)
+    # test_month <- update_forecast(test_month, f_snaive, dept, 2)
+    # 
+    # # stlf forecast
+    # f_stlf <- stlf_model(train_dept_ts, test_dept_ts)
+    # test_month <- update_forecast(test_month, f_stlf, dept, 3)
   }
   
   # update global test dataframe
