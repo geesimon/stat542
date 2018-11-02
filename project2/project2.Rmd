@@ -47,7 +47,7 @@ wae <- tibble(
 )
 ```
 
-```{r, message=FALSE, warning=FALSE}
+```{r message=TRUE, warning=TRUE}
 start_time = proc.time()
 # time-series CV
 for (t in 1:num_folds) {
