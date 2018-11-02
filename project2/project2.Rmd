@@ -24,8 +24,11 @@ if (length(tmp) > 0) install.packages(tmp)
 lapply(mypackages, require, character.only = TRUE)
 ```
 
-```{r}
+```{r, message=FALSE}
 source("mymain.R")
+
+# read in original train / test dataframes
+train_all <- readr::read_csv('train_origin.csv')
 
 # read in train / test dataframes
 train <- readr::read_csv('train.csv')
@@ -42,10 +45,13 @@ wae <- tibble(
     model_two = rep(0, num_folds), 
     model_three = rep(0, num_folds)
 )
+```
 
+```{r, message=FALSE, warning=FALSE}
 start_time = proc.time()
 # time-series CV
 for (t in 1:num_folds) {
+  cat("Fold:", t, "\n")
   # *** THIS IS YOUR PREDICTION FUNCTION ***
   mypredict()
   
@@ -64,6 +70,7 @@ for (t in 1:num_folds) {
   preds <- select(scoring_tbl, contains('Weekly_Pred'))
   weights <- if_else(scoring_tbl$IsHoliday.x, 5, 1)
   wae[t, ] <- colSums(weights * abs(actuals - preds)) / sum(weights)
+  
   print(wae[t,])
 }
 
