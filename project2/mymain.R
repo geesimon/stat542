@@ -45,23 +45,6 @@ update_forecast.old <- function(test_month, dept_preds, dept, num_model) {
   test_month
 }
 
-update_forecast <- function(test_month, dept_preds, dept, num_model) {
-  
-  
-  pred.d <- test_month[pred.d.idx, c('Store', 'Date')] %>%
-    left_join(dept_preds, by = c('Store', 'Date'))
-  
-  if (num_model == 1) {
-    test_month$Weekly_Pred1[pred.d.idx] <- pred.d$value
-  } else if(num_model == 2) {
-    test_month$Weekly_Pred2[pred.d.idx] <- pred.d$value
-  } else {
-    test_month$Weekly_Pred3[pred.d.idx] <- pred.d$value
-  }
-  
-  test_month
-}
-
 # update forecasts in the global test dataframe
 update_test <- function(test_month) {
   test <<- test %>%
@@ -116,10 +99,19 @@ stlf_model <- function(train_ts, test_ts){
 }
 
 handle_na <- function(train.ts.data, test.data){
-  sales.na.idx = seq(1, length(train.ts.data))[is.na(train.ts.data[,1])]
+  sales.na.idx = seq(1, length(train.ts.data[,1]))[is.na(train.ts.data[,1])]
   if(length(sales.na.idx) > 0){
     for (i in sales.na.idx) {
-      train.ts.data[na.idx, 1] <<- 0
+      #Use the value of previous season
+      pre_i = i - 52
+      if(pre_i > 0 & !is.na(train.ts.data[pre_i, 1])){
+        cat("Fill with the value of previous session")
+        train.ts.data[i, 1] <- train.ts.data[pre_i, 1]
+      } else {
+        #Use average of all value of previous season
+      }
+      train.ts.data[i, 1] <- 0
+      
     }
   }
   
@@ -129,7 +121,7 @@ handle_na <- function(train.ts.data, test.data){
   # 
   # train_ts[is.na(train_ts)] <- 0
 
-  # return (train.ts.data)
+  return (list(train_data = train.ts.data, test_data = test.data))
 }
 
 naive_forecast <- function(train_data, test_data){
@@ -156,13 +148,13 @@ regression_forecast <- function(train.data, test.data){
   
   train.ts.data <- ts(train.data %>% select(Weekly_Sales, IsHoliday), frequency = 52,
                 start = c(year(train$Date[1]), week(train$Date[1])))
-  handle_na(train.ts.data, test.data)
+  data = handle_na(train.ts.data, test.data)
   
   # if(train_data$Store[1] == 36 & train_data$Dept == 5){
   #   cat("Store:", train_data$Store[1], "Dept:", train_data$Dept[1])
   # }
   
-  model <- tslm(Weekly_Sales ~ trend + season, data = train.ts.data)
+  model <- tslm(Weekly_Sales ~ trend + season, data = data$train_data)
   forecast(model, h=num_forecasts)$mean
 }
 
