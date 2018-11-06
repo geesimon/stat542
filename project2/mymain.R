@@ -89,18 +89,19 @@ arima_forecast <- function(train.data, test.data){
   train.ts.data <- ts(train.data$Weekly_Sales, frequency = 52,
                       start = c(year(train$Date[1]), month(train$Date[1])))
   
-  bestfit <- list(aicc=Inf)
-  for(K in seq(25)) {
-    print(K)
-    fit <- auto.arima(train.ts.data, xreg=fourier(train.ts.data, K=K),
-                      seasonal=FALSE)
-    if(fit[["aicc"]] < bestfit[["aicc"]]) {
-      bestfit <- fit
-      bestK <- K
-    }
-  }
-
-  forecast(bestfit, num_forecasts)$mean
+  # bestfit <- list(aicc=Inf)
+  # for(K in seq(25)) {
+  #   print(K)
+  #   fit <- auto.arima(train.ts.data, xreg=fourier(train.ts.data, K=K),
+  #                     seasonal=FALSE)
+  #   if(fit[["aicc"]] < bestfit[["aicc"]]) {
+  #     bestfit <- fit
+  #     bestK <- K
+  #   }
+  # }
+  model <- auto.arima(train.ts.data, xreg=fourier(train.ts.data, K = 14),
+             seasonal=FALSE)
+  forecast(model, num_forecasts)$mean
   # forecast(arima(train.ts.data, xreg=fourier(train.ts.data, K = 14),
   #                     seasonal=FALSE), num_forecasts)
 }
@@ -116,7 +117,7 @@ stlf_forecast <- function(train.data, test.data){
 
 dynamic_forecast <- function(train.data, test.data){
   if(t < 7){
-    snaive_forecast(train.data, test.data)
+    regression_forecast(train.data, test.data)
   } else {
     stlf_forecast(train.data, test.data)
   }
