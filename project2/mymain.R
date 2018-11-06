@@ -1,6 +1,6 @@
 ################ Load Environment ##################
 # clean workspace
-rm(list = ls())
+#rm(list = ls())
 
 # load necessary packages
 if (!require("pacman")) install.packages("pacman")
@@ -68,19 +68,21 @@ regression_forecast <- function(train.data, test.data){
 
   model <- tslm(Weekly_Sales ~ trend + season, data = train.ts.data)
   forecast(model, h=num_forecasts)$mean
+}
+
+regression_forecast1 <- function(train.data, test.data){
+  num_forecasts <- nrow(test.data)
   
-  # train.ts.data <- ts(train.data$Weekly_Sales, frequency = 52,
-  #                     start = c(year(train$Date[1]), month(train$Date[1])))
-  # 
-  # feature.data = cbind(fourier(train.ts.data, K = 13), 
-  #                      data.frame(IsHoliday = train.data$IsHoliday))
-  # 
-  # model <- tslm(train.ts.data ~ trend + feature.data)
-  # 
-  # new.data = cbind(fourier(train.ts.data, K = 13, h = num_forecasts), 
-  #                  data.frame(IsHoliday = test.data$IsHoliday))
-  # 
-  # forecast(model, newdata = new.data)$mean
+  train.ts.data <- ts(train.data$Weekly_Sales, frequency = 52,
+                      start = c(year(train$Date[1]), month(train$Date[1])))
+
+  model = tslm(formula = train.ts.data ~ trend + fourier(train.ts.data, K = 20) + IsHoliday, 
+       data = train.data)
+
+  new.data = cbind(fourier(train.ts.data, K = 20, h = num_forecasts),
+                   data.frame(IsHoliday = test.data$IsHoliday))
+
+  forecast(model, newdata = new.data)$mean
 }
 
 arima_forecast <- function(train.data, test.data){
@@ -99,11 +101,13 @@ arima_forecast <- function(train.data, test.data){
   #     bestK <- K
   #   }
   # }
-  model <- auto.arima(train.ts.data, xreg=fourier(train.ts.data, K = 14),
-             seasonal=FALSE)
-  forecast(model, num_forecasts)$mean
-  # forecast(arima(train.ts.data, xreg=fourier(train.ts.data, K = 14),
-  #                     seasonal=FALSE), num_forecasts)
+  model <- auto.arima(train.ts.data, xreg=fourier(train.ts.data, K = 14), seasonal=FALSE)
+  #model <- arima(train.ts.data, order=c(3,0,0), xreg=fourier(train.ts.data, K = 13))
+  
+  new.data = fourier(train.ts.data, K = 14, h = num_forecasts)
+  
+  #predict(model, newxreg = new.data)$pred
+  forecast(model, xreg =new.data)$mean
 }
 
 stlf_forecast <- function(train.data, test.data){
@@ -112,7 +116,7 @@ stlf_forecast <- function(train.data, test.data){
   train.ts.data <- ts(train.data$Weekly_Sales, frequency = 52,
                       start = c(year(train$Date[1]), month(train$Date[1])))
   
-  stlf(train.ts.data, num_forecasts)$mean
+  stlf(train.ts.data, h=num_forecasts, method='arima')$mean
 }
 
 dynamic_forecast <- function(train.data, test.data){
@@ -123,16 +127,17 @@ dynamic_forecast <- function(train.data, test.data){
   }
 }
 
-# nnetar_forecast <- function(train_ts, test_ts){
-#   num_forecasts <- nrow(test_ts)
-#   train_ts <- handle_na(train_ts)
-#   
-#   return (forecast(nnetar(train_ts), num_forecasts)$mean)
-# }
-# 
+nnetar_forecast <- function(train.data, test.data){
+  num_forecasts <- nrow(test.data)
+  train.ts.data <- ts(train.data$Weekly_Sales, frequency = 52,
+                      start = c(year(train$Date[1]), month(train$Date[1])))
+
+  return (forecast(nnetar(train.ts.data), num_forecasts)$mean)
+}
+
 
 tbats_forecast <- function(train.data, test.data){
-  num_forecasts <- nrow(test_ts)
+  num_forecasts <- nrow(test.data)
   train.ts.data <- ts(train.data$Weekly_Sales, frequency = 52,
                       start = c(year(train$Date[1]), month(train$Date[1])))
 
@@ -145,7 +150,7 @@ tbats_forecast <- function(train.data, test.data){
 #forecast.functions = c(snaive_forecast, nnetar_forecast, tbats_forecast)
 #forecast.functions = c(regression_forecast)
 # forecast.functions = c(arima_forecast)
-forecast.functions = c(dynamic_forecast)
+forecast.functions = c(naive_forecast, naive_forecast, dynamic_forecast)
 
 mypredict <- function() {
   ###### Create train and test time-series #######
