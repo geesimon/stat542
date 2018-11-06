@@ -1,6 +1,6 @@
 ################ Load Environment ##################
 # clean workspace
-#rm(list = ls())
+rm(list = ls())
 
 # load necessary packages
 if (!require("pacman")) install.packages("pacman")
@@ -27,10 +27,10 @@ update_test <- function(test_month) {
 
 
 ##### Model Building Functions #####
-fill_missing_holiday <- function(dept_data){
+fill_missing_holiday <- function(dept_data, all_data){
   na.idx = seq(1, nrow(dept_data))[is.na(dept_data$IsHoliday)]
   for (i in na.idx){
-    same.date.holiday = dept_data$IsHoliday[dept_data$Date == dept_data$Date[i]]
+    same.date.holiday = all_data$IsHoliday[all_data$Date == dept_data$Date[i]]
     non.na.idx = !is.na(same.date.holiday)
     if (sum(non.na.idx) > 0){
       value = same.date.holiday[non.na.idx][1]
@@ -44,44 +44,20 @@ fill_missing_holiday <- function(dept_data){
   dept_data$IsHoliday
 }
 
-handle_na <- function(train.data, test.data){
-  sales.na.idx = seq(1, length(train.ts.data[,1]))[is.na(train.ts.data[,1])]
-  if(length(sales.na.idx) > 0){
-    for (i in sales.na.idx) {
-      #Use the value of previous season
-      pre_i = i - 52
-      if(pre_i > 0 & !is.na(train.ts.data[pre_i, 1])){
-        cat("Fill with the value of previous session")
-        train.ts.data[i, 1] <- train.ts.data[pre_i, 1]
-      } else {
-        #Use average of all value of previous season
-      }
-      train.ts.data[i, 1] <- 0
-      
-    }
-  }
-  
-  # if(length(train_ts) - sum(is.na(train_ts)) > 2){
-  #   #train_ts1 <-  na.interp(train_ts)
-  # }
-  # 
-  # train_ts[is.na(train_ts)] <- 0
-
-  return (list(train_data = train.ts.data, test_data = test.data))
-}
-
 naive_forecast <- function(train_data, test_data){
   num_forecasts <- nrow(test_data)
   
-  ts_data <- ts(train_data$Weekly_Sales, frequency=52)
-  naive(ts_data, num_forecasts)$mean
+  train.ts.data <- ts(train_data$Weekly_Sales, frequency=52,
+                      start = c(year(train$Date[1]), week(train$Date[1])))
+  naive(train.ts.data, num_forecasts)$mean
 }
 
 snaive_forecast <- function(train_data, test_data){
   num_forecasts <- nrow(test_data)
   
-  ts_data <- ts(train_data$Weekly_Sales, frequency=52)
-  snaive(ts_data, num_forecasts)$mean
+  train.ts.data <- ts(train_data$Weekly_Sales, frequency=52,
+                start = c(year(train$Date[1]), week(train$Date[1])))
+  snaive(train.ts.data, num_forecasts)$mean
 }
 
 regression_forecast <- function(train.data, test.data){
@@ -89,9 +65,61 @@ regression_forecast <- function(train.data, test.data){
   
   train.ts.data <- ts(train.data %>% select(Weekly_Sales, IsHoliday), frequency = 52,
                 start = c(year(train$Date[1]), week(train$Date[1])))
-  
+
   model <- tslm(Weekly_Sales ~ trend + season, data = train.ts.data)
   forecast(model, h=num_forecasts)$mean
+  
+  # train.ts.data <- ts(train.data$Weekly_Sales, frequency = 52,
+  #                     start = c(year(train$Date[1]), month(train$Date[1])))
+  # 
+  # feature.data = cbind(fourier(train.ts.data, K = 13), 
+  #                      data.frame(IsHoliday = train.data$IsHoliday))
+  # 
+  # model <- tslm(train.ts.data ~ trend + feature.data)
+  # 
+  # new.data = cbind(fourier(train.ts.data, K = 13, h = num_forecasts), 
+  #                  data.frame(IsHoliday = test.data$IsHoliday))
+  # 
+  # forecast(model, newdata = new.data)$mean
+}
+
+arima_forecast <- function(train.data, test.data){
+  num_forecasts <- nrow(test.data)
+  
+  train.ts.data <- ts(train.data$Weekly_Sales, frequency = 52,
+                      start = c(year(train$Date[1]), month(train$Date[1])))
+  
+  bestfit <- list(aicc=Inf)
+  for(K in seq(25)) {
+    print(K)
+    fit <- auto.arima(train.ts.data, xreg=fourier(train.ts.data, K=K),
+                      seasonal=FALSE)
+    if(fit[["aicc"]] < bestfit[["aicc"]]) {
+      bestfit <- fit
+      bestK <- K
+    }
+  }
+
+  forecast(bestfit, num_forecasts)$mean
+  # forecast(arima(train.ts.data, xreg=fourier(train.ts.data, K = 14),
+  #                     seasonal=FALSE), num_forecasts)
+}
+
+stlf_forecast <- function(train.data, test.data){
+  num_forecasts <- nrow(test.data)
+  
+  train.ts.data <- ts(train.data$Weekly_Sales, frequency = 52,
+                      start = c(year(train$Date[1]), month(train$Date[1])))
+  
+  stlf(train.ts.data, num_forecasts)$mean
+}
+
+dynamic_forecast <- function(train.data, test.data){
+  if(t < 7){
+    snaive_forecast(train.data, test.data)
+  } else {
+    stlf_forecast(train.data, test.data)
+  }
 }
 
 # nnetar_forecast <- function(train_ts, test_ts){
@@ -101,20 +129,22 @@ regression_forecast <- function(train.data, test.data){
 #   return (forecast(nnetar(train_ts), num_forecasts)$mean)
 # }
 # 
-# tbats_forecast <- function(train_ts, test_ts){
-#   num_forecasts <- nrow(test_ts)
-#   train_ts <- handle_na(train_ts)
-#   
-#   return (forecast(tbats(train_ts, biasadj=TRUE), num_forecasts)$mean)
-# }
 
+tbats_forecast <- function(train.data, test.data){
+  num_forecasts <- nrow(test_ts)
+  train.ts.data <- ts(train.data$Weekly_Sales, frequency = 52,
+                      start = c(year(train$Date[1]), month(train$Date[1])))
 
+  forecast(tbats(train.ts.data, biasadj=TRUE), num_forecasts)$mean
+}
 
 ##### Prediction Loop #####
 #forecast.functions = c(naive_forecast, regression_forecast)
 #forecast.functions = c(naive_forecast, tbats_forecast)
 #forecast.functions = c(snaive_forecast, nnetar_forecast, tbats_forecast)
-forecast.functions = c(regression_forecast)
+#forecast.functions = c(regression_forecast)
+# forecast.functions = c(arima_forecast)
+forecast.functions = c(dynamic_forecast)
 
 mypredict <- function() {
   ###### Create train and test time-series #######
@@ -172,32 +202,38 @@ mypredict <- function() {
     # Handle missing value of Weekly_Sales in the training data
     # Set possible NA to the dept
     train_dept$Dept <- dept
-    # Handle missing Weekly_Sales
-    na.idx <- seq(1, nrow(train_dept))[is.na(train_dept$Weekly_Sales)]
-    for (i in na.idx){
-      # Try to find the value from last season/year
-      pre_i <- i - 52
-      if (pre_i > 0 && train_dept$Store[pre_i] == train_dept$Store[i] &&
-          !is.na(train_dept$Weekly_Sales[pre_i])){
-        train_dept$Weekly_Sales[i] = train_dept$Weekly_Sales[pre_i]
-        #cat("Found value from last year")
-      } else {
-        # Use the average value of stores in the same department and date
-        sales <- train_dept$Weekly_Sales[train_dept$Date == train_dept$Date[i]]
-        sales <- sales[!is.na(sales)]
-        if (length(sales) > 0){
-          #cat("Average of all store values are used")
-          train_dept$Weekly_Sales[i] <- mean(sales)
-        } else {
-          cat("Cannot calculate value for ", train_dept$Date[i], train_dept$Store[i], 
-              train_dept$Dept[i], "\n")
-          
-          train_dept$Weekly_Sales[i] <- 0
-        }
-      }
-    }
+    # # Handle missing Weekly_Sales
+    # na.idx <- seq(1, nrow(train_dept))[is.na(train_dept$Weekly_Sales)]
+    # for (i in na.idx){
+    #   # Try to find the value from last season/year
+    #   pre_i <- i - 52
+    #   if (pre_i > 0 && train_dept$Store[pre_i] == train_dept$Store[i] &&
+    #       !is.na(train_dept$Weekly_Sales[pre_i])){
+    #     train_dept$Weekly_Sales[i] = train_dept$Weekly_Sales[pre_i]
+    #     #cat("Found value from last year")
+    #   } else {
+    #     # Use the average value of the stores in the same department and date
+    #     sales <- train_dept$Weekly_Sales[train_dept$Date == train_dept$Date[i]]
+    #     sales <- sales[!is.na(sales)]
+    #     if (length(sales) > 0){
+    #       #cat("Average of all store values are used")
+    #       train_dept$Weekly_Sales[i] <- mean(sales)
+    #     } else {
+    #       # Use the average value of the department
+    #       all.dept.sales = train_dept$Weekly_Sales[!is.na(train_dept$Weekly_Sales)]
+    #       if (length(all.dept.sales) > 0) {
+    #         train_dept$Weekly_Sales[i] <- mean(all.dept.sales)
+    #       } else {
+    #         cat("Cannot calculate value for ", dept, train_dept$Store[i], train_dept$Date[i])
+    #         train_dept$Weekly_Sales[i] <- 0
+    #       }
+    #     }
+    #   }
+    # }
     # Handle missing IsHoliday
-    train_dept$IsHoliday <- fill_missing_holiday(train_dept)
+    train_dept$IsHoliday <- fill_missing_holiday(train_dept, train)
+    
+    train_dept[is.na(train_dept)] <- 0
     
     # Filter for the particular department in the test data
     test_month.idx <- test_month$Dept == dept
@@ -213,7 +249,7 @@ mypredict <- function() {
     # Set possible NA to the dept
     test_dept$Dept <- dept
     # Handle missing IsHoliday
-    test_dept$IsHoliday <- fill_missing_holiday(test_dept)
+    test_dept$IsHoliday <- fill_missing_holiday(test_dept, test)
     
     if (sum(is.na(train_dept)) > 0 | sum(is.na(test_dept))) {
       stop("NA found in the training or test data")
