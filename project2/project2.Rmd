@@ -42,7 +42,7 @@ lapply(mypackages, require, character.only = TRUE)
 ```
 
 ```{r, echo=FALSE, message=FALSE}
-source("mymain.R")
+source("mymain.svd.R")
 
 # read in original train / test dataframes
 train_all <- readr::read_csv('train_origin.csv')
@@ -107,7 +107,7 @@ colMeans(wae)
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 test.results = cbind(Fold= c(rep(1:num_folds), 'Average'), rbind(wae, colMeans(wae)))
-kable(test.results, col.names = c('Fold', 'Naive','SNaive','Dynamic')) %>%
+kable(test.results, col.names = c('Fold', 'Naive','SNaive','Dynamic'))  %>%
   kable_styling(bootstrap_options = c("striped"), full_width = F) 
 ```
 

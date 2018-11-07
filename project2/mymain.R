@@ -1,6 +1,6 @@
 ################ Load Environment ##################
 # clean workspace
-#rm(list = ls())
+rm(list = ls())
 
 # load necessary packages
 if (!require("pacman")) install.packages("pacman")
@@ -145,12 +145,12 @@ tbats_forecast <- function(train.data, test.data){
 }
 
 ##### Prediction Loop #####
-# forecast.functions = c(naive_forecast)
+forecast.functions = c(naive_forecast)
 #forecast.functions = c(naive_forecast, tbats_forecast)
 #forecast.functions = c(snaive_forecast, nnetar_forecast, tbats_forecast)
 #forecast.functions = c(regression_forecast)
 # forecast.functions = c(arima_forecast)
-forecast.functions = c(naive_forecast, snaive_forecast, dynamic_forecast)
+# forecast.functions = c(naive_forecast, snaive_forecast, dynamic_forecast)
 
 mypredict <- function() {
   ###### Create train and test time-series #######

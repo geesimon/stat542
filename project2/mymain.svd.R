@@ -1,6 +1,6 @@
 ################ Load Environment ##################
 # clean workspace
-#rm(list = ls())
+rm(list = ls())
 
 # load necessary packages
 if (!require("pacman")) install.packages("pacman")
@@ -61,98 +61,37 @@ update_test <- function(test_month) {
 
 ##### Model Building Functions #####
 
-# Forecasts out the last observation in the training data
-naive_model <- function(train_ts, test_ts){
-  num_forecasts <- nrow(test_ts)
-  train_ts[is.na(train_ts)] <- 0
-  
-  # naive forecast per store
-  for(j in 2:ncol(train_ts)){
-    store_ts <- ts(train_ts[, j], frequency=52)
-    test_ts[, j] <- naive(store_ts, num_forecasts)$mean
-  }
-  test_ts
-}
-
-snaive_model <- function(train_ts, test_ts){
-  num_forecasts <- nrow(test_ts)
-  train_ts[is.na(train_ts)] <- 0
-  
-  # naive forecast per store
-  for(j in 2:ncol(train_ts)){
-    store_ts <- ts(train_ts[, j], frequency=52)
-    test_ts[, j] <- snaive(store_ts, num_forecasts)$mean
-  }
-  test_ts
-}
-
-stlf_model <- function(train_ts, test_ts){
-  num_forecasts <- nrow(test_ts)
-  train_ts <- na.interp(train_ts)
-  
-  # naive forecast per store
-  for(j in 2:ncol(train_ts)){
-    store_ts <- ts(train_ts[, j], frequency=52)
-    test_ts[, j] <- stlf(store_ts, num_forecasts)$mean
-  }
-  test_ts
-}
-
-handle_na <- function(train_ts){
-  # if(length(train_ts) - sum(is.na(train_ts)) > 2){
-  #   train_ts1 <-  na.interp(train_ts)
-  # } 
-
-  train_ts[is.na(train_ts)] <- 0
-
-  return (train_ts)
-}
-
 naive_forecast <- function(train_dept, test_dept){
-  # num_forecasts <- nrow(test_ts)
-  # train_ts <- handle_na(train_ts)
-  # 
-  # return (naive(train_ts, num_forecasts)$mean)
-  
   num_forecasts <- nrow(test_dept)
   
   for(j in 2:ncol(train_dept)){
     store_ts <- ts(train_dept[, j], frequency=52)
-    store_ts <- handle_na(store_ts)
     test_dept[, j] <- naive(store_ts, num_forecasts)$mean
   }
   test_dept
 }
 
 snaive_forecast <- function(train_dept, test_dept){
-  # num_forecasts <- nrow(test_ts)
-  # train_ts <- handle_na(train_ts)
-  # 
-  # return (snaive(train_ts, num_forecasts)$mean)
-  
   num_forecasts <- nrow(test_dept)
   
   for(j in 2:ncol(train_dept)){
     store_ts <- ts(train_dept[, j], frequency=52)
-    store_ts <- handle_na(store_ts)
     test_dept[, j] <- snaive(store_ts, num_forecasts)$mean
   }
   test_dept
 }
 
-# nnetar_forecast <- function(train_ts, test_ts){
-#   num_forecasts <- nrow(test_ts)
-#   train_ts <- handle_na(train_ts)
-#   
-#   return (forecast(nnetar(train_ts), num_forecasts)$mean)
-# }
-# 
-# tbats_forecast <- function(train_ts, test_ts){
-#   num_forecasts <- nrow(test_ts)
-#   train_ts <- handle_na(train_ts)
-#   
-#   return (forecast(tbats(train_ts, biasadj=TRUE), num_forecasts)$mean)
-# }
+nnetar_forecast <- function(train_ts, test_ts){
+  num_forecasts <- nrow(test_ts)
+
+  return (forecast(nnetar(train_ts), num_forecasts)$mean)
+}
+
+tbats_forecast <- function(train_ts, test_ts){
+  num_forecasts <- nrow(test_ts)
+
+  return (forecast(tbats(train_ts, biasadj=TRUE), num_forecasts)$mean)
+}
 
 regression_forecast <- function(train_dept, test_dept){
   num_forecasts <- nrow(test_dept)
@@ -161,11 +100,30 @@ regression_forecast <- function(train_dept, test_dept){
     train_ts = ts(train_dept[, j], frequency = 52)
     model <- tslm(train_ts ~ trend + season)
     
-    # test_dept[, j] <- forecast(model, newdata = test_dept)$mean
     test_dept[, j] <- forecast(model, h = num_forecasts)$mean
   }
   
   test_dept
+}
+
+stlf_forecast <- function(train_dept, test_dept){
+  num_forecasts <- nrow(test_dept)
+  
+  for(j in 2:ncol(train_dept)){
+    train_ts = ts(train_dept[, j], frequency = 52)
+
+    test_dept[, j] <- stlf(train_ts, h=num_forecasts, method='arima', ic='bic')$mean
+  }
+  
+  test_dept
+}
+
+dynamic_forecast <- function(train_dept, test_dept){
+  if(t < 7){
+    regression_forecast(train_dept, test_dept)
+  } else {
+    stlf_forecast(train_dept, test_dept)
+  }
 }
 
 # Dimension reduction using SVD.
@@ -182,7 +140,7 @@ preprocess.svd = function(train, n.comp){
 #forecast.functions = c(naive_forecast, snaive_forecast)
 #forecast.functions = c(naive_forecast, tbats_forecast)
 #forecast.functions = c(snaive_forecast, nnetar_forecast, tbats_forecast)
-forecast.functions = c(regression_forecast)
+forecast.functions = c(snaive_forecast, regression_forecast, dynamic_forecast)
 
 n.comp = 12
 
@@ -249,17 +207,6 @@ mypredict <- function() {
       mutate(Weekly_Sales = 0) %>%
       spread(Store, Weekly_Sales)
     
-    ###### Model Fitting / Forecasting ######
-    # for (func.i in 1:length(forecast.functions)){
-    #   for(store.index in 2:ncol(train_dept_ts)) {
-    #     store_ts <- ts(train_dept_ts[, store.index], frequency=52)  
-    #   
-    #     test_dept_ts[, store.index] <-  forecast.functions[[func.i]](store_ts, test_dept_ts[, 1:2])
-    #     
-    #   }
-    #   test_month <- update_forecast(test_month, test_dept_ts, dept, func.i)
-    # }
-    
     # apply SVD for tr.d
     tr.d = preprocess.svd(train_dept, n.comp)
 
@@ -267,18 +214,6 @@ mypredict <- function() {
       pred <- forecast.functions[[func.i]](tr.d, test_dept)
       test_month <- update_forecast(test_month, pred, dept, func.i)
     }
-    
-    # # naive forecast
-    # f_naive <- naive_model(train_dept_ts, test_dept_ts)
-    # test_month <- update_forecast(test_month, f_naive, dept, 1)
-    # 
-    # # snaive forecast
-    # f_snaive <- snaive_model(train_dept_ts, test_dept_ts)
-    # test_month <- update_forecast(test_month, f_snaive, dept, 2)
-    # 
-    # # stlf forecast
-    # f_stlf <- stlf_model(train_dept_ts, test_dept_ts)
-    # test_month <- update_forecast(test_month, f_stlf, dept, 3)
     
     setTxtProgressBar(pb, dept_i)
   }
