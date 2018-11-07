@@ -17,7 +17,7 @@ output: pdf_document
     - forecast_8.4
 
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, include=FALSE}
 mypackages = c("forecast", "tidyverse", "kableExtra", "knitr")   # required packages
 tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
 if (length(tmp) > 0) install.packages(tmp)
@@ -47,7 +47,7 @@ wae <- tibble(
 )
 ```
 
-```{r message=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
+```{r message=TRUE, message=FALSE, warning=FALSE, include=FALSE}
 # DEV.STORES = c(1)
 # DEV.DEPARTMENTS = c(1, 3, 5, 10, 13, 21, 22)
 # 
@@ -89,7 +89,7 @@ computation.time = print((proc.time() - start_time)[3])
 colMeans(wae)
 ```
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, include=FALSE}
 test.results = cbind(Fold= c(rep(1:num_folds), 'Average'), rbind(wae, colMeans(wae)))
 kable(test.results, col.names = c('Fold', 'Naive','SNaive','Dynamic')) %>%
   kable_styling(bootstrap_options = c("striped"), full_width = F) 
