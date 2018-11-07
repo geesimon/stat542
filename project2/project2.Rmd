@@ -15,8 +15,24 @@ output: pdf_document
 - R: 3.5.1
 - R Packages:
     - forecast_8.4
+    - tidyverse_1.2.1
+    - lubridate_1.7.4
 
+## Models
 
+3 approaches are used to generate the prediction:
+- Naive model
+- Seasonal naive model
+- Dynamic model: for fold 1 to 6, regression model (tslm) is used. Start from fold 7, since the training data has more than 2 years of data, STL+ARIMA (method='arima', ic='bic') model is built to make the prediction.
+
+## Missing value handling
+
+- Weekly_Sales: replace missing value with 0. 
+- IsHoliday: search through the training data to find the IsHoliday of same date. See function: `fill_missing_holiday`
+
+*Note*: my testing show more sophisticated imputation approach won't improve the performance.
+
+## Test results
 ```{r, message=FALSE, warning=FALSE, include=FALSE}
 mypackages = c("forecast", "tidyverse", "kableExtra", "knitr")   # required packages
 tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
