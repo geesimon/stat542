@@ -17,14 +17,14 @@ output: pdf_document
     - forecast_8.4
 
 
-```{r, include=FALSE}
-mypackages = c("forecast", "tidyverse")   # required packages
+```{r, echo=FALSE}
+mypackages = c("forecast", "tidyverse", "kableExtra", "knitr")   # required packages
 tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
 if (length(tmp) > 0) install.packages(tmp)
 lapply(mypackages, require, character.only = TRUE)
 ```
 
-```{r, message=FALSE}
+```{r, echo=FALSE, message=FALSE}
 source("mymain.R")
 
 # read in original train / test dataframes
@@ -47,7 +47,7 @@ wae <- tibble(
 )
 ```
 
-```{r message=TRUE, warning=TRUE}
+```{r message=TRUE, echo=FALSE, warning=TRUE}
 # DEV.STORES = c(1)
 # DEV.DEPARTMENTS = c(1, 3, 5, 10, 13, 21, 22)
 # 
@@ -82,10 +82,17 @@ for (t in 1:num_folds) {
   print(wae[t,])
 }
 
-print((proc.time() - start_time)[3])
+computation.time = print((proc.time() - start_time)[3])
 
 # save results to a file for grading
 #readr::write_csv(wae, 'Error.csv')
 colMeans(wae)
 ```
 
+```{r, echo=FALSE}
+test.results = cbind(Fold=rep(1:num_folds), wae)
+kable(test.results, col.names = c('Fold', 'Naive','SNaive','Dynamic')) %>%
+  kable_styling(bootstrap_options = c("striped"), full_width = F) 
+```
+
+Computation time: `r computation.time` seconds
