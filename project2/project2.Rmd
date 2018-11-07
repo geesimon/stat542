@@ -20,7 +20,8 @@ output: pdf_document
 
 ## Models
 
-3 approaches are used to generate the prediction:
+3 approaches (total 4 models) are used to generate the prediction:
+
 - Naive model
 - Seasonal naive model
 - Dynamic model: for fold 1 to 6, regression model (tslm) is used. Start from fold 7, since the training data has more than 2 years of data, STL+ARIMA (method='arima', ic='bic') model is built to make the prediction.
@@ -70,7 +71,6 @@ wae <- tibble(
 # train = train[train$Store %in% DEV.STORES & train$Dept %in% DEV.DEPARTMENTS, ]
 # test = test[test$Store %in% DEV.STORES & test$Dept %in% DEV.DEPARTMENTS, ]
 
-
 start_time = proc.time()
 # time-series CV
 for (t in 1:num_folds) {
@@ -105,7 +105,7 @@ computation.time = print((proc.time() - start_time)[3])
 colMeans(wae)
 ```
 
-```{r, message=FALSE, warning=FALSE, include=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 test.results = cbind(Fold= c(rep(1:num_folds), 'Average'), rbind(wae, colMeans(wae)))
 kable(test.results, col.names = c('Fold', 'Naive','SNaive','Dynamic')) %>%
   kable_styling(bootstrap_options = c("striped"), full_width = F) 
