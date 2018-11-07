@@ -116,7 +116,7 @@ stlf_forecast <- function(train.data, test.data){
   train.ts.data <- ts(train.data$Weekly_Sales, frequency = 52,
                       start = c(year(train$Date[1]), month(train$Date[1])))
   
-  stlf(train.ts.data, h=num_forecasts, method='arima')$mean
+  stlf(train.ts.data, h=num_forecasts, method='arima', ic='bic')$mean
 }
 
 dynamic_forecast <- function(train.data, test.data){
