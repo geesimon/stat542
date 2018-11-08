@@ -135,12 +135,11 @@ preprocess.svd = function(train, n.comp){
   train
 }
 
-
 ##### Prediction Loop #####
-#forecast.functions = c(naive_forecast, snaive_forecast)
+forecast.functions = c(naive_forecast)
 #forecast.functions = c(naive_forecast, tbats_forecast)
 #forecast.functions = c(snaive_forecast, nnetar_forecast, tbats_forecast)
-forecast.functions = c(snaive_forecast, regression_forecast, dynamic_forecast)
+# forecast.functions = c(snaive_forecast, regression_forecast, dynamic_forecast)
 
 n.comp = 12
 
