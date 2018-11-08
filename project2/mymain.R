@@ -1,6 +1,6 @@
 ################ Load Environment ##################
 # clean workspace
-# rm(list = ls())
+rm(list = ls())
 
 # load necessary packages
 if (!require("pacman")) install.packages("pacman")
@@ -15,24 +15,15 @@ pacman::p_load(
 # with Date, Store, value = Weekly_Price columns
 flatten_forecast <- function(f_model) {
   f_model %>%
-    # select(-IsHoliday) %>%
     gather(Store, value, -Date, convert = TRUE)
 }
 
 # Adds forecasts to the testing dataframe
 update_forecast <- function(test_month, dept_preds, dept, num_model) {
   dept_preds = flatten_forecast(dept_preds)
-  
-  # pred.d <- test_month %>%
-  #   filter(Dept == dept) %>%
-  #   select('Store', 'Date') %>%
-  #   left_join(dept_preds, by = c('Store', 'Date'))
-  
   pred.d.idx <- test_month$Dept == dept
   pred.d <- test_month[pred.d.idx, c('Store', 'Date')] %>%
     left_join(dept_preds, by = c('Store', 'Date'))
-  
-  # cat(length(pred.d$value), sum(pred.d.idx), "\n")
   
   if (num_model == 1) {
     test_month$Weekly_Pred1[pred.d.idx] <- pred.d$value
@@ -137,10 +128,7 @@ preprocess.svd = function(train, n.comp){
 
 ##### Prediction Loop #####
 #forecast.functions = c(naive_forecast)
-#forecast.functions = c(naive_forecast, tbats_forecast)
-#forecast.functions = c(snaive_forecast, nnetar_forecast, tbats_forecast)
-#forecast.functions = c(snaive_forecast, regression_forecast, dynamic_forecast)
-forecast.functions = c(regression_forecast)
+forecast.functions = c(snaive_forecast, regression_forecast, dynamic_forecast)
 
 n.comp = 12
 
@@ -184,7 +172,7 @@ mypredict <- function() {
     Store=rep(all_stores, each=num_train_dates)
   )
   
-  train_is_holiday 
+  #train_is_holiday 
   
   #### Perform a individual forecasts for each department
   pb <- txtProgressBar(min = 0, max = length(test_depts), style = 3)
@@ -193,7 +181,6 @@ mypredict <- function() {
     # filter for the particular department in the training data
     train_dept <- train %>%
       filter(Dept == dept) %>%
-      #select(Store, Date, Weekly_Sales, IsHoliday)
       select(Store, Date, Weekly_Sales)
     
     # Reformat so that each column is a weekly time-series for that

@@ -1,5 +1,5 @@
 ---
-title: "CS598 - Project 1"
+title: "CS598 - Project 2"
 author: "Xiaoming Ji"
 output: pdf_document
 ---
@@ -20,21 +20,18 @@ output: pdf_document
 
 ## Models
 
-3 approaches (total 4 models) are used to generate the prediction:
+3 approaches are used to generate the prediction:
 
-- Naive model
 - Seasonal naive model
-- Dynamic model: for fold 1 to 6, regression model (tslm) is used. Starting from fold 7, since the training data has more than 2 years of data, STL+ARIMA (method='arima', ic='bic') model is built to make the prediction.
+- Time Series Regression model: with trend and season.
+- Dynamic: for fold 1 to 6, same time series regression model as 2nd approach is used. Starting from fold 7, since the training data has more than 2 years of data, STL+ARIMA (method='arima', ic='bic') model is built to make the prediction.
 
 ## Pre-processing
 
 - Run SVD (first 12 components) on each by-department sales data and then transform it back to the original matrix size. 
-- Missing value handling
-  - Weekly_Sales: replace missing value with 0. 
-  - IsHoliday: search through the training data to find the IsHoliday of same date. See function: `fill_missing_holiday`
+- Missing value handling, I simply replace missing Weekly_Sales with 0 in the svd function.
 
 *Note*: my testing show more sophisticated imputation approach won't improve the performance.
-
 
 ## Test results
 ```{r, message=FALSE, warning=FALSE, include=FALSE}
@@ -46,9 +43,6 @@ lapply(mypackages, require, character.only = TRUE)
 
 ```{r, echo=FALSE, message=FALSE}
 source("mymain.R")
-
-# read in original train / test dataframes
-train_all <- readr::read_csv('train_origin.csv')
 
 # read in train / test dataframes
 train <- readr::read_csv('train.csv')
