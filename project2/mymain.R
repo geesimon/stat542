@@ -177,12 +177,14 @@ mypredict <- function() {
   
   # Create the same dataframe for the training data
   # (num_train_dates x num_stores)
-  train_dates <- unique(train$Date)
+  train_dates <- sort(unique(train$Date))
   num_train_dates <- length(train_dates)
   train_frame <- data.frame(
     Date=rep(train_dates, num_stores),
     Store=rep(all_stores, each=num_train_dates)
   )
+  
+  train_is_holiday 
   
   #### Perform a individual forecasts for each department
   pb <- txtProgressBar(min = 0, max = length(test_depts), style = 3)
@@ -208,7 +210,7 @@ mypredict <- function() {
       spread(Store, Weekly_Sales)
     
     # apply SVD for tr.d
-    tr.d = cbind(train_dept[,1],preprocess.svd(train_dept[,2:ncol(train_dept)], n.comp))
+    tr.d = cbind(Date = train_dept[, 1], preprocess.svd(train_dept[, 2:ncol(train_dept)], n.comp))
 
     for (func.i in 1:length(forecast.functions)){
       pred <- forecast.functions[[func.i]](tr.d, test_dept)
