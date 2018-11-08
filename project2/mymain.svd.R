@@ -1,6 +1,6 @@
 ################ Load Environment ##################
 # clean workspace
-rm(list = ls())
+# rm(list = ls())
 
 # load necessary packages
 if (!require("pacman")) install.packages("pacman")
