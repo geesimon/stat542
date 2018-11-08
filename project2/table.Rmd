@@ -23,3 +23,9 @@ kable(test.results, col.names = c('Fold', 'Naive','SNaive','Dynamic')) %>%
   kable_styling(bootstrap_options = c("striped"), full_width = F) 
 ```
 
+- Run SVD (first 12 components) on each by-department sales data and then transform it back to the original matrix size. 
+- Missing value handling
+  - Weekly_Sales: replace missing value with 0. 
+  - IsHoliday: search through the training data to find the IsHoliday of same date. See function: `fill_missing_holiday`
+
+*Note*: my testing show more sophisticated imputation approach won't improve the performance.

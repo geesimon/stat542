@@ -26,12 +26,15 @@ output: pdf_document
 - Seasonal naive model
 - Dynamic model: for fold 1 to 6, regression model (tslm) is used. Start from fold 7, since the training data has more than 2 years of data, STL+ARIMA (method='arima', ic='bic') model is built to make the prediction.
 
-## Missing value handling
+## Pre-processing
 
-- Weekly_Sales: replace missing value with 0. 
-- IsHoliday: search through the training data to find the IsHoliday of same date. See function: `fill_missing_holiday`
+- Run SVD (first 12 components) on each by-department sales data and then transform it back to the original matrix size. 
+- Missing value handling
+  - Weekly_Sales: replace missing value with 0. 
+  - IsHoliday: search through the training data to find the IsHoliday of same date. See function: `fill_missing_holiday`
 
 *Note*: my testing show more sophisticated imputation approach won't improve the performance.
+
 
 ## Test results
 ```{r, message=FALSE, warning=FALSE, include=FALSE}
