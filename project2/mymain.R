@@ -1,6 +1,6 @@
 ################ Load Environment ##################
 # clean workspace
-rm(list = ls())
+# rm(list = ls())
 
 # load necessary packages
 if (!require("pacman")) install.packages("pacman")
@@ -11,6 +11,39 @@ pacman::p_load(
   "tidyverse"
 )
 
+# converts a Date x num_store forecast to a dataframe
+# with Date, Store, value = Weekly_Price columns
+flatten_forecast <- function(f_model) {
+  f_model %>%
+    # select(-IsHoliday) %>%
+    gather(Store, value, -Date, convert = TRUE)
+}
+
+# Adds forecasts to the testing dataframe
+update_forecast <- function(test_month, dept_preds, dept, num_model) {
+  dept_preds = flatten_forecast(dept_preds)
+  
+  # pred.d <- test_month %>%
+  #   filter(Dept == dept) %>%
+  #   select('Store', 'Date') %>%
+  #   left_join(dept_preds, by = c('Store', 'Date'))
+  
+  pred.d.idx <- test_month$Dept == dept
+  pred.d <- test_month[pred.d.idx, c('Store', 'Date')] %>%
+    left_join(dept_preds, by = c('Store', 'Date'))
+  
+  # cat(length(pred.d$value), sum(pred.d.idx), "\n")
+  
+  if (num_model == 1) {
+    test_month$Weekly_Pred1[pred.d.idx] <- pred.d$value
+  } else if(num_model == 2) {
+    test_month$Weekly_Pred2[pred.d.idx] <- pred.d$value
+  } else {
+    test_month$Weekly_Pred3[pred.d.idx] <- pred.d$value
+  }
+  
+  test_month
+}
 
 # update forecasts in the global test dataframe
 update_test <- function(test_month) {
@@ -27,130 +60,89 @@ update_test <- function(test_month) {
 
 
 ##### Model Building Functions #####
-fill_missing_holiday <- function(dept_data, all_data){
-  na.idx = seq(1, nrow(dept_data))[is.na(dept_data$IsHoliday)]
-  for (i in na.idx){
-    same.date.holiday = all_data$IsHoliday[all_data$Date == dept_data$Date[i]]
-    non.na.idx = !is.na(same.date.holiday)
-    if (sum(non.na.idx) > 0){
-      value = same.date.holiday[non.na.idx][1]
-    } else {
-      cat("Cannot find IsHoliday default value for ", dept_data$Date[i], "\n")
-      value = FALSE
-    }
-    dept_data$IsHoliday[i] = value
+
+naive_forecast <- function(train_dept, test_dept){
+  num_forecasts <- nrow(test_dept)
+  
+  for(j in 2:ncol(train_dept)){
+    store_ts <- ts(train_dept[, j], frequency=52)
+    test_dept[, j] <- naive(store_ts, num_forecasts)$mean
+  }
+  test_dept
+}
+
+snaive_forecast <- function(train_dept, test_dept){
+  num_forecasts <- nrow(test_dept)
+  
+  for(j in 2:ncol(train_dept)){
+    store_ts <- ts(train_dept[, j], frequency=52)
+    test_dept[, j] <- snaive(store_ts, num_forecasts)$mean
+  }
+  test_dept
+}
+
+nnetar_forecast <- function(train_ts, test_ts){
+  num_forecasts <- nrow(test_ts)
+
+  return (forecast(nnetar(train_ts), num_forecasts)$mean)
+}
+
+tbats_forecast <- function(train_ts, test_ts){
+  num_forecasts <- nrow(test_ts)
+
+  return (forecast(tbats(train_ts, biasadj=TRUE), num_forecasts)$mean)
+}
+
+regression_forecast <- function(train_dept, test_dept){
+  num_forecasts <- nrow(test_dept)
+  
+  for(j in 2:ncol(train_dept)){
+    train_ts = ts(train_dept[, j], frequency = 52)
+    model <- tslm(train_ts ~ trend + season)
+    
+    test_dept[, j] <- forecast(model, h = num_forecasts)$mean
   }
   
-  dept_data$IsHoliday
+  test_dept
 }
 
-naive_forecast <- function(train_data, test_data){
-  num_forecasts <- nrow(test_data)
+stlf_forecast <- function(train_dept, test_dept){
+  num_forecasts <- nrow(test_dept)
   
-  train.ts.data <- ts(train_data$Weekly_Sales, frequency=52,
-                      start = c(year(train$Date[1]), week(train$Date[1])))
-  naive(train.ts.data, num_forecasts)$mean
+  for(j in 2:ncol(train_dept)){
+    train_ts = ts(train_dept[, j], frequency = 52)
+
+    test_dept[, j] <- stlf(train_ts, h=num_forecasts, method='arima', ic='bic')$mean
+  }
+  
+  test_dept
 }
 
-snaive_forecast <- function(train_data, test_data){
-  num_forecasts <- nrow(test_data)
-  
-  train.ts.data <- ts(train_data$Weekly_Sales, frequency=52,
-                start = c(year(train$Date[1]), week(train$Date[1])))
-  snaive(train.ts.data, num_forecasts)$mean
-}
-
-regression_forecast <- function(train.data, test.data){
-  num_forecasts <- nrow(test.data)
-  
-  train.ts.data <- ts(train.data %>% select(Weekly_Sales, IsHoliday), frequency = 52,
-                start = c(year(train$Date[1]), week(train$Date[1])))
-
-  model <- tslm(Weekly_Sales ~ trend + season, data = train.ts.data)
-  forecast(model, h=num_forecasts)$mean
-}
-
-regression_forecast1 <- function(train.data, test.data){
-  num_forecasts <- nrow(test.data)
-  
-  train.ts.data <- ts(train.data$Weekly_Sales, frequency = 52,
-                      start = c(year(train$Date[1]), month(train$Date[1])))
-
-  model = tslm(formula = train.ts.data ~ trend + fourier(train.ts.data, K = 20) + IsHoliday, 
-       data = train.data)
-
-  new.data = cbind(fourier(train.ts.data, K = 20, h = num_forecasts),
-                   data.frame(IsHoliday = test.data$IsHoliday))
-
-  forecast(model, newdata = new.data)$mean
-}
-
-arima_forecast <- function(train.data, test.data){
-  num_forecasts <- nrow(test.data)
-  
-  train.ts.data <- ts(train.data$Weekly_Sales, frequency = 52,
-                      start = c(year(train$Date[1]), month(train$Date[1])))
-  
-  # bestfit <- list(aicc=Inf)
-  # for(K in seq(25)) {
-  #   print(K)
-  #   fit <- auto.arima(train.ts.data, xreg=fourier(train.ts.data, K=K),
-  #                     seasonal=FALSE)
-  #   if(fit[["aicc"]] < bestfit[["aicc"]]) {
-  #     bestfit <- fit
-  #     bestK <- K
-  #   }
-  # }
-  model <- auto.arima(train.ts.data, xreg=fourier(train.ts.data, K = 14), seasonal=FALSE)
-  #model <- arima(train.ts.data, order=c(3,0,0), xreg=fourier(train.ts.data, K = 13))
-  
-  new.data = fourier(train.ts.data, K = 14, h = num_forecasts)
-  
-  #predict(model, newxreg = new.data)$pred
-  forecast(model, xreg =new.data)$mean
-}
-
-stlf_forecast <- function(train.data, test.data){
-  num_forecasts <- nrow(test.data)
-  
-  train.ts.data <- ts(train.data$Weekly_Sales, frequency = 52,
-                      start = c(year(train$Date[1]), month(train$Date[1])))
-  
-  stlf(train.ts.data, h=num_forecasts, method='arima', ic='bic')$mean
-}
-
-dynamic_forecast <- function(train.data, test.data){
+dynamic_forecast <- function(train_dept, test_dept){
   if(t < 7){
-    regression_forecast(train.data, test.data)
+    regression_forecast(train_dept, test_dept)
   } else {
-    stlf_forecast(train.data, test.data)
+    stlf_forecast(train_dept, test_dept)
   }
 }
 
-nnetar_forecast <- function(train.data, test.data){
-  num_forecasts <- nrow(test.data)
-  train.ts.data <- ts(train.data$Weekly_Sales, frequency = 52,
-                      start = c(year(train$Date[1]), month(train$Date[1])))
-
-  return (forecast(nnetar(train.ts.data), num_forecasts)$mean)
-}
-
-
-tbats_forecast <- function(train.data, test.data){
-  num_forecasts <- nrow(test.data)
-  train.ts.data <- ts(train.data$Weekly_Sales, frequency = 52,
-                      start = c(year(train$Date[1]), month(train$Date[1])))
-
-  forecast(tbats(train.ts.data, biasadj=TRUE), num_forecasts)$mean
+# Dimension reduction using SVD.
+preprocess.svd = function(train, n.comp){
+  train[is.na(train)] = 0
+  z = svd(train[, 2:ncol(train)], nu=n.comp, nv=n.comp)
+  s = diag(z$d[1:n.comp])
+  train[, 2:ncol(train)] = z$u %*% s %*% t(z$v)
+  train
 }
 
 ##### Prediction Loop #####
-forecast.functions = c(naive_forecast)
+#forecast.functions = c(naive_forecast)
 #forecast.functions = c(naive_forecast, tbats_forecast)
 #forecast.functions = c(snaive_forecast, nnetar_forecast, tbats_forecast)
-#forecast.functions = c(regression_forecast)
-# forecast.functions = c(arima_forecast)
-# forecast.functions = c(naive_forecast, snaive_forecast, dynamic_forecast)
+#forecast.functions = c(snaive_forecast, regression_forecast, dynamic_forecast)
+forecast.functions = c(regression_forecast)
+
+n.comp = 12
 
 mypredict <- function() {
   ###### Create train and test time-series #######
@@ -195,88 +187,34 @@ mypredict <- function() {
   #### Perform a individual forecasts for each department
   pb <- txtProgressBar(min = 0, max = length(test_depts), style = 3)
   for (dept_i in 1:length(test_depts)) {
-    dept <- test_depts[dept_i]
+    dept = test_depts[dept_i]
     # filter for the particular department in the training data
     train_dept <- train %>%
-      filter(Dept == dept)
+      filter(Dept == dept) %>%
+      #select(Store, Date, Weekly_Sales, IsHoliday)
+      select(Store, Date, Weekly_Sales)
     
-    # Create a dataframe to hold the forecasts on
-    # the dates in the training window
+    # Reformat so that each column is a weekly time-series for that
+    # store's department.
+    # The dataframe has a shape (num_train_dates, num_stores)
     train_dept <- train_frame %>%
-      left_join(train_dept, by = c('Date', 'Store'))
+      left_join(train_dept, by = c('Date', 'Store')) %>%
+      spread(Store, Weekly_Sales)
     
-    # Handle missing value of Weekly_Sales in the training data
-    # Set possible NA to the dept
-    train_dept$Dept <- dept
-    # # Handle missing Weekly_Sales
-    # na.idx <- seq(1, nrow(train_dept))[is.na(train_dept$Weekly_Sales)]
-    # for (i in na.idx){
-    #   # Try to find the value from last season/year
-    #   pre_i <- i - 52
-    #   if (pre_i > 0 && train_dept$Store[pre_i] == train_dept$Store[i] &&
-    #       !is.na(train_dept$Weekly_Sales[pre_i])){
-    #     train_dept$Weekly_Sales[i] = train_dept$Weekly_Sales[pre_i]
-    #     #cat("Found value from last year")
-    #   } else {
-    #     # Use the average value of the stores in the same department and date
-    #     sales <- train_dept$Weekly_Sales[train_dept$Date == train_dept$Date[i]]
-    #     sales <- sales[!is.na(sales)]
-    #     if (length(sales) > 0){
-    #       #cat("Average of all store values are used")
-    #       train_dept$Weekly_Sales[i] <- mean(sales)
-    #     } else {
-    #       # Use the average value of the department
-    #       all.dept.sales = train_dept$Weekly_Sales[!is.na(train_dept$Weekly_Sales)]
-    #       if (length(all.dept.sales) > 0) {
-    #         train_dept$Weekly_Sales[i] <- mean(all.dept.sales)
-    #       } else {
-    #         cat("Cannot calculate value for ", dept, train_dept$Store[i], train_dept$Date[i])
-    #         train_dept$Weekly_Sales[i] <- 0
-    #       }
-    #     }
-    #   }
-    # }
-    # Handle missing IsHoliday
-    train_dept$IsHoliday <- fill_missing_holiday(train_dept, train)
-    
-    train_dept[is.na(train_dept)] <- 0
-    
-    # Filter for the particular department in the test data
-    test_month.idx <- test_month$Dept == dept
-   
-    # Create a similar dataframe to hold the forecasts on
+    # We create a similar dataframe to hold the forecasts on
     # the dates in the testing window
     test_dept <- test_frame %>%
-      left_join(test_month[test_month.idx, ], by = c('Date', 'Store')) %>%
-      select(-Weekly_Pred1, -Weekly_Pred2, -Weekly_Pred3) %>%
-      mutate(Predict_Sales = 0)
+      mutate(Weekly_Sales = 0) %>%
+      spread(Store, Weekly_Sales)
     
-    # Handle missing value in test data
-    # Set possible NA to the dept
-    test_dept$Dept <- dept
-    # Handle missing IsHoliday
-    test_dept$IsHoliday <- fill_missing_holiday(test_dept, test)
-    
-    if (sum(is.na(train_dept)) > 0 | sum(is.na(test_dept))) {
-      stop("NA found in the training or test data")
-    }
-    
-    # Start training/prediction 
-    for (func.i in 1:length(forecast.functions)){
-      all.predict = data.frame()
-      
-      for (store in all_stores){
-        train.data <- train_dept %>% filter(Store == store)
-        test.data <-  test_dept %>% filter(Store == store)
-          
-        test.data$Predict_Sales <- as.numeric(forecast.functions[[func.i]](train.data, test.data))
-        all.predict = rbind(all.predict, test.data)
-      }
-      
-      test_month[test_month.idx, 4 + func.i] <- (test_month[test_month.idx,] %>%
-                                left_join(all.predict, by = c('Date', 'Store', 'Dept')))$Predict_Sales
-    }
+    # apply SVD for tr.d
+    tr.d = cbind(train_dept[,1],preprocess.svd(train_dept[,2:ncol(train_dept)], n.comp))
 
+    for (func.i in 1:length(forecast.functions)){
+      pred <- forecast.functions[[func.i]](tr.d, test_dept)
+      test_month <- update_forecast(test_month, pred, dept, func.i)
+    }
+    
     setTxtProgressBar(pb, dept_i)
   }
   

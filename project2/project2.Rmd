@@ -24,7 +24,7 @@ output: pdf_document
 
 - Naive model
 - Seasonal naive model
-- Dynamic model: for fold 1 to 6, regression model (tslm) is used. Start from fold 7, since the training data has more than 2 years of data, STL+ARIMA (method='arima', ic='bic') model is built to make the prediction.
+- Dynamic model: for fold 1 to 6, regression model (tslm) is used. Starting from fold 7, since the training data has more than 2 years of data, STL+ARIMA (method='arima', ic='bic') model is built to make the prediction.
 
 ## Pre-processing
 
@@ -45,7 +45,7 @@ lapply(mypackages, require, character.only = TRUE)
 ```
 
 ```{r, echo=FALSE, message=FALSE}
-source("mymain.svd.R")
+source("mymain.R")
 
 # read in original train / test dataframes
 train_all <- readr::read_csv('train_origin.csv')
