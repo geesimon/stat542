@@ -1,0 +1,25 @@
+---
+title: "table"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(tibble)
+
+num_folds = 10
+wae <- tibble(
+    model_one = rep(0, num_folds),
+    model_two = rep(0, num_folds),
+    model_three = rep(0, num_folds)
+)
+
+test.results = cbind(Fold=rep(1:num_folds), wae)
+kable(test.results, col.names = c('Fold', 'Naive','SNaive','Dynamic')) %>% 
+  kable_styling(bootstrap_options = c("striped"), full_width = F) 
+```
+
