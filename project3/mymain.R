@@ -7,6 +7,6 @@ if (!require("pacman")) install.packages("pacman")
 
 pacman::p_load(
   "xgboost",
-  "e1071"
+  "kernlab"
 )
 
