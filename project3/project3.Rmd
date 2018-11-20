@@ -15,6 +15,28 @@ output: pdf_document
 - R: 3.5.1
 - R Packages:
 
+```{r}
+data.all = read.csv("loan_stat542.csv")
+test.id.all = read.csv("Project3_test_id.csv")
+
+for (i in 1:(dim(test.id.all)[2])){
+  
+  train.data = data.all[!data.all$id %in% test.id.all[,i],]
+  write.csv(train.data, file=paste("train", i, ".csv", sep=""), row.names = FALSE)
+  test.data = data.all[data.all$id %in% test.id.all[,i],]
+  
+  label.data = test.data[,c("id", "loan_status")]
+  colnames(label.data)[2] = 'y'
+  label.data$y[label.data$y == "Charged Off"] = "Default"
+  label.data$y = as.numeric(label.data$y)
+  label.data$y[label.data$y == 3] = 0
+  label.data$y[label.data$y == 2] = 1
+  write.csv(label.data, file=paste("label", i, ".csv", sep=""), row.names = FALSE)
+  
+  test.data = test.data[, c("loan_status") != names(test.data)]
+  write.csv(test.data, file=paste("test", i, ".csv", sep=""), row.names = FALSE)
+}
+```
 
 ```{r}
 #########################################################################
@@ -39,28 +61,32 @@ source('mymain.R')
 end.time = Sys.time()
 run.time = as.numeric(difftime(end.time, start.time, units = 'min'))
 
-# submission files
-allFiles = list.files()
-subFiles = grep('mysubmission', allFiles, value = TRUE, 
-                ignore.case = TRUE)
 
-# calculate the test error on the test set
-test = read.csv('test.csv')
+```
 
-label = read.csv('label.csv', sep = ',')
-err = rep(NA, length(subFiles))
-for (met in 1:length(subFiles)){
-
-    prediction = read.csv(subFiles[met], sep = ',')
-    yp = merge(prediction, label, by = 'id', all.y = TRUE)
-    err[met] = with(yp, logLoss(y, prob))
-    
-}
-
-#########################################################################
-write.table(err, file = 'proj_3.csv', sep = ',', row.names = FALSE,
-            col.names = FALSE)
-write.table(run.time, file = 'proj_3.csv', sep = ',', 
-            row.names = FALSE, col.names = FALSE, append = TRUE)
+```{r}
+# # submission files
+# allFiles = list.files()
+# subFiles = grep('mysubmission', allFiles, value = TRUE, 
+#                 ignore.case = TRUE)
+# 
+# # calculate the test error on the test set
+# test = read.csv('test.csv')
+# 
+# label = read.csv('label.csv', sep = ',')
+# err = rep(NA, length(subFiles))
+# for (met in 1:length(subFiles)){
+# 
+#     prediction = read.csv(subFiles[met], sep = ',')
+#     yp = merge(prediction, label, by = 'id', all.y = TRUE)
+#     err[met] = with(yp, logLoss(y, prob))
+#     
+# }
+# 
+# #########################################################################
+# write.table(err, file = 'proj_3.csv', sep = ',', row.names = FALSE,
+#             col.names = FALSE)
+# write.table(run.time, file = 'proj_3.csv', sep = ',', 
+#             row.names = FALSE, col.names = FALSE, append = TRUE)
 ```
 
