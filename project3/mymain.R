@@ -6,6 +6,7 @@ rm(list = ls())
 if (!require("pacman")) install.packages("pacman")
 
 pacman::p_load(
-  "forecast"
+  "xgboost",
+  "e1071"
 )
 
