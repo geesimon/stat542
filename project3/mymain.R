@@ -10,6 +10,22 @@ pacman::p_load(
   "kernlab"
 )
 
+
+#########################################################################
+# log-loss function
+logLoss = function(y, p){
+  if (length(p) != length(y)){
+    stop('Lengths of prediction and labels do not match.')
+  }
+  
+  if (any(p < 0)){
+    stop('Negative probability provided.')
+  }
+  
+  p = pmax(pmin(p, 1 - 10^(-15)), 10^(-15))
+  mean(ifelse(y == 1, -log(p), -log(1 - p)))
+}
+
 ###### Pre-processing and Feature Engineering Functions ######
 convert_label <- function(train.data, test.data){
   train.data$loan_status[train.data$loan_status == "Charged Off"] = "Default"
