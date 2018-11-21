@@ -115,10 +115,10 @@ xgb_predict = function(train.data, test.data) {
 train_predict = function(train.data, test.data, model.func, output.filename){
   pred = model.func(train.data, test.data)
   
-  output = cbind(test.data$id, pred)
+  output = cbind(test.data$id, round(pred, 2))
   colnames(output) = c("id", "prob")
   
-  write.csv(output, output.filename, row.names = FALSE)
+  write.csv(output, output.filename, row.names = FALSE, quote = FALSE)
 }
 
 #######################################
