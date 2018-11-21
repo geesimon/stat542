@@ -43,11 +43,13 @@ handle_missing <- function(train.data, test.data){
 }
 
 remove_variables <- function(train.data, test.data){
-  dropVars = c('id','sub_grade', 'emp_title', 'emp_length', 'title', 
+  train.name = c('id','sub_grade', 'emp_title', 'emp_length', 'title', 
+                 'zip_code', 'addr_state', 'earliest_cr_line')
+  test.name = c('sub_grade', 'emp_title', 'emp_length', 'title', 
                'zip_code', 'addr_state', 'earliest_cr_line')
   
-  train.data = train.data[, !colnames(train.data) %in% dropVars]
-  test.data = test.data[, !colnames(test.data) %in% dropVars]
+  train.data = train.data[, !colnames(train.data) %in% train.name]
+  test.data = test.data[, !colnames(test.data) %in% test.name]
   
   list(train = train.data, test = test.data)
 }
@@ -56,13 +58,13 @@ preprocess_data <- function(train.data, test.data){
   r = convert_label(train.data, test.data)
   r = remove_variables(r$train, r$test)
   r = handle_missing(r$train, r$test)
-
+  
   r
 }
 
 logreg_predict = function(train.data, test.data){
   model.fit = glm(loan_status ~ ., data = train.data, family = "binomial")
-  predict(model.fit, test.data)
+  predict(model.fit, test.data, type="response")
 }
 
 svm_predict = function(train.data, test.data) {
@@ -111,11 +113,9 @@ xgb_predict = function(train.data, test.data) {
 }
 
 train_predict = function(train.data, test.data, model.func, output.filename){
-  r = preprocess_data(train.data, test.data)
+  pred = model.func(train.data, test.data)
   
-  yhat.test = model.func(r$train, r$test)
-  
-  output = cbind(test.data$id, yhat_test)
+  output = cbind(test.data$id, pred)
   colnames(output) = c("id", "prob")
   
   write.csv(output, output.filename, row.names = FALSE)
@@ -134,14 +134,17 @@ train.data = read.csv(TRAIN_FILE_NAME)
 test.data = read.csv(TEST_FILE_NAME)
 label.data = read.csv(LABEL_FILE_NAME)
 
-# output_filenames = c("mysubmission1.txt", "mysubmission2.txt", "mysubmission3.txt")
-# 
-# model_functions = list(
-#   SVM = svm_predict,
-#   Lasso = lasso_predict,
-#   Xgboost = xgb_predict
-# )
-# 
-# for (f in 1:length(model_functions)) {
-#   train_predict(train_data, test_data, model_functions[[f]], output_filenames[f])
-# }
+output_filenames = c("mysubmission1.txt", "mysubmission2.txt", "mysubmission3.txt")
+
+model_functions = list(
+  LogRegression = logreg_predict
+  # SVM = svm_predict,
+  # Lasso = lasso_predict,
+  # Xgboost = xgb_predict
+)
+
+r = preprocess_data(train.data, test.data)
+
+for (f in 1:length(model_functions)) {
+  train_predict(r$train, r$test, model_functions[[f]], output_filenames[f])
+}
