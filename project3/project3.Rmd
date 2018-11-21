@@ -15,7 +15,7 @@ output: pdf_document
 - R: 3.5.1
 - R Packages:
 
-```{r}
+```{r, eval=FALSE, include=FALSE}
 data.all = read.csv("loan_stat542.csv")
 test.id.all = read.csv("Project3_test_id.csv")
 
@@ -56,11 +56,17 @@ logLoss = function(y, p){
 
 #########################################################################
 # Test code begins
+TRAIN_FILE_NAME = "train1.csv"
+TEST_FILE_NAME = "test1.csv"
+LABEL_FILE_NAME = "label1.csv"
+
 start.time = Sys.time()
 source('mymain.R')
 end.time = Sys.time()
 run.time = as.numeric(difftime(end.time, start.time, units = 'min'))
+```
 
+```{r}
 
 ```
 
