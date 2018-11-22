@@ -111,31 +111,63 @@ remove_variables <- function(train.data, test.data){
   list(train = train.data, test = test.data)
 }
 
-group_level <- function(train.column, test.column, group_count) {
-  groups = list()
-  stats = sort(summary(train.column), decreasing = TRUE)
-  level.names = names(stats)
-  level.interval = floor(sum(stats) / group_count)
+group_levels <- function(train.column, test.column, fraction, group_count) {
+  stats = summary(train.column, maxsum = length(levels(train.column)))
+  frac.stats = summary(train.column[fraction], maxsum = length(levels(train.column)))
+  ratio = sort(frac.stats / stats, decreasing = TRUE)
   
-  acc = 0
+  groups = rep("NL", length(ratio))
+  level.names = names(ratio)
+  names(groups) = level.names
+  level.interval = (ratio[1] - ratio[length(ratio)]) / group_count
+  
+  current.ratio = Inf
   group_count = 1
-  item_names = c()
+  
   for (i in 1:length(stats)){
-    item_names = c(item_names, level.names[i])
-    acc = acc + stats[i]
-    if( acc > level.interval){
-      groups[[group_count]] = item_names
+    if (ratio[i] < current.ratio - level.interval) {
+      group_name = paste("Group", group_count, sep = "")
+      current.ratio = ratio[i]
       group_count = group_count + 1
-      item_names = c()
-      acc = 0
     }
+    groups[i] = group_name
   }
   
-  groups
+  train.column = groups[as.numeric(factor(train.column, levels=level.names))]
+  train.column = factor(train.column)
+  test.column = groups[as.numeric(factor(test.column, levels=level.names))]
+  test.column = factor(test.column)
+    
+  # train.column = factor(groups[sapply(train.column, function(i){which(i == level.names)})])
+  # test.column = factor(groups[sapply(test.column, function(i){which(i == level.names)})], levels = levels(train.column))
+  
+  list(train = train.column, test = test.column)
+}
+
+group_feature_levels <- function(train.data, test.data) {
+  fraction = train.data$loan_status == 1
+  
+  r = group_levels(train.data[, "sub_grade"], test.data[, "sub_grade"],fraction, 10)
+  train.data[, "sub_grade"] = r$train
+  test.data[, "sub_grade"] = r$test
+  
+
+  r = group_levels(train.data[, "addr_state"], test.data[, "addr_state"],fraction, 10)
+  train.data[, "addr_state"] = r$train
+  test.data[, "addr_state"] = r$test
+
+  r = group_levels(train.data[, "zip_code"], test.data[, "zip_code"],fraction, 10)
+  train.data[, "zip_code"] = r$train
+  test.data[, "zip_code"] = r$test
+  
+  list(train = train.data, test = test.data)
 }
 
 add_features <- function(train.data, test.data){
-  #Change "earliest_cr_line" as month till 2019-1-1
+  #Convert "earliest_cr_line" as month till 2019-1-1
+  lct <- Sys.getlocale("LC_TIME");
+  Sys.setlocale("LC_TIME", "C")
+  
   till = as.Date("1-1-2019", "%d-%m-%Y")
   
   full_date = paste("1-",train.data$earliest_cr_line, sep = "")
@@ -144,6 +176,8 @@ add_features <- function(train.data, test.data){
   full_date = paste("1-",test.data$earliest_cr_line, sep = "")
   test.data$earliest_cr_line_mon = floor((till - as.Date(full_date, "%d-%b-%Y")) / 30)
   
+  Sys.setlocale("LC_TIME", lct)
+  
   list(train = train.data, test = test.data)
 }
 
@@ -151,6 +185,7 @@ preprocess_data <- function(train.data, test.data){
   r = convert_label(train.data, test.data)
   r = add_features(r$train, r$test)
   r = handle_missing(r$train, r$test)
+  r = group_feature_levels(r$train, r$test)
   r = remove_variables(r$train, r$test)
 
   return (r)
@@ -169,7 +204,7 @@ svm_predict = function(train.data, test.data) {
   
   cv.out = cv.glmnet(X_train, Y_train, alpha = 1)
   
-  X_test = test.data[, colnames(test.data) != 'Sale_Price']
+  X_test = test.data[, colnames(test.data) != 'loan_status']
   X_test = model.matrix(~. -PID, X_test)[, -1]
   #print(cv.out$lambda.min)
   predict(cv.out, s = cv.out$lambda.min, newx = X_test)
@@ -183,14 +218,14 @@ lasso_predict = function(train.data, test.data) {
   
   cv.out = cv.glmnet(X_train, Y_train, alpha = 1)
   
-  X_test = test.data[, colnames(test.data) != 'Sale_Price']
+  X_test = test.data[, colnames(test.data) != 'loan_status']
   X_test = model.matrix(~. -PID, X_test)[, -1]
   #print(cv.out$lambda.min)
   predict(cv.out, s = cv.out$lambda.min, newx = X_test)
 }
 
 xgb_predict = function(train.data, test.data) {
-  X_train = train.data[, colnames(train_data) != 'Sale_Price']
+  X_train = train.data[, colnames(train_data) != 'loan_status']
   X_train = model.matrix(~., X_train)[,-1]
   
   Y_train = train_data$Sale_Price
@@ -201,7 +236,7 @@ xgb_predict = function(train.data, test.data) {
                       subsample = 0.75,
                       verbose = FALSE)
   
-  X_test = test.data[, colnames(test.data) != 'Sale_Price']
+  X_test = test.data[, colnames(test.data) != 'loan_status']
   X_test = model.matrix(~. - PID, X_test)[,-1]
   predict(xgb_model, X_test)
 }
