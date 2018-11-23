@@ -251,7 +251,7 @@ rf_predict = function(train.data, test.data) {
   train.data$loan_status = as.factor(train.data$loan_status)
   
   rf.model = randomForest(loan_status ~ ., data = train.data,
-                          do.trace = TRUE, ntree=1000);
+                          do.trace = TRUE, ntree = 400);
   predict(rf.model, test.data, type="prob")
 }
 
@@ -293,11 +293,11 @@ output_filenames = c("mysubmission1.txt", "mysubmission2.txt", "mysubmission3.tx
 
 model_functions = list(
   # LogisticRegression = logreg_predict,
-  Dumb = dumb_predict,
-  Dumb = dumb_predict,
-  # SVM = svm_predict
-  # Lasso = lasso_predict
-  Xgboost = xgb_predict
+  # SVM = svm_predict,
+  # Lasso = lasso_predict,
+  Xgboost = xgb_predict,
+  RandomForest = rf_predict,
+  Dumb = dumb_predict
 )
 
 r = preprocess_data(train.data, test.data)
