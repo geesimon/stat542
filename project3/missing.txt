@@ -28,3 +28,11 @@ initial_list_status 0
 application_type 0 
 mort_acc 47281 
 pub_rec_bankruptcies 697 
+
+
+remove sub_grade as 
+
+
+0.4553022
+
+(0.4542432+0.4553032+0.4541548)/3 = 0.4545671

@@ -38,34 +38,28 @@ for (i in 1:(dim(test.id.all)[2])){
 }
 ```
 
-```{r}
+```{r, warning=FALSE}
 #########################################################################
 # Test code begins
 
 start.time = Sys.time()
 
-TRAIN_FILE_NAME = "train1.csv"
-TEST_FILE_NAME = "test1.csv"
-LABEL_FILE_NAME = "label1.csv"
-source('mymain.R')
+LOGLOSS = matrix(0, 3, 3)
+rownames(LOGLOSS) = c("Test1", "Test2", "Test3")
+TEST_NUM = 0
 
-TRAIN_FILE_NAME = "train2.csv"
-TEST_FILE_NAME = "test2.csv"
-LABEL_FILE_NAME = "label2.csv"
-source('mymain.R')
-
-TRAIN_FILE_NAME = "train3.csv"
-TEST_FILE_NAME = "test3.csv"
-LABEL_FILE_NAME = "label3.csv"
-source('mymain.R')
-
+for (i in 1:3){
+  TEST_NUM = i
+  TRAIN_FILE_NAME = paste("train",i, ".csv", sep = "")
+  TEST_FILE_NAME = paste("test",i, ".csv", sep = "")
+  LABEL_FILE_NAME = paste("label",i, ".csv", sep = "")
+  source('mymain.R')
+}
 end.time = Sys.time()
 run.time = as.numeric(difftime(end.time, start.time, units = 'secs'))
-cat("Computation time:", ceiling(run.time))
-```
 
-```{r}
-
+print(LOGLOSS)
+cat("\nComputation time:", ceiling(run.time), "Seconds")
 ```
 
 ```{r}
