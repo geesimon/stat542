@@ -235,7 +235,7 @@ xgb_predict = function(train.data, test.data) {
   #                     subsample = 0.75,
   #                     verbose = FALSE)
   
-  xgb.model = xgboost(data = X_train, label=Y_train, 
+  xgb_model = xgboost(data = X_train, label=Y_train, 
                       objective = "binary:logistic", eval_metric = "auc",
                       nrounds = 500,
                       colsample_bytree = 0.6,
@@ -243,16 +243,14 @@ xgb_predict = function(train.data, test.data) {
                       verbose = TRUE)
   
   X_test = model.matrix(~. -id, test.data)[, -1]
-  predict(xgb.model, X_test, type="response")
+  predict(xgb_model, X_test, type="response")
 }
 
 rf_predict = function(train.data, test.data) {
-  # X_train = train.data[, colnames(train.data) != 'loan_status']
-  train.data$loan_status = as.factor(train.data$loan_status)
+  X_train = train.data[, colnames(train.data) != 'loan_status']
   
-  rf.model = randomForest(loan_status ~ ., data = train.data,
-                          do.trace = TRUE, ntree=1000);
-  predict(rf.model, test.data, type="prob")
+  rfModel = randomForest(x_train, train.data$loan_status, ntree=1000);
+  predict(rfModel, test_data)
 }
 
 train_predict = function(train.data, test.data, label.data, model.func, output.filename){
