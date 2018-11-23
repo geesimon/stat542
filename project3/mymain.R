@@ -6,6 +6,7 @@
 if (!require("pacman")) install.packages("pacman")
 
 pacman::p_load(
+  "e1071",
   "xgboost",
   "kernlab"
 )
@@ -36,7 +37,8 @@ convert_label <- function(train.data, test.data){
 }
 
 fill_NA_by_vast <- function(train.column, test.column) {
-  stats = sort(summary(train.column), decreasing = TRUE)
+  stats = sort(summary(train.column, maxsum = length(levels(train.column))), 
+               decreasing = TRUE)
   
   train.column[is.na(train.column)] = names(stats)[1]
   test.column[is.na(test.column)] = names(stats)[1]
@@ -58,7 +60,7 @@ fill_NA_by_mean <- function(train.column, test.column){
   avg = mean(train.column[!is.na(train.column)])
   train.column[is.na(train.column)] = avg
   test.column[is.na(test.column)] = avg
-
+  
   list(train = train.column, test = test.column)
 }
 
@@ -77,6 +79,10 @@ handle_missing <- function(train.data, test.data){
   r = fill_NA_by_others(train.data[, "emp_length"], test.data[, "emp_length"])
   train.data[, "emp_length"] = r$train
   test.data[, "emp_length"] = r$test
+  
+  r = fill_NA_by_vast(train.data[, "zip_code"], test.data[, "zip_code"])
+  train.data[, "zip_code"] = r$train
+  test.data[, "zip_code"] = r$test
   
   r = fill_NA_by_mean(train.data[, "revol_util"], test.data[, "revol_util"])
   train.data[, "revol_util"] = r$train
@@ -97,13 +103,13 @@ handle_missing <- function(train.data, test.data){
   list(train = train.data, test = test.data)
 }
 
-remove_variables <- function(train.data, test.data){
+remove_features <- function(train.data, test.data){
   # train.name = c('id','sub_grade', 'emp_title', 'title',
   #                'zip_code', 'addr_state', 'earliest_cr_line')
   # test.name = c('sub_grade', 'emp_title', 'title',
   #              'zip_code', 'addr_state', 'earliest_cr_line')
-  train.name = c('id','emp_title', 'title', 'zip_code', 'earliest_cr_line')
-  test.name = c('emp_title', 'title', 'zip_code', 'earliest_cr_line')
+  train.name = c('id','emp_title', 'title', 'earliest_cr_line')
+  test.name = c('emp_title', 'title', 'earliest_cr_line')
   
   train.data = train.data[, !colnames(train.data) %in% train.name]
   test.data = test.data[, !colnames(test.data) %in% test.name]
@@ -137,25 +143,21 @@ group_levels <- function(train.column, test.column, fraction, group_count) {
   train.column = factor(train.column)
   test.column = groups[as.numeric(factor(test.column, levels=level.names))]
   test.column = factor(test.column)
-    
-  # train.column = factor(groups[sapply(train.column, function(i){which(i == level.names)})])
-  # test.column = factor(groups[sapply(test.column, function(i){which(i == level.names)})], levels = levels(train.column))
   
   list(train = train.column, test = test.column)
 }
 
 group_feature_levels <- function(train.data, test.data) {
-  fraction = train.data$loan_status == 1
+  fraction = (train.data$loan_status == 1)
   
   r = group_levels(train.data[, "sub_grade"], test.data[, "sub_grade"],fraction, 10)
   train.data[, "sub_grade"] = r$train
   test.data[, "sub_grade"] = r$test
   
-
   r = group_levels(train.data[, "addr_state"], test.data[, "addr_state"],fraction, 10)
   train.data[, "addr_state"] = r$train
   test.data[, "addr_state"] = r$test
-
+  
   r = group_levels(train.data[, "zip_code"], test.data[, "zip_code"],fraction, 10)
   train.data[, "zip_code"] = r$train
   test.data[, "zip_code"] = r$test
@@ -184,11 +186,15 @@ add_features <- function(train.data, test.data){
 preprocess_data <- function(train.data, test.data){
   r = convert_label(train.data, test.data)
   r = add_features(r$train, r$test)
-  r = handle_missing(r$train, r$test)
   r = group_feature_levels(r$train, r$test)
-  r = remove_variables(r$train, r$test)
-
+  r = handle_missing(r$train, r$test)
+  r = remove_features(r$train, r$test)
+  
   return (r)
+}
+
+dumb_predict = function(train.data, test.data){
+  return (rep(0.2, nrow(test.data)))  
 }
 
 logreg_predict = function(train.data, test.data){
@@ -197,17 +203,12 @@ logreg_predict = function(train.data, test.data){
 }
 
 svm_predict = function(train.data, test.data) {
-  X_train = train.data[, colnames(train.data) != 'Sale_Price']
-  X_train = model.matrix(~., X_train)[, -1]
-  
-  Y_train = train.data$Sale_Price
-  
-  cv.out = cv.glmnet(X_train, Y_train, alpha = 1)
-  
-  X_test = test.data[, colnames(test.data) != 'loan_status']
-  X_test = model.matrix(~. -PID, X_test)[, -1]
-  #print(cv.out$lambda.min)
-  predict(cv.out, s = cv.out$lambda.min, newx = X_test)
+  # X_train = train.data[, colnames(train.data) != 'loan_status']
+  # X_train = model.matrix(~., X_train)[, -1]
+  # 
+  # Y_train = train.data$loan_status
+  model.fit = svm(loan_status ~ ., data = train.data, probability = TRUE)
+  predict(model.fit, test.data, probability = TRUE)
 }
 
 lasso_predict = function(train.data, test.data) {
@@ -277,15 +278,23 @@ if (exists("LABEL_FILE_NAME")){
 output_filenames = c("mysubmission1.txt", "mysubmission2.txt", "mysubmission3.txt")
 
 model_functions = list(
-  LogRegression = logreg_predict
-  # SVM = svm_predict,
-  # Lasso = lasso_predict,
+  # LogisticRegression = logreg_predict,
+  Dumb = dumb_predict,
+  Dumb = dumb_predict,
+  SVM = svm_predict
+  # Lasso = lasso_predict
   # Xgboost = xgb_predict
 )
 
 r = preprocess_data(train.data, test.data)
+if(exists("LOGLOSS") && exists("TEST_NUM")){
+  colnames(LOGLOSS) = rep(names(model_functions), 3)[1:(dim(LOGLOSS)[2])]
+}
 
 for (f in 1:length(model_functions)) {
-  logloss = train_predict(r$train, r$test, label.data, model_functions[[f]], output_filenames[f])
-  cat("Model:", names(model_functions)[f], "\t LogLoss=", logloss, "\n")
+  loss = train_predict(r$train, r$test, label.data, model_functions[[f]], output_filenames[f])
+  cat("Model:", names(model_functions)[f], "\t LogLoss=", loss, "\n")
+  if(exists("LOGLOSS") && exists("TEST_NUM")){
+    LOGLOSS[TEST_NUM, f] = loss
+  }
 }
