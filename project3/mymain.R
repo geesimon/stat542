@@ -209,8 +209,8 @@ svm_predict = function(train.data, test.data) {
   # X_train = model.matrix(~., X_train)[, -1]
   # 
   # Y_train = train.data$loan_status
-  model.fit = svm(loan_status ~ ., data = train.data, probability = TRUE)
-  predict(model.fit, test.data, probability = TRUE)
+  model.fit = ksvm(loan_status ~ ., data = train.data, prob.model=TRUE)
+  predict(model.fit, test.data, type="probabilities")
 }
 
 lasso_predict = function(train.data, test.data) {
