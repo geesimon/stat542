@@ -144,7 +144,7 @@ group_levels <- function(train.column, test.column, fraction, group_count) {
   train.column = groups[as.numeric(factor(train.column, levels=level.names))]
   train.column = factor(train.column)
   test.column = groups[as.numeric(factor(test.column, levels=level.names))]
-  test.column = factor(test.column)
+  test.column = factor(test.column, levels=levels(train.column))
   
   list(train = train.column, test = test.column)
 }
@@ -281,9 +281,9 @@ train_predict = function(train.data, test.data, label.data, model.func, output.f
 set.seed(6682)
 
 if (!exists("TRAIN_FILE_NAME")) {
-  TRAIN_FILE_NAME = "train1.csv"
-  TEST_FILE_NAME = "test1.csv"
-  LABEL_FILE_NAME = "label1.csv"
+  TRAIN_FILE_NAME = "train2.csv"
+  TEST_FILE_NAME = "test2.csv"
+  LABEL_FILE_NAME = "label2.csv"
 }
 train.data = read.csv(TRAIN_FILE_NAME)
 test.data = read.csv(TEST_FILE_NAME)
