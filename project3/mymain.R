@@ -144,7 +144,7 @@ group_levels <- function(train.column, test.column, fraction, group_count) {
   train.column = groups[as.numeric(factor(train.column, levels=level.names))]
   train.column = factor(train.column)
   test.column = groups[as.numeric(factor(test.column, levels=level.names))]
-  test.column = factor(test.column)
+  test.column = factor(test.column, levels=levels(train.column))
   
   list(train = train.column, test = test.column)
 }
@@ -209,8 +209,8 @@ svm_predict = function(train.data, test.data) {
   # X_train = model.matrix(~., X_train)[, -1]
   # 
   # Y_train = train.data$loan_status
-  model.fit = svm(loan_status ~ ., data = train.data, probability = TRUE)
-  predict(model.fit, test.data, probability = TRUE)
+  model.fit = ksvm(loan_status ~ ., data = train.data, prob.model=TRUE)
+  predict(model.fit, test.data, type="probabilities")
 }
 
 lasso_predict = function(train.data, test.data) {
@@ -235,12 +235,22 @@ xgb_predict = function(train.data, test.data) {
   #                     subsample = 0.75,
   #                     verbose = FALSE)
   
-  xgb.model = xgboost(data = X_train, label=Y_train, 
-                      objective = "binary:logistic", eval_metric = "auc",
-                      nrounds = 500,
-                      colsample_bytree = 0.6,
-                      subsample = 0.75,
-                      verbose = TRUE)
+  # xgb.model = xgboost(data = X_train, label=Y_train, 
+  #                     objective = "binary:logistic", eval_metric = "logloss",
+  #                     max_depth = 6,
+  #                     eta = 0.03, nrounds = 500,
+  #                     colsample_bytree = 0.6,
+  #                     subsample = 0.75,
+  #                     verbose = TRUE)
+  
+  dtrain <- xgb.DMatrix(X_train, label = Y_train)
+  cv <- xgb.cv(data=dtrain, objective = "binary:logistic", eval_metric = "logloss",
+         early_stopping_rounds = 5, 
+         max_depth = 6, nfold = 5,
+         eta = 0.03, nrounds = 500,
+         colsample_bytree = 0.6,
+         subsample = 0.75,
+         verbose = TRUE)
   
   X_test = model.matrix(~. -id, test.data)[, -1]
   predict(xgb.model, X_test, type="response")
@@ -267,11 +277,16 @@ catboost_predict = function(train.data, test.data) {
 
 rf_predict = function(train.data, test.data) {
   # X_train = train.data[, colnames(train.data) != 'loan_status']
-  train.data$loan_status = as.factor(train.data$loan_status)
+  # X_train = model.matrix(~., X_train)[, -1]
+  # Y_train = as.factor(train.data$loan_status)
+
   
+  train.data$loan_status = as.factor(train.data$loan_status)
   rf.model = randomForest(loan_status ~ ., data = train.data,
-                          do.trace = TRUE, ntree = 400);
-  predict(rf.model, test.data, type="prob")
+                          do.trace = TRUE, ntree = 500);
+  
+  # X_test = model.matrix(~. -id, test.data)[, -1]
+  predict(rf.model, test.data, type="prob")[,2]
 }
 
 train_predict = function(train.data, test.data, label.data, model.func, output.filename){
@@ -295,9 +310,9 @@ train_predict = function(train.data, test.data, label.data, model.func, output.f
 set.seed(6682)
 
 if (!exists("TRAIN_FILE_NAME")) {
-  TRAIN_FILE_NAME = "train1.csv"
-  TEST_FILE_NAME = "test1.csv"
-  LABEL_FILE_NAME = "label1.csv"
+  TRAIN_FILE_NAME = "train2.csv"
+  TEST_FILE_NAME = "test2.csv"
+  LABEL_FILE_NAME = "label2.csv"
 }
 train.data = read.csv(TRAIN_FILE_NAME)
 test.data = read.csv(TEST_FILE_NAME)
@@ -316,6 +331,7 @@ model_functions = list(
   # Lasso = lasso_predict,
   Xgboost = xgb_predict,
   RandomForest = rf_predict,
+  # Dumb = dumb_predict,
   Dumb = dumb_predict
 )
 
