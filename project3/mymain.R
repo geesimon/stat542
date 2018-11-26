@@ -235,12 +235,22 @@ xgb_predict = function(train.data, test.data) {
   #                     subsample = 0.75,
   #                     verbose = FALSE)
   
-  xgb.model = xgboost(data = X_train, label=Y_train, 
-                      objective = "binary:logistic", eval_metric = "auc",
-                      eta = 0.03, nrounds = 500,
-                      colsample_bytree = 0.6,
-                      subsample = 0.75,
-                      verbose = TRUE)
+  # xgb.model = xgboost(data = X_train, label=Y_train, 
+  #                     objective = "binary:logistic", eval_metric = "logloss",
+  #                     max_depth = 6,
+  #                     eta = 0.03, nrounds = 500,
+  #                     colsample_bytree = 0.6,
+  #                     subsample = 0.75,
+  #                     verbose = TRUE)
+  
+  dtrain <- xgb.DMatrix(X_train, label = Y_train)
+  cv <- xgb.cv(data=dtrain, objective = "binary:logistic", eval_metric = "logloss",
+         early_stopping_rounds = 5, 
+         max_depth = 6, nfold = 5,
+         eta = 0.03, nrounds = 500,
+         colsample_bytree = 0.6,
+         subsample = 0.75,
+         verbose = TRUE)
   
   X_test = model.matrix(~. -id, test.data)[, -1]
   predict(xgb.model, X_test, type="response")
