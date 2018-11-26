@@ -6,6 +6,7 @@
 if (!require("pacman")) install.packages("pacman")
 
 pacman::p_load(
+  "catboost",
   "e1071",
   "glmnet",
   "randomForest",
@@ -106,13 +107,10 @@ handle_missing <- function(train.data, test.data){
 }
 
 remove_features <- function(train.data, test.data){
-  # train.name = c('id','sub_grade', 'emp_title', 'title',
-  #                'zip_code', 'addr_state', 'earliest_cr_line')
-  # test.name = c('sub_grade', 'emp_title', 'title',
-  #              'zip_code', 'addr_state', 'earliest_cr_line')
-  train.name = c('id','emp_title', 'title', 'earliest_cr_line')
-  test.name = c('emp_title', 'title', 'earliest_cr_line')
-  
+  train.name = c('id','emp_title', 'title', 'zip_code', 'grade' ,'earliest_cr_line', 'fico_range_high', 'fico_range_low')
+  test.name = c('emp_title', 'title', 'zip_code', 'grade' ,'earliest_cr_line', 'fico_range_high', 'fico_range_low')
+
+    
   train.data = train.data[, !colnames(train.data) %in% train.name]
   test.data = test.data[, !colnames(test.data) %in% test.name]
   
@@ -152,13 +150,13 @@ group_levels <- function(train.column, test.column, fraction, group_count) {
 group_feature_levels <- function(train.data, test.data) {
   fraction = (train.data$loan_status == 1)
   
-  r = group_levels(train.data[, "sub_grade"], test.data[, "sub_grade"],fraction, 10)
-  train.data[, "sub_grade"] = r$train
-  test.data[, "sub_grade"] = r$test
-  
-  r = group_levels(train.data[, "addr_state"], test.data[, "addr_state"],fraction, 10)
-  train.data[, "addr_state"] = r$train
-  test.data[, "addr_state"] = r$test
+  # r = group_levels(train.data[, "sub_grade"], test.data[, "sub_grade"],fraction, 10)
+  # train.data[, "sub_grade"] = r$train
+  # test.data[, "sub_grade"] = r$test
+  # 
+  # r = group_levels(train.data[, "addr_state"], test.data[, "addr_state"],fraction, 10)
+  # train.data[, "addr_state"] = r$train
+  # test.data[, "addr_state"] = r$test
   
   r = group_levels(train.data[, "zip_code"], test.data[, "zip_code"],fraction, 10)
   train.data[, "zip_code"] = r$train
@@ -182,6 +180,9 @@ add_features <- function(train.data, test.data){
   
   Sys.setlocale("LC_TIME", lct)
   
+  train.data$fico_score = (train.data$fico_range_high + train.data$fico_range_low) / 2
+  test.data$fico_score = (test.data$fico_range_high + test.data$fico_range_low) / 2
+
   list(train = train.data, test = test.data)
 }
 
@@ -235,22 +236,22 @@ xgb_predict = function(train.data, test.data) {
   #                     subsample = 0.75,
   #                     verbose = FALSE)
   
-  # xgb.model = xgboost(data = X_train, label=Y_train, 
-  #                     objective = "binary:logistic", eval_metric = "logloss",
-  #                     max_depth = 6,
-  #                     eta = 0.03, nrounds = 500,
-  #                     colsample_bytree = 0.6,
-  #                     subsample = 0.75,
-  #                     verbose = TRUE)
+  xgb.model = xgboost(data = X_train, label=Y_train,
+                      objective = "binary:logistic", eval_metric = "logloss",
+                      max_depth = 6,
+                      eta = 0.1, nrounds = 1000,
+                      colsample_bytree = 0.6,
+                      subsample = 0.75,
+                      verbose = TRUE)
   
-  dtrain <- xgb.DMatrix(X_train, label = Y_train)
-  cv <- xgb.cv(data=dtrain, objective = "binary:logistic", eval_metric = "logloss",
-         early_stopping_rounds = 5, 
-         max_depth = 6, nfold = 5,
-         eta = 0.03, nrounds = 500,
-         colsample_bytree = 0.6,
-         subsample = 0.75,
-         verbose = TRUE)
+  # dtrain <- xgb.DMatrix(X_train, label = Y_train)
+  # cv <- xgb.cv(data=dtrain, objective = "binary:logistic", eval_metric = "logloss",
+  #        early_stopping_rounds = 5, 
+  #        max_depth = 6, nfold = 5,
+  #        eta = 0.03, nrounds = 600,
+  #        colsample_bytree = 0.6,
+  #        subsample = 0.75,
+  #        verbose = TRUE)
   
   X_test = model.matrix(~. -id, test.data)[, -1]
   predict(xgb.model, X_test, type="response")
@@ -262,10 +263,11 @@ catboost_predict = function(train.data, test.data) {
   X_train = model.matrix(~., X_train)[, -1]
   Y_train = train.data$loan_status
   
-  fit_params <- list(iterations = 500, task_type = 'GPU',
+  fit_params <- list(iterations = 1000, task_type = 'GPU',
                      loss_function = 'Logloss',
-                     depth = 5,
-                     learning_rate = 0.03)
+                     #depth = 6, rsm = 0.6,
+                     #logging_level = "Silent"
+                     learning_rate = 0.1)
   pool = catboost.load_pool(X_train, label = Y_train)
   
   cat.model <- catboost.train(pool, params = fit_params)
@@ -326,13 +328,14 @@ if (exists("LABEL_FILE_NAME")){
 output_filenames = c("mysubmission1.txt", "mysubmission2.txt", "mysubmission3.txt")
 
 model_functions = list(
-  # LogisticRegression = logreg_predict,
+  LogisticRegression = logreg_predict,
   # SVM = svm_predict,
-  # Lasso = lasso_predict,
-  Xgboost = xgb_predict,
-  RandomForest = rf_predict,
+  Lasso = lasso_predict,
+  CatBoost = catboost_predict,
+  #Xgboost = xgb_predict,
+  #RandomForest = rf_predict,
   # Dumb = dumb_predict,
-  Dumb = dumb_predict
+  #Dumb = dumb_predict
 )
 
 r = preprocess_data(train.data, test.data)
