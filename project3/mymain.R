@@ -246,6 +246,25 @@ xgb_predict = function(train.data, test.data) {
   predict(xgb.model, X_test, type="response")
 }
 
+catboost_predict = function(train.data, test.data) {
+  library(catboost)
+  X_train = train.data[, colnames(train.data) != 'loan_status']
+  X_train = model.matrix(~., X_train)[, -1]
+  Y_train = train.data$loan_status
+  
+  fit_params <- list(iterations = 500, task_type = 'GPU',
+                     loss_function = 'Logloss',
+                     depth = 5,
+                     learning_rate = 0.03)
+  pool = catboost.load_pool(X_train, label = Y_train)
+  
+  cat.model <- catboost.train(pool, params = fit_params)
+  
+  X_test = model.matrix(~. -id, test.data)[, -1]
+  
+  catboost.predict(cat.model, catboost.load_pool(X_test), prediction_type="Probability")
+}
+
 rf_predict = function(train.data, test.data) {
   # X_train = train.data[, colnames(train.data) != 'loan_status']
   train.data$loan_status = as.factor(train.data$loan_status)
