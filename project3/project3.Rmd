@@ -9,11 +9,17 @@ output: pdf_document
 - Dell Precision Tower 5810
 - CPU: Intel Xeon E5-1607 @ 3.10GHz
 - Memory: 32GB
+- GPU: Nvidia GeForce GTX 1080 (2 cards)
 
 ## Software
 - OS: Windows 10 Professional 64bit
 - R: 3.5.1
 - R Packages:
+    - randomForest_4.6-14
+    - glmnet_2.0-16
+    - xgboost_0.71.2
+    - kernlab_0.9-26
+    - catboost_0.11.1
 
 ```{r, eval=FALSE, include=FALSE}
 data.all = read.csv("loan_stat542.csv")
@@ -38,7 +44,59 @@ for (i in 1:(dim(test.id.all)[2])){
 }
 ```
 
-```{r, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+mypackages = c("knitr")   # required packages
+tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
+if (length(tmp) > 0) install.packages(tmp)
+lapply(mypackages, require, character.only = TRUE)
+```
+
+## Preprocessing and Feature Engineering
+
+Several approaches are taken to pre-process the data.
+
+- Response label: merge *Charged Off* with *Default* and convert it to 0/1.
+- Build new predictors to help training/prediction: 
+    - `earliest_cr_line_mon`: derived from *earliest_cr_line* that indicates how many months has elapsed till *2019-1-1* when the borrower's earliest reported credit line was opened. Then use this predictor instead of earliest_cr_line to build the model.
+    - `fico_score`: consolidate *fico_range_high* and *fico_range_low* using formula: *(fico_range_high + fico_range_low) / 2*.
+- Level grouping: 
+    - `zip_code`: it has more than 900 values, I group these values to 10 new levels to reduce memory usage and improve performance.
+- Remove predictors: remove less useful and redundant predictors.
+    - `emp_title`, `title`, `grade` (redundant with *sub_grade*) ,`earliest_cr_line`, `fico_range_high`, `fico_range_low`.
+
+## Models
+
+For testing purpose, I build 7 models,
+
+- Dumb model: just predict 0.2 for every sample.
+- Logistic Regression
+- Boosting (Xgboost, catboost)
+- RandomForest
+- Lasso
+- liner SVM
+
+Suprisingly, Dumb model can achive `0.504` logloss score. kernlab *ksvm()* fails to build the model (hang forever).  Lasso and RandomForest can't make significant better results than Logistic regression although they take much longer time to build. Thus, I will use `dumb`, `Logistic Regression` and `Boosting` models. 
+
+**Note**: My testing shows catboost performs at least 10x faster than xgboost when building the model (even without GPU). However, given catboost is not in CRAN repository and I'm worried it may have difficulty to be installed in the grading env, I will still use xgboost to build the boosting model.
+
+## Evaluation
+
+I tested all 3 test datasets against these models with the parameters,
+
+- Dumb: None
+- Logistic Regression: liner with all predictors.
+- Xgboost: max_depth = 6, eta = 0.1, nrounds = 1000, colsample_bytree = 0.6, subsample = 0.75.
+
+The LogLoss scores are,
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+load("EVAL.OBJ")
+
+test.results = rbind(eval.obj$loss, Average=colMeans(eval.obj$loss))
+kable(test.results)
+```
+
+```{r eval=FALSE, warning=FALSE, include=FALSE}
 #########################################################################
 # Test code begins
 
@@ -60,9 +118,14 @@ run.time = as.numeric(difftime(end.time, start.time, units = 'secs'))
 
 print(LOGLOSS)
 cat("\nComputation time:", ceiling(run.time), "Seconds")
+
+eval.obj = list(loss=LOGLOSS, compute.time=run.time)
+save(eval.obj, file="EVAL.OBJ")
 ```
 
-```{r}
+Computation time: `r ceiling(eval.obj$compute.time)` seconds
+
+```{r eval=FALSE, include=FALSE}
 # # submission files
 # allFiles = list.files()
 # subFiles = grep('mysubmission', allFiles, value = TRUE, 
