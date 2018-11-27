@@ -7,7 +7,6 @@ if (!require("pacman")) install.packages("pacman")
 
 pacman::p_load(
   "catboost",
-  "e1071",
   "glmnet",
   "randomForest",
   "xgboost",
@@ -107,8 +106,8 @@ handle_missing <- function(train.data, test.data){
 }
 
 remove_features <- function(train.data, test.data){
-  train.name = c('id','emp_title', 'title', 'zip_code', 'grade' ,'earliest_cr_line', 'fico_range_high', 'fico_range_low')
-  test.name = c('emp_title', 'title', 'zip_code', 'grade' ,'earliest_cr_line', 'fico_range_high', 'fico_range_low')
+  train.name = c('id','emp_title', 'title', 'grade' ,'earliest_cr_line', 'fico_range_high', 'fico_range_low')
+  test.name = c('emp_title', 'title', 'grade' ,'earliest_cr_line', 'fico_range_high', 'fico_range_low')
 
     
   train.data = train.data[, !colnames(train.data) %in% train.name]
@@ -183,6 +182,9 @@ add_features <- function(train.data, test.data){
   train.data$fico_score = (train.data$fico_range_high + train.data$fico_range_low) / 2
   test.data$fico_score = (test.data$fico_range_high + test.data$fico_range_low) / 2
 
+  train.data$annual_inc = log(train.data$annual_inc)
+  test.data$annual_inc = log(test.data$annual_inc)
+  
   list(train = train.data, test = test.data)
 }
 
@@ -196,6 +198,7 @@ preprocess_data <- function(train.data, test.data){
   return (r)
 }
 
+###### Build Models ######
 dumb_predict = function(train.data, test.data){
   return (rep(0.2, nrow(test.data)))  
 }
@@ -206,10 +209,6 @@ logreg_predict = function(train.data, test.data){
 }
 
 svm_predict = function(train.data, test.data) {
-  # X_train = train.data[, colnames(train.data) != 'loan_status']
-  # X_train = model.matrix(~., X_train)[, -1]
-  # 
-  # Y_train = train.data$loan_status
   model.fit = ksvm(loan_status ~ ., data = train.data, prob.model=TRUE)
   predict(model.fit, test.data, type="probabilities")
 }
@@ -266,7 +265,7 @@ catboost_predict = function(train.data, test.data) {
   fit_params <- list(iterations = 1000, task_type = 'GPU',
                      loss_function = 'Logloss',
                      #depth = 6, rsm = 0.6,
-                     #logging_level = "Silent"
+                     #logging_level = "Silent",
                      learning_rate = 0.1)
   pool = catboost.load_pool(X_train, label = Y_train)
   
@@ -278,16 +277,10 @@ catboost_predict = function(train.data, test.data) {
 }
 
 rf_predict = function(train.data, test.data) {
-  # X_train = train.data[, colnames(train.data) != 'loan_status']
-  # X_train = model.matrix(~., X_train)[, -1]
-  # Y_train = as.factor(train.data$loan_status)
-
-  
   train.data$loan_status = as.factor(train.data$loan_status)
   rf.model = randomForest(loan_status ~ ., data = train.data,
                           do.trace = TRUE, ntree = 500);
   
-  # X_test = model.matrix(~. -id, test.data)[, -1]
   predict(rf.model, test.data, type="prob")[,2]
 }
 
@@ -312,9 +305,9 @@ train_predict = function(train.data, test.data, label.data, model.func, output.f
 set.seed(6682)
 
 if (!exists("TRAIN_FILE_NAME")) {
-  TRAIN_FILE_NAME = "train2.csv"
-  TEST_FILE_NAME = "test2.csv"
-  LABEL_FILE_NAME = "label2.csv"
+  TRAIN_FILE_NAME = "train.csv"
+  TEST_FILE_NAME = "test.csv"
+  #LABEL_FILE_NAME = "label.csv"
 }
 train.data = read.csv(TRAIN_FILE_NAME)
 test.data = read.csv(TEST_FILE_NAME)
@@ -328,14 +321,15 @@ if (exists("LABEL_FILE_NAME")){
 output_filenames = c("mysubmission1.txt", "mysubmission2.txt", "mysubmission3.txt")
 
 model_functions = list(
-  LogisticRegression = logreg_predict,
-  # SVM = svm_predict,
-  Lasso = lasso_predict,
-  CatBoost = catboost_predict,
-  #Xgboost = xgb_predict,
-  #RandomForest = rf_predict,
   # Dumb = dumb_predict,
-  #Dumb = dumb_predict
+  #LogisticRegression = logreg_predict,
+  # SVM = svm_predict,
+  #Lasso = lasso_predict,
+  CatBoost = catboost_predict,
+  #Xgboost = xgb_predict
+  #RandomForest = rf_predict,
+  Dumb = dumb_predict,
+  Dumb = dumb_predict
 )
 
 r = preprocess_data(train.data, test.data)
