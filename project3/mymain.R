@@ -182,8 +182,8 @@ add_features <- function(train.data, test.data){
   train.data$fico_score = (train.data$fico_range_high + train.data$fico_range_low) / 2
   test.data$fico_score = (test.data$fico_range_high + test.data$fico_range_low) / 2
 
-  train.data$annual_inc = log(train.data$annual_inc)
-  test.data$annual_inc = log(test.data$annual_inc)
+  train.data$annual_inc = log(train.data$annual_inc + 0.01)
+  test.data$annual_inc = log(test.data$annual_inc + 0.01)
   
   list(train = train.data, test = test.data)
 }
@@ -229,28 +229,26 @@ xgb_predict = function(train.data, test.data) {
   X_train = model.matrix(~., X_train)[, -1]
   Y_train = train.data$loan_status
   
-  # xgb_model = xgboost(data = X_train, label=Y_train, max_depth = 6,
-  #                     eta = 0.03, nrounds = 500,
-  #                     colsample_bytree = 0.6,
-  #                     subsample = 0.75,
-  #                     verbose = FALSE)
-  
-  xgb.model = xgboost(data = X_train, label=Y_train,
-                      objective = "binary:logistic", eval_metric = "logloss",
-                      max_depth = 6,
-                      eta = 0.1, nrounds = 1000,
-                      colsample_bytree = 0.6,
-                      subsample = 0.75,
-                      verbose = TRUE)
+
+  # xgb.model = xgboost(data = X_train, label=Y_train,
+  #                     objective = "binary:logistic", eval_metric = "logloss",
+  #                     # max_depth = 6,
+  #                     # eta = 0.05, 
+  #                     nrounds = 114,
+  #                     # colsample_bytree = 0.6,
+  #                     # subsample = 0.75,
+  #                     verbose = TRUE)
   
   # dtrain <- xgb.DMatrix(X_train, label = Y_train)
-  # cv <- xgb.cv(data=dtrain, objective = "binary:logistic", eval_metric = "logloss",
-  #        early_stopping_rounds = 5, 
-  #        max_depth = 6, nfold = 5,
-  #        eta = 0.03, nrounds = 600,
-  #        colsample_bytree = 0.6,
-  #        subsample = 0.75,
-  #        verbose = TRUE)
+  cv <- xgb.cv(data = X_train, label = Y_train,
+               objective = "binary:logistic", eval_metric = "logloss",
+                early_stopping_rounds = 10,
+                # max_depth = 6,
+                nfold = 5, nrounds = 2000,
+                eta = 0.06,
+                # colsample_bytree = 0.6,
+                # subsample = 0.75,
+                verbose = TRUE)
   
   X_test = model.matrix(~. -id, test.data)[, -1]
   predict(xgb.model, X_test, type="response")
@@ -307,7 +305,7 @@ set.seed(6682)
 if (!exists("TRAIN_FILE_NAME")) {
   TRAIN_FILE_NAME = "train.csv"
   TEST_FILE_NAME = "test.csv"
-  #LABEL_FILE_NAME = "label.csv"
+  LABEL_FILE_NAME = "label.csv"
 }
 train.data = read.csv(TRAIN_FILE_NAME)
 test.data = read.csv(TEST_FILE_NAME)
@@ -322,11 +320,11 @@ output_filenames = c("mysubmission1.txt", "mysubmission2.txt", "mysubmission3.tx
 
 model_functions = list(
   # Dumb = dumb_predict,
-  #LogisticRegression = logreg_predict,
+  # LogisticRegression = logreg_predict,
   # SVM = svm_predict,
   #Lasso = lasso_predict,
-  CatBoost = catboost_predict,
-  #Xgboost = xgb_predict
+  # CatBoost = catboost_predict,
+  Xgboost = xgb_predict,
   #RandomForest = rf_predict,
   Dumb = dumb_predict,
   Dumb = dumb_predict
