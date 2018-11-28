@@ -1,12 +1,9 @@
 ################ Load Environment ##################
-# clean workspace
-#rm(list = ls())
-
 # load necessary packages
 if (!require("pacman")) install.packages("pacman")
 
 pacman::p_load(
-  "catboost",
+  #"catboost",
   "glmnet",
   "randomForest",
   "xgboost",
@@ -306,7 +303,6 @@ set.seed(6682)
 if (!exists("TRAIN_FILE_NAME")) {
   TRAIN_FILE_NAME = "train.csv"
   TEST_FILE_NAME = "test.csv"
-  LABEL_FILE_NAME = "label.csv"
 }
 train.data = read.csv(TRAIN_FILE_NAME)
 test.data = read.csv(TEST_FILE_NAME)
@@ -323,10 +319,11 @@ model_functions = list(
   # Dumb = dumb_predict,
   # LogisticRegression = logreg_predict,
   # SVM = svm_predict,
-  #Lasso = lasso_predict,
+  # Lasso = lasso_predict,
   # CatBoost = catboost_predict,
-  Xgboost = xgb_predict,
-  #RandomForest = rf_predict,
+  # Xgboost = xgb_predict,
+  # RandomForest = rf_predict,
+  Dumb = dumb_predict,
   Dumb = dumb_predict,
   Dumb = dumb_predict
 )
