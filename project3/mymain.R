@@ -25,6 +25,20 @@ logLoss = function(y, p){
   mean(ifelse(y == 1, -log(p), -log(1 - p)))
 }
 
+Winsorization = function (data, filter_by, fraction=.05)
+{
+  if(length(fraction) != 1 || fraction < 0 ||
+     fraction > 0.5) {
+    stop("bad value for 'fraction'")
+  }
+  lim = quantile(data[,filter_by], probs=c(fraction, 1-fraction))
+  
+  data[data[,filter_by]< lim[1],filter_by] = lim[1]
+  data[data[,filter_by] > lim[2], filter_by] = lim[2]
+  
+  data
+}
+
 ###### Pre-processing and Feature Engineering Functions ######
 convert_label <- function(train.data, test.data){
   train.data$loan_status[train.data$loan_status == "Charged Off"] = "Default"
@@ -192,6 +206,8 @@ preprocess_data <- function(train.data, test.data){
   r = handle_missing(r$train, r$test)
   r = remove_features(r$train, r$test)
   
+  r$train = Winsorization(r$train, "dti")
+  
   return (r)
 }
 
@@ -258,7 +274,7 @@ catboost_predict = function(train.data, test.data) {
   X_train = model.matrix(~., X_train)[, -1]
   Y_train = train.data$loan_status
   
-  fit_params <- list(iterations = 1200, #task_type = 'GPU',
+  fit_params <- list(iterations = 1200, task_type = 'GPU',
                      loss_function = 'Logloss',
                      #logging_level = "Silent",
                      learning_rate = 0.09)
@@ -318,7 +334,8 @@ output_filenames = c("mysubmission1.txt", "mysubmission2.txt", "mysubmission3.tx
 
 model_functions = list(
   Dumb = dumb_predict,
-  LogisticRegression = logreg_predict,
+  Dumb = dumb_predict,
+  #LogisticRegression = logreg_predict,
   # SVM = svm_predict,
   #Lasso = lasso_predict,
   Boosting = catboost_predict
