@@ -71,14 +71,14 @@ For testing purpose, I build 7 models,
 
 - Dumb model: just predict 0.2 for every sample.
 - Logistic Regression
-- Boosting (Xgboost, CatBoost)
+- Boosting (XGBoost, CatBoost)
 - RandomForest
 - Lasso
 - liner SVM
 
 Suprisingly, Dumb model can achieve `0.504` logloss score. kernlab *ksvm()* fails to build the model (hang forever).  lasso and random forest don't give me significant improvement than logistic regression and they take much longer time to build. Thus, I will pick `dumb`, `Logistic Regression` and `Boosting` as my final models. 
 
-**Note**: My testing shows catboost performs at least 10x faster than xgboost (even without GPU). However, given catboost is not in standard CRAN repository and I'm worried it may have difficulty to be installed in the grading environment, I will still use xgboost to build the boosting model.
+**Note**: My testing shows CatBoost performs at least 10x faster than XGBoost (even without GPU). In case catboost library is not installed xgboost will be used.
 
 ## Evaluation
 
@@ -86,7 +86,7 @@ I tested all 3 test datasets against these models with the parameters,
 
 - Dumb: None
 - Logistic Regression: liner with all predictors.
-- Xgboost: max_depth = 6, eta = 0.1, nrounds = 1200, colsample_bytree = 0.6, subsample = 0.75.
+- Boosting: learning_rate = 0.09, nrounds = 1200
 
 The LogLoss scores are,
 
