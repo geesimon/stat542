@@ -1,7 +1,4 @@
 ################ Load Environment ##################
-# clean workspace
-#rm(list = ls())
-
 # load necessary packages
 if (!require("pacman")) install.packages("pacman")
 
@@ -284,8 +281,9 @@ rf_predict = function(train.data, test.data) {
 
 train_predict = function(train.data, test.data, label.data, model.func, output.filename){
   pred = model.func(train.data, test.data)
+  pred = round(pred, 2)
   
-  output = cbind(test.data$id, round(pred, 2))
+  output = cbind(test.data$id, pred)
   colnames(output) = c("id", "prob")
   
   write.csv(output, output.filename, row.names = FALSE, quote = FALSE)
@@ -306,7 +304,6 @@ if (!exists("TRAIN_FILE_NAME")) {
   TRAIN_FILE_NAME = "train.csv"
   TEST_FILE_NAME = "test.csv"
   # LABEL_FILE_NAME = "label.csv"
-}
 train.data = read.csv(TRAIN_FILE_NAME)
 test.data = read.csv(TEST_FILE_NAME)
 
@@ -327,6 +324,7 @@ model_functions = list(
   # Xgboost = xgb_predict,
   #RandomForest = rf_predict,
   # Dumb = dumb_predict,
+
   Dumb = dumb_predict
 )
 
