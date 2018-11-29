@@ -21,6 +21,14 @@ output: pdf_document
     - kernlab_0.9-26
     - catboost_0.11.1
 
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+mypackages = c("knitr", "kableExtra")   # required packages
+tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
+if (length(tmp) > 0) install.packages(tmp)
+lapply(mypackages, require, character.only = TRUE)
+```
+
+
 ```{r, eval=FALSE, include=FALSE}
 data.all = read.csv("loan_stat542.csv")
 test.id.all = read.csv("Project3_test_id.csv")
@@ -44,25 +52,18 @@ for (i in 1:(dim(test.id.all)[2])){
 }
 ```
 
-```{r, message=FALSE, warning=FALSE, include=FALSE}
-mypackages = c("knitr")   # required packages
-tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
-if (length(tmp) > 0) install.packages(tmp)
-lapply(mypackages, require, character.only = TRUE)
-```
-
 ## Preprocessing and Feature Engineering
 
 Several approaches are taken to pre-process the data.
 
-- Response label: merge *Charged Off* with *Default* and convert it to 0/1.
+- Response label: merge *Charged Off* with *Default* and convert label values to 0 or 1.
 - Build new predictors to help training/prediction: 
-    - `earliest_cr_line_mon`: derived from *earliest_cr_line* that indicates how many months has elapsed till *2019-1-1* when the borrower's earliest reported credit line was opened. Then use this predictor instead of earliest_cr_line to build the model.
+    - `earliest_cr_line_mon`: derived from *earliest_cr_line* that indicates how many months has elapsed till *2019-1-1* when the borrower's earliest reported credit line was opened.
     - `fico_score`: consolidate *fico_range_high* and *fico_range_low* using formula: *(fico_range_high + fico_range_low) / 2*.
 - Level grouping: 
-    - `zip_code`: it has more than 900 values, I group these values to 10 new levels to reduce memory usage and improve performance.
+    - `zip_code`: it has more than 900 levels, I group these values to 10 new levels to reduce memory usage and improve performance.
 - Remove predictors: remove less useful and redundant predictors.
-    - `emp_title`, `title`, `grade` (redundant with *sub_grade*) ,`earliest_cr_line`, `fico_range_high`, `fico_range_low`.
+    - `emp_title` (too many levels), `title` (redundant with *purpose*), `grade` (redundant with *sub_grade*) ,`earliest_cr_line`, `fico_range_high`, `fico_range_low`.
 
 ## Models
 
@@ -70,14 +71,14 @@ For testing purpose, I build 7 models,
 
 - Dumb model: just predict 0.2 for every sample.
 - Logistic Regression
-- Boosting (Xgboost, catboost)
+- Boosting (Xgboost, CatBoost)
 - RandomForest
 - Lasso
 - liner SVM
 
-Suprisingly, Dumb model can achive `0.504` logloss score. kernlab *ksvm()* fails to build the model (hang forever).  Lasso and RandomForest can't make significant better results than Logistic regression although they take much longer time to build. Thus, I will use `dumb`, `Logistic Regression` and `Boosting` models. 
+Suprisingly, Dumb model can achieve `0.504` logloss score. kernlab *ksvm()* fails to build the model (hang forever).  lasso and random forest don't give me significant improvement than logistic regression and they take much longer time to build. Thus, I will pick `dumb`, `Logistic Regression` and `Boosting` as my final models. 
 
-**Note**: My testing shows catboost performs at least 10x faster than xgboost when building the model (even without GPU). However, given catboost is not in CRAN repository and I'm worried it may have difficulty to be installed in the grading env, I will still use xgboost to build the boosting model.
+**Note**: My testing shows catboost performs at least 10x faster than xgboost (even without GPU). However, given catboost is not in standard CRAN repository and I'm worried it may have difficulty to be installed in the grading environment, I will still use xgboost to build the boosting model.
 
 ## Evaluation
 
@@ -93,7 +94,8 @@ The LogLoss scores are,
 load("EVAL.OBJ")
 
 test.results = rbind(eval.obj$loss, Average=colMeans(eval.obj$loss))
-kable(test.results)
+kable(test.results) %>%
+  kable_styling(latex_options = "striped")
 ```
 
 ```{r eval=FALSE, warning=FALSE, include=FALSE}
