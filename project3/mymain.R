@@ -258,7 +258,7 @@ catboost_predict = function(train.data, test.data) {
   X_train = model.matrix(~., X_train)[, -1]
   Y_train = train.data$loan_status
   
-  fit_params <- list(iterations = 1200, task_type = 'GPU',
+  fit_params <- list(iterations = 1200, #task_type = 'GPU',
                      loss_function = 'Logloss',
                      #logging_level = "Silent",
                      learning_rate = 0.09)
@@ -304,6 +304,8 @@ if (!exists("TRAIN_FILE_NAME")) {
   TRAIN_FILE_NAME = "train.csv"
   TEST_FILE_NAME = "test.csv"
   # LABEL_FILE_NAME = "label.csv"
+}
+
 train.data = read.csv(TRAIN_FILE_NAME)
 test.data = read.csv(TEST_FILE_NAME)
 
@@ -320,7 +322,7 @@ model_functions = list(
   LogisticRegression = logreg_predict,
   # SVM = svm_predict,
   #Lasso = lasso_predict,
-  CatBoost = catboost_predict,
+  Boosting = catboost_predict,
   # Xgboost = xgb_predict,
   #RandomForest = rf_predict,
   # Dumb = dumb_predict,
