@@ -291,7 +291,7 @@ train_predict = function(train.data, test.data, label.data, model.func, output.f
   if(!is.null(label.data)){
     return (logLoss(label.data$y, pred))
   } else {
-    return (0)
+    return ("Unknown")
   }
 }
 
@@ -317,14 +317,14 @@ if (exists("LABEL_FILE_NAME")){
 output_filenames = c("mysubmission1.txt", "mysubmission2.txt", "mysubmission3.txt")
 
 model_functions = list(
+  Dumb = dumb_predict,
   LogisticRegression = logreg_predict,
   # SVM = svm_predict,
   #Lasso = lasso_predict,
-  Boosting = catboost_predict,
+  Boosting = catboost_predict
   # Xgboost = xgb_predict,
   #RandomForest = rf_predict,
   # Dumb = dumb_predict,
-  Dumb = dumb_predict
 )
 
 r = preprocess_data(train.data, test.data)

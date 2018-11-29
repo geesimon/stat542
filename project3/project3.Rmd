@@ -126,30 +126,3 @@ save(eval.obj, file="EVAL.OBJ")
 ```
 
 Computation time: `r ceiling(eval.obj$compute.time)` seconds
-
-```{r eval=FALSE, include=FALSE}
-# # submission files
-# allFiles = list.files()
-# subFiles = grep('mysubmission', allFiles, value = TRUE, 
-#                 ignore.case = TRUE)
-# 
-# # calculate the test error on the test set
-# test = read.csv('test.csv')
-# 
-# label = read.csv('label.csv', sep = ',')
-# err = rep(NA, length(subFiles))
-# for (met in 1:length(subFiles)){
-# 
-#     prediction = read.csv(subFiles[met], sep = ',')
-#     yp = merge(prediction, label, by = 'id', all.y = TRUE)
-#     err[met] = with(yp, logLoss(y, prob))
-#     
-# }
-# 
-# #########################################################################
-# write.table(err, file = 'proj_3.csv', sep = ',', row.names = FALSE,
-#             col.names = FALSE)
-# write.table(run.time, file = 'proj_3.csv', sep = ',', 
-#             row.names = FALSE, col.names = FALSE, append = TRUE)
-```
-
