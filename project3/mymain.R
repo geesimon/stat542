@@ -303,7 +303,6 @@ set.seed(6682)
 if (!exists("TRAIN_FILE_NAME")) {
   TRAIN_FILE_NAME = "train.csv"
   TEST_FILE_NAME = "test.csv"
-  # LABEL_FILE_NAME = "label.csv"
 }
 
 train.data = read.csv(TRAIN_FILE_NAME)
@@ -318,7 +317,6 @@ if (exists("LABEL_FILE_NAME")){
 output_filenames = c("mysubmission1.txt", "mysubmission2.txt", "mysubmission3.txt")
 
 model_functions = list(
-  # Dumb = dumb_predict,
   LogisticRegression = logreg_predict,
   # SVM = svm_predict,
   #Lasso = lasso_predict,
@@ -326,7 +324,6 @@ model_functions = list(
   # Xgboost = xgb_predict,
   #RandomForest = rf_predict,
   # Dumb = dumb_predict,
-
   Dumb = dumb_predict
 )
 
