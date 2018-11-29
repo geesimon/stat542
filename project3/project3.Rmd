@@ -15,11 +15,11 @@ output: pdf_document
 - OS: Windows 10 Professional 64bit
 - R: 3.5.1
 - R Packages:
+    - catboost_0.11.1
+    - xgboost_0.71.2
     - randomForest_4.6-14
     - glmnet_2.0-16
-    - xgboost_0.71.2
     - kernlab_0.9-26
-    - catboost_0.11.1
 
 ```{r, message=FALSE, warning=FALSE, include=FALSE}
 mypackages = c("knitr", "kableExtra")   # required packages
@@ -78,7 +78,7 @@ For testing purpose, I build 7 models,
 
 Suprisingly, Dumb model can achieve `0.504` logloss score. kernlab *ksvm()* fails to build the model (hang forever).  lasso and random forest don't give me significant improvement than logistic regression and they take much longer time to build. Thus, I will pick `dumb`, `Logistic Regression` and `Boosting` as my final models. 
 
-**Note**: My testing shows CatBoost performs at least 10x faster than XGBoost (even without GPU). In case catboost library is not installed xgboost will be used.
+**Note**: My testing shows CatBoost performs at least 10x faster than XGBoost (even without GPU). In case catboost library is not installed, xgboost will be used.
 
 ## Evaluation
 
@@ -86,7 +86,7 @@ I tested all 3 test datasets against these models with the parameters,
 
 - Dumb: None
 - Logistic Regression: liner with all predictors.
-- Boosting: learning_rate = 0.09, nrounds = 1200
+- Boosting: learning_rate = 0.09, iterations = 1200.
 
 The LogLoss scores are,
 
