@@ -85,7 +85,7 @@ I tested all 3 test datasets against these models with the parameters,
 
 - Dumb: None
 - Logistic Regression: liner with all predictors.
-- Xgboost: max_depth = 6, eta = 0.1, nrounds = 1000, colsample_bytree = 0.6, subsample = 0.75.
+- Xgboost: max_depth = 6, eta = 0.1, nrounds = 1200, colsample_bytree = 0.6, subsample = 0.75.
 
 The LogLoss scores are,
 

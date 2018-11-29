@@ -6,7 +6,7 @@
 if (!require("pacman")) install.packages("pacman")
 
 pacman::p_load(
-  "catboost",
+  #"catboost",
   "glmnet",
   "randomForest",
   "xgboost",
@@ -230,41 +230,41 @@ xgb_predict = function(train.data, test.data) {
   Y_train = train.data$loan_status
   
 
-  # xgb.model = xgboost(data = X_train, label=Y_train,
-  #                     objective = "binary:logistic", eval_metric = "logloss",
-  #                     # max_depth = 6,
-  #                     # eta = 0.05, 
-  #                     nrounds = 114,
-  #                     # colsample_bytree = 0.6,
-  #                     # subsample = 0.75,
-  #                     verbose = TRUE)
+  xgb.model = xgboost(data = X_train, label=Y_train,
+                      objective = "binary:logistic", eval_metric = "logloss",
+                      eta = 0.09,
+                      nrounds = 1200,
+                      # colsample_bytree = 0.6,
+                      # subsample = 0.75,
+                      verbose = TRUE)
   
   # dtrain <- xgb.DMatrix(X_train, label = Y_train)
-  cv <- xgb.cv(data = X_train, label = Y_train,
-               objective = "binary:logistic", eval_metric = "logloss",
-                early_stopping_rounds = 10,
-                # max_depth = 6,
-                nfold = 5, nrounds = 2000,
-                eta = 0.06,
-                # colsample_bytree = 0.6,
-                # subsample = 0.75,
-                verbose = TRUE)
+  # cv <- xgb.cv(data = X_train, label = Y_train,
+  #              objective = "binary:logistic", eval_metric = "logloss",
+  #               early_stopping_rounds = 10,
+  #               # max_depth = 6,
+  #               nfold = 5, nrounds = 2000,
+  #               eta = 0.03,
+  #               # colsample_bytree = 0.6,
+  #               # subsample = 0.75,
+  #               verbose = TRUE)
   
   X_test = model.matrix(~. -id, test.data)[, -1]
   predict(xgb.model, X_test, type="response")
 }
 
 catboost_predict = function(train.data, test.data) {
-  library(catboost)
+  if(!require(catboost)){
+    return (xgb_predict(train.data, test.data))
+  }
   X_train = train.data[, colnames(train.data) != 'loan_status']
   X_train = model.matrix(~., X_train)[, -1]
   Y_train = train.data$loan_status
   
-  fit_params <- list(iterations = 1000, task_type = 'GPU',
+  fit_params <- list(iterations = 1200, task_type = 'GPU',
                      loss_function = 'Logloss',
-                     #depth = 6, rsm = 0.6,
                      #logging_level = "Silent",
-                     learning_rate = 0.1)
+                     learning_rate = 0.09)
   pool = catboost.load_pool(X_train, label = Y_train)
   
   cat.model <- catboost.train(pool, params = fit_params)
@@ -305,7 +305,7 @@ set.seed(6682)
 if (!exists("TRAIN_FILE_NAME")) {
   TRAIN_FILE_NAME = "train.csv"
   TEST_FILE_NAME = "test.csv"
-  LABEL_FILE_NAME = "label.csv"
+  # LABEL_FILE_NAME = "label.csv"
 }
 train.data = read.csv(TRAIN_FILE_NAME)
 test.data = read.csv(TEST_FILE_NAME)
@@ -320,13 +320,13 @@ output_filenames = c("mysubmission1.txt", "mysubmission2.txt", "mysubmission3.tx
 
 model_functions = list(
   # Dumb = dumb_predict,
-  # LogisticRegression = logreg_predict,
+  LogisticRegression = logreg_predict,
   # SVM = svm_predict,
   #Lasso = lasso_predict,
-  # CatBoost = catboost_predict,
-  Xgboost = xgb_predict,
+  CatBoost = catboost_predict,
+  # Xgboost = xgb_predict,
   #RandomForest = rf_predict,
-  Dumb = dumb_predict,
+  # Dumb = dumb_predict,
   Dumb = dumb_predict
 )
 
