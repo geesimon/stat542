@@ -206,7 +206,7 @@ preprocess_data <- function(train.data, test.data){
   r = handle_missing(r$train, r$test)
   r = remove_features(r$train, r$test)
   
-  r$train = Winsorization(r$train, "dti")
+  # r$train = Winsorization(r$train, "dti")
   
   return (r)
 }
@@ -268,19 +268,29 @@ xgb_predict = function(train.data, test.data) {
 
 catboost_predict = function(train.data, test.data) {
   if(!require(catboost)){
+    print("Switch to XGBoost")
     return (xgb_predict(train.data, test.data))
   }
   X_train = train.data[, colnames(train.data) != 'loan_status']
   X_train = model.matrix(~., X_train)[, -1]
   Y_train = train.data$loan_status
   
-  fit_params <- list(iterations = 1200, task_type = 'GPU',
+  fit_params <- list(iterations = 1233, #task_type = 'GPU',
+                     #use_best_model = TRUE,
                      loss_function = 'Logloss',
+                     #eval_metric = 'Logloss',
                      #logging_level = "Silent",
                      learning_rate = 0.09)
-  pool = catboost.load_pool(X_train, label = Y_train)
+  test_ids = sample(1:nrow(X_train), nrow(X_train) * 0.2)
   
-  cat.model <- catboost.train(pool, params = fit_params)
+  # learn_pool = catboost.load_pool(X_train[-test_ids,], label = Y_train[-test_ids])
+  # test_pool =  catboost.load_pool(X_train[test_ids,], label = Y_train[test_ids])
+  # 
+  # cat.model <- catboost.train(learn_pool, test_pool, params = fit_params)
+  
+  learn_pool = catboost.load_pool(X_train, label = Y_train)
+  cat.model <- catboost.train(learn_pool, params = fit_params)
+  
   
   X_test = model.matrix(~. -id, test.data)[, -1]
   
@@ -334,8 +344,8 @@ output_filenames = c("mysubmission1.txt", "mysubmission2.txt", "mysubmission3.tx
 
 model_functions = list(
   Dumb = dumb_predict,
-  Dumb = dumb_predict,
-  #LogisticRegression = logreg_predict,
+  # Dumb = dumb_predict,
+  LogisticRegression = logreg_predict,
   # SVM = svm_predict,
   #Lasso = lasso_predict,
   Boosting = catboost_predict
