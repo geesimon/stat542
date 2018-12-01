@@ -56,7 +56,7 @@ for (i in 1:(dim(test.id.all)[2])){
 
 Several approaches are taken to pre-process the data.
 
-- Response label: merge *Charged Off* with *Default* and convert label values to 0 or 1.
+- Response label: merge *Charged Off* to *Default* and convert the label value to 0 or 1.
 - Build new predictors to help training/prediction: 
     - `earliest_cr_line_mon`: derived from *earliest_cr_line* that indicates how many months has elapsed till *2019-1-1* when the borrower's earliest reported credit line was opened.
     - `fico_score`: consolidate *fico_range_high* and *fico_range_low* using formula: *(fico_range_high + fico_range_low) / 2*.
@@ -69,7 +69,7 @@ Several approaches are taken to pre-process the data.
 
 For testing purpose, I build 7 models,
 
-- Dumb model: just predict 0.2 for every sample.
+- Dumb model: this is the simplest model that predict 0.2 for every sample.
 - Logistic Regression
 - Boosting (XGBoost, CatBoost)
 - RandomForest
@@ -78,15 +78,17 @@ For testing purpose, I build 7 models,
 
 Suprisingly, Dumb model can achieve `0.504` logloss score. kernlab *ksvm()* fails to build the model (hang forever).  lasso and random forest don't give me significant improvement than logistic regression and they take much longer time to build. Thus, I will pick `dumb`, `Logistic Regression` and `Boosting` as my final models. 
 
-**Note**: My testing shows CatBoost performs at least 10x faster than XGBoost (even without GPU). In case catboost library is not installed, xgboost will be used.
+**Note**: My testing shows CatBoost performs at least 10x faster than XGBoost (with GPU, CatBoost can do even better). In case catboost library is not installed, xgboost will be used.
 
 ## Evaluation
 
 I tested all 3 test datasets against these models with the parameters,
 
-- Dumb: None
-- Logistic Regression: liner with all predictors.
-- Boosting: learning_rate = 0.09, iterations = 1200.
+- Dumb: None.
+- Logistic Regression: liner combination of all available predictors.
+- Boosting: One-hot encoding on train/test data then train with the following parameters,
+    - CatBoost: loss_function = "Logloss", learning_rate = 0.09, iterations = 1200
+    - XGBoost: objective = "binary:logistic", eval_metric = "logloss", eta = 0.09, nrounds = 1200
 
 The LogLoss scores are,
 

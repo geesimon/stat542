@@ -1,3 +1,4 @@
 .DS_Store
 *.csv
 Project4_data.tsv
+catboost_info/
