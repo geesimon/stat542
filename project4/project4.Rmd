@@ -1,0 +1,125 @@
+---
+title: "CS598 - Project 3"
+author: "Xiaoming Ji"
+output: pdf_document
+---
+# Computer System
+
+## Hardware
+- Dell Precision Tower 5810
+- CPU: Intel Xeon E5-1607 @ 3.10GHz
+- Memory: 32GB
+- GPU: Nvidia GeForce GTX 1080 (2 cards)
+
+## Software
+- OS: Windows 10 Professional 64bit
+- R: 3.5.1
+- R Packages:
+    - catboost_0.11.1
+    - xgboost_0.71.2
+    - randomForest_4.6-14
+    - glmnet_2.0-16
+    - kernlab_0.9-26
+
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+mypackages = c("knitr", "kableExtra")   # required packages
+tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
+if (length(tmp) > 0) install.packages(tmp)
+lapply(mypackages, require, character.only = TRUE)
+```
+
+
+```{r}
+  all = read.table("data.tsv",stringsAsFactors = F,header = T)
+  #all = read.csv("data.tsv", header = TRUE, stringsAsFactors = FALSE, sep = "", esc)
+
+  all$new_id = as.integer(all$new_id)
+  all$sentiment = as.integer(all$sentiment)
+  all$review = gsub('<.*?>', ' ', all$review)
+  splits = splits = read.table("splits.csv", header = T)
+```
+```{r}
+  s = 3
+  
+  train = all[-which(all$new_id%in%splits[,s]),]
+  test = all[which(all$new_id%in%splits[,s]),]
+```
+
+21496 0 "Following his role in the fine caper SEVEN THIEVES (1960) 每 which I＊ve watched several years back 每 Edward G. Robinson seemed to be stuck playing elderly criminal mastermind types (apart from the odd juicy role as in THE CINCINNATI KID [1965]). I＊d previously watched the pretty good ※Euro-Cult§ effort GRAND SLAM (1967) and, apart from this, I＊ve yet two more similar titles from Italy to check 每 one of which was directed by future goremeister Lucio Fulci! Anyway, this is the kind of international production 每 featuring American and Italian actors and a British director 每 which was prevalent during the 1960s; it＊s harmless and easy-going in itself but hardly memorable and definitely overlong 每 especially since to procure finance for the heavy-duty equipment required for the heist (such as an army tank and an airplane!), the gang involved have to pull a variety of minor thefts first.<br /><br />The gang, of course, is an incompetent lot led by an American (Robert Wagner) and his bimbo girlfriend (Raquel Welch) 每 the others are a ＆pacifist＊ black man, a perennially hungry Italian and a diminutive Englishman. They try to induce an ex-gangster (Vittorio De Sica) to turn over his fortune to them, except he＊s destitute＃but, under the auspices of ※Professor§ Robinson, he proposes instead a caper of 5 million dollars＊ worth of platinum! Needless to say, the gang members don＊t trust one another (Wagner instructs Welch to seduce De Sica so as to get the name of their fence in Morocco 每 where they are to retreat after the robbery), or else bungle the job (commissioned to hold up a restaurant, the Italian can＊t resist sitting at table and order a multi-course meal for himself!). Amusingly, in the face of similar failures, De Sica tries to show them how they used to do it in the old days 每 however, ostensibly holding up a petrol station, it transpires that the owner is a nephew of his and he merely asked to borrow some cash! <br /><br />The central heist sequence is typically elaborate: while the gang, including Welch, ＆take＊ the train transporting the platinum, Wagner kidnaps pilot Victor Spinetti and his airplane. When the job is done, he fully intends to double-cross De Sica 每 but neither his partners nor Welch herself are willing to go along with this, so he＊s forced to relent. Coming from the time when crime didn＊t pay, the gang contrives to lose all their stash in mid-air when the plane＊s bomb-bay doors are accidentally opened＃"
+
+## Preprocessing and Feature Engineering
+
+Several approaches are taken to pre-process the data.
+
+- Response label: merge *Charged Off* to *Default* and convert the label value to 0 or 1.
+- Build new predictors to help training/prediction: 
+    - `earliest_cr_line_mon`: derived from *earliest_cr_line* that indicates how many months has elapsed till *2019-1-1* when the borrower's earliest reported credit line was opened.
+    - `fico_score`: consolidate *fico_range_high* and *fico_range_low* using formula: *(fico_range_high + fico_range_low) / 2*.
+- Level grouping: 
+    - `zip_code`: it has more than 900 levels, I group these values to 10 new levels to reduce memory usage and improve performance.
+- Remove predictors: remove less useful and redundant predictors.
+    - `emp_title` (too many levels), `title` (redundant with *purpose*), `grade` (redundant with *sub_grade*) ,`earliest_cr_line`, `fico_range_high`, `fico_range_low`.
+
+## Models
+
+For testing purpose, I build 7 models,
+
+- Dumb model: this is the simplest model that predict 0.2 for every sample.
+- Logistic Regression
+- Boosting (XGBoost, CatBoost)
+- RandomForest
+- Lasso
+- liner SVM
+
+Suprisingly, Dumb model can achieve `0.504` logloss score. kernlab *ksvm()* fails to build the model (hang forever).  lasso and random forest don't give me significant improvement than logistic regression and they take much longer time to build. Thus, I will pick `dumb`, `Logistic Regression` and `Boosting` as my final models. 
+
+**Note**: My testing shows CatBoost performs at least 10x faster than XGBoost (with GPU, CatBoost can do even better). In case catboost library is not installed, xgboost will be used.
+
+## Evaluation
+
+I tested all 3 test datasets against these models with the parameters,
+
+- Dumb: None.
+- Logistic Regression: liner combination of all available predictors.
+- Boosting: One-hot encoding on train/test data then train with the following parameters,
+    - CatBoost: loss_function = "Logloss", learning_rate = 0.09, iterations = 1200
+    - XGBoost: objective = "binary:logistic", eval_metric = "logloss", eta = 0.09, nrounds = 1200
+
+The LogLoss scores are,
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+load("EVAL.OBJ")
+
+test.results = rbind(eval.obj$loss, Average=colMeans(eval.obj$loss))
+kable(test.results) %>%
+  kable_styling(latex_options = "striped")
+```
+
+```{r eval=FALSE, warning=FALSE, include=FALSE}
+#########################################################################
+# Test code begins
+
+start.time = Sys.time()
+
+LOGLOSS = matrix(0, 3, 3)
+rownames(LOGLOSS) = c("Test1", "Test2", "Test3")
+TEST_NUM = 0
+
+for (i in 1:3){
+  TEST_NUM = i
+  TRAIN_FILE_NAME = paste("train",i, ".csv", sep = "")
+  TEST_FILE_NAME = paste("test",i, ".csv", sep = "")
+  LABEL_FILE_NAME = paste("label",i, ".csv", sep = "")
+  source('mymain.R')
+}
+end.time = Sys.time()
+run.time = as.numeric(difftime(end.time, start.time, units = 'secs'))
+
+print(LOGLOSS)
+cat("\nComputation time:", ceiling(run.time), "Seconds")
+
+eval.obj = list(loss=LOGLOSS, compute.time=run.time)
+save(eval.obj, file="EVAL.OBJ")
+```
+
+Computation time: `r ceiling(eval.obj$compute.time)` seconds
