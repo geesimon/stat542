@@ -15,6 +15,8 @@ output: pdf_document
 - OS: Windows 10 Professional 64bit
 - R: 3.5.1
 - R Packages:
+    - text2vec
+    - 
     - catboost_0.11.1
     - xgboost_0.71.2
     - randomForest_4.6-14
@@ -29,10 +31,8 @@ lapply(mypackages, require, character.only = TRUE)
 ```
 
 
-```{r}
+```{r, eval=FALSE, include=FALSE}
   all = read.table("data.tsv",stringsAsFactors = F,header = T)
-  #all = read.csv("data.tsv", header = TRUE, stringsAsFactors = FALSE, sep = "", esc)
-
   all$new_id = as.integer(all$new_id)
   all$sentiment = as.integer(all$sentiment)
   all$review = gsub('<.*?>', ' ', all$review)
@@ -45,7 +45,71 @@ lapply(mypackages, require, character.only = TRUE)
   test = all[which(all$new_id%in%splits[,s]),]
 ```
 
-21496 0 "Following his role in the fine caper SEVEN THIEVES (1960) 每 which I＊ve watched several years back 每 Edward G. Robinson seemed to be stuck playing elderly criminal mastermind types (apart from the odd juicy role as in THE CINCINNATI KID [1965]). I＊d previously watched the pretty good ※Euro-Cult§ effort GRAND SLAM (1967) and, apart from this, I＊ve yet two more similar titles from Italy to check 每 one of which was directed by future goremeister Lucio Fulci! Anyway, this is the kind of international production 每 featuring American and Italian actors and a British director 每 which was prevalent during the 1960s; it＊s harmless and easy-going in itself but hardly memorable and definitely overlong 每 especially since to procure finance for the heavy-duty equipment required for the heist (such as an army tank and an airplane!), the gang involved have to pull a variety of minor thefts first.<br /><br />The gang, of course, is an incompetent lot led by an American (Robert Wagner) and his bimbo girlfriend (Raquel Welch) 每 the others are a ＆pacifist＊ black man, a perennially hungry Italian and a diminutive Englishman. They try to induce an ex-gangster (Vittorio De Sica) to turn over his fortune to them, except he＊s destitute＃but, under the auspices of ※Professor§ Robinson, he proposes instead a caper of 5 million dollars＊ worth of platinum! Needless to say, the gang members don＊t trust one another (Wagner instructs Welch to seduce De Sica so as to get the name of their fence in Morocco 每 where they are to retreat after the robbery), or else bungle the job (commissioned to hold up a restaurant, the Italian can＊t resist sitting at table and order a multi-course meal for himself!). Amusingly, in the face of similar failures, De Sica tries to show them how they used to do it in the old days 每 however, ostensibly holding up a petrol station, it transpires that the owner is a nephew of his and he merely asked to borrow some cash! <br /><br />The central heist sequence is typically elaborate: while the gang, including Welch, ＆take＊ the train transporting the platinum, Wagner kidnaps pilot Victor Spinetti and his airplane. When the job is done, he fully intends to double-cross De Sica 每 but neither his partners nor Welch herself are willing to go along with this, so he＊s forced to relent. Coming from the time when crime didn＊t pay, the gang contrives to lose all their stash in mid-air when the plane＊s bomb-bay doors are accidentally opened＃"
+```{r}
+stop_words = c("i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you", "your", "yours")
+
+prep_fun = tolower
+tok_fun = word_tokenizer
+
+t1 = Sys.time()
+it_train = itoken(train$review, 
+             preprocessor = prep_fun, 
+             tokenizer = tok_fun, 
+             ids = train$id, 
+             progressbar = FALSE)
+vocab = create_vocabulary(it_train, stopwords = stop_words, ngram = c(1L, 2L))
+
+# Note that most text2vec functions are pipe friendly!
+it_test = itoken(test$review, 
+             preprocessor = prep_fun, 
+             tokenizer = tok_fun, 
+             ids = train$id, 
+             progressbar = FALSE)
+
+pruned_vocab = prune_vocabulary(vocab, 
+                                 term_count_min = 10, 
+                                 doc_proportion_max = 0.5,
+                                 doc_proportion_min = 0.001)
+vectorizer = vocab_vectorizer(pruned_vocab)
+# create dtm_train with new pruned vocabulary vectorizer
+
+dtm_train  = create_dtm(it_train, vectorizer)
+#dtm_train_l1_norm = normalize(dtm_train, "l1")
+
+# define tfidf model
+tfidf = TfIdf$new()
+# fit model to train data and transform train data with fitted model
+dtm_train_tfidf = fit_transform(dtm_train, tfidf)
+# tfidf modified by fit_transform() call!
+# apply pre-trained tf-idf transformation to test data
+dtm_test = create_dtm(it_test, vectorizer)
+dtm_test_tfidf = transform(dtm_test, tfidf)
+
+print(difftime(Sys.time(), t1, units = 'sec'))
+```
+
+```{r}
+NFOLDS = 5
+t1 = Sys.time()
+glmnet_classifier = cv.glmnet(x = dtm_train, y = train[['sentiment']], 
+                              family = 'binomial', 
+                              # L1 penalty
+                              alpha = 1,
+                              # interested in the area under ROC curve
+                              type.measure = "auc",
+                              # 5-fold cross-validation
+                              nfolds = NFOLDS,
+                              # high value is less accurate, but has faster training
+                              thresh = 1e-3,
+                              # again lower number of iterations for faster training
+                              maxit = 1e3)
+print(difftime(Sys.time(), t1, units = 'sec'))
+```
+
+```{r}
+preds = predict(glmnet_classifier, dtm_test, type = 'response')[,1]
+glmnet:::auc(test$sentiment, preds)
+```
 
 ## Preprocessing and Feature Engineering
 
@@ -87,7 +151,7 @@ I tested all 3 test datasets against these models with the parameters,
 
 The LogLoss scores are,
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+```{r, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 load("EVAL.OBJ")
 
 test.results = rbind(eval.obj$loss, Average=colMeans(eval.obj$loss))
@@ -95,7 +159,7 @@ kable(test.results) %>%
   kable_styling(latex_options = "striped")
 ```
 
-```{r eval=FALSE, warning=FALSE, include=FALSE}
+```{r eval=FALSE, eval=FALSE, warning=FALSE, include=FALSE}
 #########################################################################
 # Test code begins
 
