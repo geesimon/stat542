@@ -70,13 +70,16 @@ all.vocab.w = all.vocab
 for (i in 0:10){
   max.word.count = 1000 + i * 100
   for(s in 1:3){
-    w.ids = splits[,s]
-    w.data = all[which(all$new_id%in%w.ids),]
+    train = all[-which(all$new_id%in%splits[,s]),]
+    test = all[which(all$new_id%in%splits[,s]),]
+    
+    w = make_prediction(all.vocab.w, train, test)
+    w.data = all[which(all$new_id%in%w$WrongIDs),]
     w.vocab = build_vocab(w.data, word.count = max.word.count)
     all.vocab.w = c(all.vocab.w, w.vocab[which(!(w.vocab %in% all.vocab.w))])
-    w = make_prediction(all.vocab.w, train, test)
-    w.ids = w$WrongIDs
-    cat("S=", s, "AUC=", w$AUC, "Wrong=", length(w.ids),"VocabSize=", length(all.vocab.w), "\n")
+
+    cat("S=", s, "AUC=", w$AUC, "Wrong=", length(w$WrongIDs),"VocabSize=", 
+        length(all.vocab.w), "\n")
   }
 }
 
