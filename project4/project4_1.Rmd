@@ -17,7 +17,6 @@ output: pdf_document
 - R Packages:
     - text2vec
     - e1071/naiveBayes
-    - tokenizers
     - catboost_0.11.1
     - xgboost_0.71.2
     - randomForest_4.6-14
@@ -25,12 +24,10 @@ output: pdf_document
     - kernlab_0.9-26
 
 ```{r, message=FALSE, warning=FALSE, include=FALSE}
-mypackages = c("knitr", "kableExtra", "text2vec", "tokenizers","glmnet")   # required packages
+mypackages = c("knitr", "kableExtra")   # required packages
 tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
 if (length(tmp) > 0) install.packages(tmp)
 lapply(mypackages, require, character.only = TRUE)
-
-source("mymain.R")
 ```
 
 
@@ -38,71 +35,31 @@ source("mymain.R")
   all = read.table("data.tsv",stringsAsFactors = F,header = T)
   all$new_id = as.integer(all$new_id)
   all$sentiment = as.integer(all$sentiment)
-  all$review = gsub('[^[:alnum:]]', ' ', all$review)
-  splits = read.table("splits.csv", header = T)
+  all$review = gsub('<.*?>', ' ', all$review)
+  splits = splits = read.table("splits.csv", header = T)
 ```
 ```{r}
-  s = 2
+  s = 3
   
   train = all[-which(all$new_id%in%splits[,s]),]
   test = all[which(all$new_id%in%splits[,s]),]
   
-  # f= file("stopwords.txt")
-  # stop_words = readLines(f)
-  # close(f)
-  stop_words = c("i", "me", "my", "myself", 
-               "we", "our", "ours", "ourselves", 
-               "you", "your", "yours", 
-               "their", "they", "his", "her", 
-               "she", "he", "a", "an", "and",
-               "is", "was", "are", "were", 
-               "him", "himself", "has", "have", 
-               "it", "its", "of", "one", "for", 
-               "the", "us", "this")
-```
-
-
-```{r}
-all.vocab = build_vocab(all)
-
-all.vocab.w = all.vocab
-
-for (i in 0:10){
-  max.word.count = 1000 + i * 100
-  for(s in 1:3){
-    w.ids = splits[,s]
-    w.data = all[which(all$new_id%in%w.ids),]
-    w.vocab = build_vocab(w.data, word.count = max.word.count)
-    all.vocab.w = c(all.vocab.w, w.vocab[which(!(w.vocab %in% all.vocab.w))])
-    w = make_prediction(all.vocab.w, train, test)
-    w.ids = w$WrongIDs
-    cat("S=", s, "AUC=", w$AUC, "Wrong=", length(w.ids),"VocabSize=", length(all.vocab.w), "\n")
-  }
-}
-
-f= file("myVocab.txt", open = "w")
-writeLines(all.vocab.w, f)
-close(f)
-
-# w1.data = all[which(all$new_id%in%w1$WrongIDs),]
-# w1.vocab = build_vocab(w1.data)
-# all.vocab.w1 = c(all.vocab, w1.vocab[which(!(w1.vocab %in% all.vocab))])
-# w2 = make_prediction(all.vocab.w1, train, test)
-# 
-# 
-# w2.data = all[which(all$new_id%in%w2$WrongIDs),]
-# w2.vocab = build_vocab(w2.data)
-# all.vocab.w2 = c(all.vocab.w1, w2.vocab[which(!(w2.vocab %in% all.vocab.w1))])
-# w3 = make_prediction(all.vocab.w2, train, test)
+  f= file("stopwords.txt")
+  stop_words = readLines(f)
+  close(f)
 ```
 
 ```{r}
+prep_fun = tolower
+tok_fun = word_tokenizer
+
 t1 = Sys.time()
 it_train = itoken(train$review, 
              preprocessor = prep_fun, 
              tokenizer = tok_fun, 
              ids = train$id, 
              progressbar = FALSE)
+vocab = create_vocabulary(it_train, ngram = c(1L, 2L))
 
 # Note that most text2vec functions are pipe friendly!
 it_test = itoken(test$review, 
@@ -111,7 +68,11 @@ it_test = itoken(test$review,
              ids = train$id, 
              progressbar = FALSE)
 
-vectorizer = vocab_vectorizer(vocab)
+pruned_vocab = prune_vocabulary(vocab, 
+                                 term_count_min = 10, 
+                                 doc_proportion_max = 0.5,
+                                 doc_proportion_min = 0.001)
+vectorizer = vocab_vectorizer(pruned_vocab)
 # create dtm_train with new pruned vocabulary vectorizer
 
 dtm_train  = create_dtm(it_train, vectorizer)
@@ -126,29 +87,30 @@ dtm_train_tfidf = fit_transform(dtm_train, tfidf)
 dtm_test = create_dtm(it_test, vectorizer)
 dtm_test_tfidf = transform(dtm_test, tfidf)
 
+print(difftime(Sys.time(), t1, units = 'sec'))
+```
+
+```{r}
 NFOLDS = 5
-my.cv = cv.glmnet(x = dtm_train, y = train[['sentiment']], 
+t1 = Sys.time()
+glmnet_classifier = cv.glmnet(x = dtm_train, y = train[['sentiment']], 
                               family = 'binomial', 
                               # L1 penalty
-                              alpha = 0,
+                              alpha = 1,
                               # interested in the area under ROC curve
                               type.measure = "auc",
                               # 5-fold cross-validation
-                              nfolds = NFOLDS)
-                              # # high value is less accurate, but has faster training
-                              # thresh = 1e-3,
-                              # # again lower number of iterations for faster training
-                              # maxit = 1e3)
-my.fit = glmnet(x = dtm_train, y = train$sentiment, 
-               lambda = my.cv$lambda.min, family='binomial', alpha=0)
-
-preds = predict(my.fit, dtm_test, type = 'response')[,1]
-glmnet:::auc(test$sentiment, preds)
-
-
+                              nfolds = NFOLDS,
+                              # high value is less accurate, but has faster training
+                              thresh = 1e-3,
+                              # again lower number of iterations for faster training
+                              maxit = 1e3)
 print(difftime(Sys.time(), t1, units = 'sec'))
 ```
+
 ```{r}
+preds = predict(glmnet_classifier, dtm_test, type = 'response')[,1]
+glmnet:::auc(test$sentiment, preds)
 ```
 
 ## Preprocessing and Feature Engineering
