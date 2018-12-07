@@ -83,7 +83,7 @@ xgboost_predict <- function(train.data, label, test.data) {
   xgb.model = xgboost(data = train.data, label=label,
                       objective = "binary:logistic", eval_metric = "auc",
                       eta = 0.09,
-                      nrounds = 1200,
+                      nrounds = 1642,
                       verbose = TRUE)
   
   return (predict(xgb.model, test.data, type="response"))
@@ -93,7 +93,7 @@ catboost_predict <- function(train.data, label, test.data) {
   fit_params <- list(iterations = 1233, #task_type = 'GPU',
                      #use_best_model = TRUE,
                      loss_function = 'Logloss',
-                     #eval_metric = 'Logloss',
+                     eval_metric = 'AUC',
                      #logging_level = "Silent",
                      learning_rate = 0.09)
   learn_pool <- catboost.load_pool(train.data, label = label)
@@ -102,6 +102,11 @@ catboost_predict <- function(train.data, label, test.data) {
   return (catboost.predict(cat.model, catboost.load_pool(test.data), 
                            prediction_type="Probability"))
 }
+
+model_functions = list(
+  glmnet = glmnet_predict,
+  Boosting = xgboost_predict
+)
 
 make_prediction <- function(vocab, train.data, test.data, tok.fun = word_tokenizer){
   it_train = itoken(train.data$review, 
@@ -130,19 +135,20 @@ make_prediction <- function(vocab, train.data, test.data, tok.fun = word_tokeniz
   # apply pre-trained tf-idf transformation to test data
   dtm_test_tfidf = transform(dtm_test, tfidf)
   
+  result_auc = list()
+  for (f in 1:length(model_functions)) {
+    func_name = names(model_functions[f])
+    preds = model_functions[[f]](dtm_train, train.data$sentiment, dtm_test)
+    
+    result_auc[[func_name]] = glmnet:::auc(test.data$sentiment, preds)
+  }
   
-  #preds = glmnet_predict(dtm_train, train.data$sentiment, dtm_test)
-  preds = xgboost_predict(dtm_train, train.data$sentiment, dtm_test)
-
-  auc = glmnet:::auc(test.data$sentiment, preds)
-  wrong.ids = test.data$new_id[(test.data$sentiment == 1) != (preds > 0.5)]
-  
-  return (list(AUC=auc, WrongIDs=wrong.ids))
+  return (result_auc)
 }
 
 #######################################
 ###### Train, Predict and Output ######
 #######################################
-f= file(VOCAB_FILE)
-Sentiment.Vocab = readLines(f)
-close(f)
+# f= file(VOCAB_FILE)
+# Sentiment.Vocab = readLines(f)
+# close(f)
