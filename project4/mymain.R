@@ -65,6 +65,43 @@ build_vocab <- function(review.data, stop.words = stop_words, word.count = 1000,
   return (freq.all$term[1:word.count])
 }
 
+glmnet_predict <- function(train.data, label, test.data){
+  NFOLDS = 5
+  my.cv = cv.glmnet(x = train.data, y = label, 
+                    family = 'binomial', 
+                    alpha = 0,
+                    type.measure = "auc",
+                    nfolds = NFOLDS)
+  
+  my.fit = glmnet(x = train.data, y = label, 
+                  lambda = my.cv$lambda.min, family='binomial', alpha = 0)
+  
+  return (predict(my.fit, test.data, type = 'response')[,1])
+}
+
+xgboost_predict <- function(train.data, label, test.data) {
+  xgb.model = xgboost(data = train.data, label=label,
+                      objective = "binary:logistic", eval_metric = "auc",
+                      eta = 0.09,
+                      nrounds = 1200,
+                      verbose = TRUE)
+  
+  return (predict(xgb.model, test.data, type="response"))
+}
+
+catboost_predict <- function(train.data, label, test.data) {
+  fit_params <- list(iterations = 1233, #task_type = 'GPU',
+                     #use_best_model = TRUE,
+                     loss_function = 'Logloss',
+                     #eval_metric = 'Logloss',
+                     #logging_level = "Silent",
+                     learning_rate = 0.09)
+  learn_pool <- catboost.load_pool(train.data, label = label)
+  cat.model <- catboost.train(learn_pool, params = fit_params)
+  
+  return (catboost.predict(cat.model, catboost.load_pool(test.data), 
+                           prediction_type="Probability"))
+}
 
 make_prediction <- function(vocab, train.data, test.data, tok.fun = word_tokenizer){
   it_train = itoken(train.data$review, 
@@ -80,11 +117,10 @@ make_prediction <- function(vocab, train.data, test.data, tok.fun = word_tokeniz
                    ids = test.data$id, 
                    progressbar = FALSE)
   
-  vectorizer = vocab_vectorizer(create_vocabulary(vocab))
-  # create dtm_train with new pruned vocabulary vectorizer
+  vectorizer = vocab_vectorizer(create_vocabulary(vocab, ngram = c(1L, 4L)))
   
   dtm_train  = create_dtm(it_train, vectorizer)
-  #dtm_train_l1_norm = normalize(dtm_train, "l1")
+  dtm_test = create_dtm(it_test, vectorizer)
   
   # define tfidf model
   tfidf = TfIdf$new()
@@ -92,23 +128,12 @@ make_prediction <- function(vocab, train.data, test.data, tok.fun = word_tokeniz
   dtm_train_tfidf = fit_transform(dtm_train, tfidf)
   # tfidf modified by fit_transform() call!
   # apply pre-trained tf-idf transformation to test data
-  dtm_test = create_dtm(it_test, vectorizer)
   dtm_test_tfidf = transform(dtm_test, tfidf)
   
-  NFOLDS = 5
-  my.cv = cv.glmnet(x = dtm_train, y = train.data$sentiment, 
-                    family = 'binomial', 
-                    # L1 penalty
-                    alpha = 0,
-                    # interested in the area under ROC curve
-                    type.measure = "auc",
-                    # 5-fold cross-validation
-                    nfolds = NFOLDS)
-
-  my.fit = glmnet(x = dtm_train, y = train.data$sentiment, 
-                  lambda = my.cv$lambda.min, family='binomial', alpha=0)
   
-  preds = predict(my.fit, dtm_test, type = 'response')[,1]
+  #preds = glmnet_predict(dtm_train, train.data$sentiment, dtm_test)
+  preds = xgboost_predict(dtm_train, train.data$sentiment, dtm_test)
+
   auc = glmnet:::auc(test.data$sentiment, preds)
   wrong.ids = test.data$new_id[(test.data$sentiment == 1) != (preds > 0.5)]
   

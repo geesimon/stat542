@@ -25,7 +25,8 @@ output: pdf_document
     - kernlab_0.9-26
 
 ```{r, message=FALSE, warning=FALSE, include=FALSE}
-mypackages = c("knitr", "kableExtra", "text2vec", "tokenizers","glmnet")   # required packages
+mypackages = c("knitr", "kableExtra", "text2vec", "tokenizers",
+               "glmnet", "xgboost")   # required packages
 tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
 if (length(tmp) > 0) install.packages(tmp)
 lapply(mypackages, require, character.only = TRUE)
@@ -38,19 +39,18 @@ source("mymain.R")
   all = read.table("data.tsv",stringsAsFactors = F,header = T)
   all$new_id = as.integer(all$new_id)
   all$sentiment = as.integer(all$sentiment)
-  all$review = gsub('[^[:alnum:]]', ' ', all$review)
+  all$review = gsub('<.*?>', ' ', all$review)  #Remove HTML tag
+  all$review = gsub('[^[:alnum:]]', ' ', all$review) #Remove punctuation
   splits = read.table("splits.csv", header = T)
 ```
 ```{r}
-  s = 2
-  
-  train = all[-which(all$new_id%in%splits[,s]),]
-  test = all[which(all$new_id%in%splits[,s]),]
-  
   # f= file("stopwords.txt")
   # stop_words = readLines(f)
   # close(f)
-  stop_words = c("i", "me", "my", "myself", 
+```
+
+```{r}
+stop_words = c("i", "me", "my", "myself", 
                "we", "our", "ours", "ourselves", 
                "you", "your", "yours", 
                "their", "they", "his", "her", 
@@ -59,10 +59,83 @@ source("mymain.R")
                "him", "himself", "has", "have", 
                "it", "its", "of", "one", "for", 
                "the", "us", "this")
+
+it.all = itoken(all$review, 
+                preprocessor = tolower, 
+                tokenizer = word_tokenizer, #tokenize_word_stems, 
+                ids = all$id, 
+                progressbar = FALSE)
+  
+all.vocab = create_vocabulary(it.all, stopwords = stop_words, ngram = c(1L, 4L))
+all.vocab = prune_vocabulary(all.vocab, term_count_min = 5,
+                               doc_proportion_max = 0.5,
+                               doc_proportion_min = 0.001)
+```
+```{r}
+vectorizer = vocab_vectorizer(all.vocab)
+dtm.all  = create_dtm(it.all, vectorizer)
+  
+NFOLDS = 5
+my.cv = cv.glmnet(x = dtm.all, y = all$sentiment, 
+                    family = 'binomial', 
+                    alpha = 1,
+                    type.measure = "auc",
+                    nfolds = NFOLDS)
+
+my.fit = glmnet(x = dtm.all, y = all$sentiment, 
+                  lambda = my.cv$lambda.1se, family='binomial', alpha = 1)
+
+betas = coef(my.fit)[-1, 1] #Remove inception
+vocab.id = order(abs(betas), decreasing=TRUE)[1:2000]
+vocab = all.vocab$term[vocab.id]
+
+f= file(VOCAB_FILE, open = "w")
+writeLines(sort(vocab), f)
+close(f)
+```
+
+```{r}
+t1 = Sys.time()
+
+f= file(VOCAB_FILE)
+my.vocab = readLines(f)
+close(f)
+
+for (s in 1:3){
+  train = all[-which(all$new_id%in%splits[,s]),]
+  test = all[which(all$new_id%in%splits[,s]),]
+  w = make_prediction(my.vocab, train, test) #, tokenize_word_stems)
+  print(w$AUC)
+}
+
+print(difftime(Sys.time(), t1, units = 'sec'))
+```
+
+```{r}
+vectorizer = vocab_vectorizer(all.vocab)
+
+X_train = create_dtm(it.all, vectorizer)
+Y_train = all$sentiment
+  
+# xgb.model = xgboost(data = X_train, label=Y_train,
+#                       objective = "binary:logistic", eval_metric = "auc",
+#                       eta = 0.09,
+#                       nrounds = 1200,
+#                       # colsample_bytree = 0.6,
+#                       # subsample = 0.75,
+#                       verbose = TRUE)
+
+cv <- xgb.cv(data = X_train, label = Y_train,
+              objective = "binary:logistic", eval_metric = "auc",
+              early_stopping_rounds = 10,
+              # max_depth = 6,
+              nfold = 5, nrounds = 2000,
+              eta = 0.09,
+              verbose = TRUE)
 ```
 
 
-```{r}
+```{r, eval=FALSE, include=FALSE}
 all.vocab = build_vocab(all)
 
 all.vocab.w = all.vocab
@@ -99,7 +172,7 @@ close(f)
 # w3 = make_prediction(all.vocab.w2, train, test)
 ```
 
-```{r}
+```{r, eval=FALSE, include=FALSE}
 t1 = Sys.time()
 it_train = itoken(train$review, 
              preprocessor = prep_fun, 
@@ -200,33 +273,6 @@ load("EVAL.OBJ")
 test.results = rbind(eval.obj$loss, Average=colMeans(eval.obj$loss))
 kable(test.results) %>%
   kable_styling(latex_options = "striped")
-```
-
-```{r eval=FALSE, eval=FALSE, warning=FALSE, include=FALSE}
-#########################################################################
-# Test code begins
-
-start.time = Sys.time()
-
-LOGLOSS = matrix(0, 3, 3)
-rownames(LOGLOSS) = c("Test1", "Test2", "Test3")
-TEST_NUM = 0
-
-for (i in 1:3){
-  TEST_NUM = i
-  TRAIN_FILE_NAME = paste("train",i, ".csv", sep = "")
-  TEST_FILE_NAME = paste("test",i, ".csv", sep = "")
-  LABEL_FILE_NAME = paste("label",i, ".csv", sep = "")
-  source('mymain.R')
-}
-end.time = Sys.time()
-run.time = as.numeric(difftime(end.time, start.time, units = 'secs'))
-
-print(LOGLOSS)
-cat("\nComputation time:", ceiling(run.time), "Seconds")
-
-eval.obj = list(loss=LOGLOSS, compute.time=run.time)
-save(eval.obj, file="EVAL.OBJ")
 ```
 
 Computation time: `r ceiling(eval.obj$compute.time)` seconds
