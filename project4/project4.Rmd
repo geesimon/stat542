@@ -16,13 +16,9 @@ output: pdf_document
 - R: 3.5.1
 - R Packages:
     - text2vec
-    - e1071/naiveBayes
     - tokenizers
-    - catboost_0.11.1
     - xgboost_0.71.2
-    - randomForest_4.6-14
     - glmnet_2.0-16
-    - kernlab_0.9-26
 
 ```{r, message=FALSE, warning=FALSE, include=FALSE}
 mypackages = c("knitr", "kableExtra", "text2vec", "tokenizers",
@@ -34,6 +30,17 @@ lapply(mypackages, require, character.only = TRUE)
 source("mymain.R")
 ```
 
+# Overview of your model: background, problem statement, objective, input and output of your model, ect.
+
+The goal of this project is to build a binary classification model to predict the sentiment of a IMDB movie review.
+
+The given movie review dataset file `Project4_data.tsv` has 50,000 rows (i.e., reviews) and 3 columns. Column 1 "new_id" is the ID for each review (same as the row number), Column 2 "sentiment" is the binary response, and Column 3 is the review. 
+
+The given dataset file `Project4_splits.csv` is used to split the 50,000 reviews into Three sets of training and test data.  The dataset has 3 columns, and each column consists of the "new_id" (or equivalently the row ID) of 25,000 test samples. 
+
+The required performance goal is is to achieve minimal value of AUC over the three test datasets and use the vocabulary of size less than 3000.
+
+For this project, I used linear/lasso model to select the vocabulary at size of `1500` and logistic linear/ridge regression to achieved $>0.97$ value of AUC.
 
 ```{r, eval=FALSE, include=FALSE}
 all = read.table("data.tsv",stringsAsFactors = F,header = T)
@@ -65,6 +72,8 @@ all.vocab = prune_vocabulary(all.vocab, term_count_min = 5,
                                doc_proportion_min = 0.001)
 ```
 
+# Customized vocabulary: explain how you obtain your customized vocab if applicable.
+
 Vocab by Lasso
 ```{r}
 vectorizer = vocab_vectorizer(all.vocab)
@@ -81,7 +90,7 @@ my.fit = glmnet(x = dtm.all, y = all$sentiment,
                   lambda = my.cv$lambda.1se, family='binomial', alpha = 1)
 
 betas = coef(my.fit)[-1, 1] #Remove inception
-vocab.id = order(abs(betas), decreasing=TRUE)[1:2000]
+vocab.id = order(abs(betas), decreasing=TRUE)[1:500]
 vocab = all.vocab$term[vocab.id]
 
 f= file(VOCAB_FILE, open = "w")
@@ -119,6 +128,10 @@ f= file(VOCAB_FILE, open = "w")
 writeLines(sort(vocab), f)
 close(f)
 ```
+
+# Technical details: type of algorithms/models used/explored, pre-processing, training process, tuning parameters, etc.
+
+# Model validation: performance on the three test datasets, discussion on model limitations, explanation on errors, and future steps you could take to improve your model.
 
 ```{r}
 t1 = Sys.time()
