@@ -3,66 +3,67 @@
 if (!require("pacman")) install.packages("pacman")
 
 pacman::p_load(
-  #"catboost",
   "text2vec",
-  "tokenizers",
+  #"tokenizers",
   "glmnet",
-  "randomForest",
-  "xgboost",
-  "kernlab"
+  "xgboost"
 )
-library(catboost)
 
-VOCAB_FILE = "myVocab.txt"
-stop_words = c("i", "me", "my", "myself", 
-               "we", "our", "ours", "ourselves", 
-               "you", "your", "yours", 
-               "their", "they", "his", "her", 
-               "she", "he", "a", "an", "and",
-               "is", "was", "are", "were", 
-               "him", "himself", "has", "have", 
-               "it", "its", "of", "one", "for", 
-               "the", "us", "this")
-
-# prep_fun = tolower
-# tok_fun = tokenize_word_stems
-# tok_fun = word_tokenizer
-
-build_vocab <- function(review.data, stop.words = stop_words, word.count = 1000, tok.fun = word_tokenizer) {
-  it.pos = itoken(review.data$review[review.data$sentiment == 1], 
+trim_vocab_by_lasso <- function(all.review, all.vocab, word.count = 2000, tokenizer = word_tokenizer) {
+  it.all = itoken(all.review$review, 
                   preprocessor = tolower, 
-                  tokenizer = tok.fun, 
-                  ids = review.data$id,
+                  tokenizer = tokenizer, 
+                  ids = all.review$id,
                   progressbar = FALSE)
-  pos.vocab = create_vocabulary(it.pos, stopwords = stop.words, ngram = c(1L, 4L))
-  # pos.vocab = create_vocabulary(it.pos)
-  pos.vocab = prune_vocabulary(pos.vocab, term_count_min = 5,
-                               doc_proportion_max = 0.5,
-                               doc_proportion_min = 0.001)
   
-  it.neg = itoken(review.data$review[review.data$sentiment != 1], 
-                  preprocessor = tolower, 
-                  tokenizer = tok.fun, 
-                  ids = review.data$id, 
-                  progressbar = FALSE)
-  neg.vocab = create_vocabulary(it.neg, stopwords = stop.words, ngram = c(1L, 4L))
-  # neg.vocab = create_vocabulary(it.neg)
-  neg.vocab = prune_vocabulary(neg.vocab, term_count_min = 5, 
-                               doc_proportion_max = 0.5,
-                               doc_proportion_min = 0.001)
+  vectorizer = vocab_vectorizer(all.vocab)
+  dtm.all  = create_dtm(it.all, vectorizer)
+  
+  NFOLDS = 5
+  my.cv = cv.glmnet(x = dtm.all, y = all.review$sentiment, 
+                    family = 'binomial', 
+                    alpha = 1,
+                    type.measure = "auc",
+                    nfolds = NFOLDS)
+  
+  my.fit = glmnet(x = dtm.all, y = all.review$sentiment, 
+                  lambda = my.cv$lambda.1se, family='binomial', alpha = 1)
+  
+  betas = coef(my.fit)[-1, 1] #Remove inception
+  vocab.id = order(abs(betas), decreasing=TRUE)[1:word.count]
+  vocab = all.vocab$term[vocab.id]
+  
+  return (vocab)
+}
 
-  freq.all <- merge(pos.vocab[, c(1,2)], neg.vocab[, c(1,2)], by = 'term', all = T)
-  freq.all$term_count.x[is.na(freq.all$term_count.x)] <- 0
-  freq.all$term_count.y[is.na(freq.all$term_count.y)] <- 0
-  freq.all$diff <- abs(freq.all$term_count.x - freq.all$term_count.y)
+trim_vocab_by_boosting <- function(all.review, all.vocab, word.count = 2000, tokenizer = word_tokenizer) {
+  it.all = itoken(all.review$review, 
+                  preprocessor = tolower, 
+                  tokenizer = tokenizer, 
+                  ids = all.review$id, 
+                  progressbar = FALSE)
+  vectorizer = vocab_vectorizer(all.vocab)
+  X_train  = create_dtm(it.all, vectorizer)
+  Y_train = all.review$sentiment
   
-  alpha <- 2**7
-  freq.all$ndsi <- abs(freq.all$term_count.x - freq.all$term_count.y)/(freq.all$term_count.x +
-                                                                         freq.all$term_count.y + 
-                                                                         2*alpha)
-  freq.all <- freq.all[order(-freq.all$ndsi), ]
+  xgb.model = xgboost(data = X_train, label=Y_train,
+                      objective = "binary:logistic", eval_metric = "auc",
+                      eta = 0.09,
+                      nrounds = 1642,
+                      verbose = TRUE)
   
-  return (freq.all$term[1:word.count])
+  # cv <- xgb.cv(data = X_train, label = Y_train,
+  #               objective = "binary:logistic", eval_metric = "auc",
+  #               early_stopping_rounds = 10,
+  #               # max_depth = 6,
+  #               nfold = 5, nrounds = 2000,
+  #               eta = 0.09,
+  #               verbose = TRUE)
+  
+  feature.importance = xgb.importance(model= xgb.model)
+  vocab = feature.importance$Feature[1:word.count]
+  
+  return (vocab)
 }
 
 glmnet_predict <- function(train.data, label, test.data){
@@ -89,23 +90,9 @@ xgboost_predict <- function(train.data, label, test.data) {
   return (predict(xgb.model, test.data, type="response"))
 }
 
-catboost_predict <- function(train.data, label, test.data) {
-  fit_params <- list(iterations = 1233, #task_type = 'GPU',
-                     #use_best_model = TRUE,
-                     loss_function = 'Logloss',
-                     eval_metric = 'AUC',
-                     #logging_level = "Silent",
-                     learning_rate = 0.09)
-  learn_pool <- catboost.load_pool(train.data, label = label)
-  cat.model <- catboost.train(learn_pool, params = fit_params)
-  
-  return (catboost.predict(cat.model, catboost.load_pool(test.data), 
-                           prediction_type="Probability"))
-}
-
 model_functions = list(
-  glmnet = glmnet_predict,
-  Boosting = xgboost_predict
+  glmnet = glmnet_predict
+  # Boosting = xgboost_predict
 )
 
 make_prediction <- function(vocab, train.data, test.data, tok.fun = word_tokenizer){
@@ -140,7 +127,7 @@ make_prediction <- function(vocab, train.data, test.data, tok.fun = word_tokeniz
     func_name = names(model_functions[f])
     preds = model_functions[[f]](dtm_train, train.data$sentiment, dtm_test)
     
-    result_auc[[func_name]] = glmnet:::auc(test.data$sentiment, preds)
+    result_auc[[func_name]] = list(yhat=preds, auc=glmnet:::auc(test.data$sentiment, preds))
   }
   
   return (result_auc)
@@ -149,6 +136,22 @@ make_prediction <- function(vocab, train.data, test.data, tok.fun = word_tokeniz
 #######################################
 ###### Train, Predict and Output ######
 #######################################
-# f= file(VOCAB_FILE)
-# Sentiment.Vocab = readLines(f)
-# close(f)
+main <- function(){
+  all = read.table("data.tsv",stringsAsFactors = F,header = T)
+  splits = read.table("splits.csv", header = T)
+  s = 3
+  
+  # My Code
+  f= file("myVocab.txt")
+  vocab = readLines(f)
+  close(f)
+  
+  train = all[-which(all$new_id%in%splits[,s]),]
+  test = all[which(all$new_id%in%splits[,s]),]
+  pred = make_prediction(my.vocab, train, test)[[1]]$yhat
+  
+  output.data = cbind(new_id = test$new_id, prob = pred)
+  write.csv(output.data, "mysubmission.txt", row.names = FALSE, quote = FALSE) 
+}
+
+if(!exists("SKIPMAIN")) main()

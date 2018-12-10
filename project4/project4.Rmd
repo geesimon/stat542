@@ -27,20 +27,21 @@ tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be
 if (length(tmp) > 0) install.packages(tmp)
 lapply(mypackages, require, character.only = TRUE)
 
+SKIPMAIN = TRUE
 source("mymain.R")
 ```
 
-# Overview of your model: background, problem statement, objective, input and output of your model, ect.
+# Overview
 
-The goal of this project is to build a binary classification model to predict the sentiment of a IMDB movie review.
+The goal of this project is to build a binary classification model to predict the sentiment of IMDB movie review.
 
 The given movie review dataset file `Project4_data.tsv` has 50,000 rows (i.e., reviews) and 3 columns. Column 1 "new_id" is the ID for each review (same as the row number), Column 2 "sentiment" is the binary response, and Column 3 is the review. 
 
 The given dataset file `Project4_splits.csv` is used to split the 50,000 reviews into Three sets of training and test data.  The dataset has 3 columns, and each column consists of the "new_id" (or equivalently the row ID) of 25,000 test samples. 
 
-The required performance goal is is to achieve minimal value of AUC over the three test datasets and use the vocabulary of size less than 3000.
+The required performance goal is is to achieve minimal value of AUC over the three test datasets. For model interpretability, the vocabulary size should less than 3000.
 
-For this project, I used linear/lasso model to select the vocabulary at size of `1500` and logistic linear/ridge regression to achieved $>0.97$ value of AUC.
+For this project, I used logistic linear/lasso regression model to select vocabulary and logistic linear/ridge regression model for training/prediction. Such approach achieved `0.965` AUC with only `1000` vocabulary size.
 
 ```{r, eval=FALSE, include=FALSE}
 all = read.table("data.tsv",stringsAsFactors = F,header = T)
@@ -72,133 +73,85 @@ all.vocab = prune_vocabulary(all.vocab, term_count_min = 5,
                                doc_proportion_min = 0.001)
 ```
 
-# Customized vocabulary: explain how you obtain your customized vocab if applicable.
+# Build Vocabulary
 
-Vocab by Lasso
-```{r}
-vectorizer = vocab_vectorizer(all.vocab)
-dtm.all  = create_dtm(it.all, vectorizer)
+Building vocabulary is basically a feature selection process. I first build the vocabulary using all 50,000 reviews with tokenization process as: 
+
+- Filter out HTML tag and non-alphanumeric characters.
+- Remove stop words:
+
+> `i`, `me`, `my`, `myself`, `we`, `our`, `ours`, `ourselves`, `you`, `your`, 
+> `yours`, `their`, `they`, `his`, `her`, `she`, `he`, `a`, `an`, `and`, `is`, 
+> `was`, `are`, `were`, `him`, `himself`, `has`, `have`, `it`, `its`, `of`, 
+> `one`, `for`, `the`, `us`, `this`
+
+-  Extract 1 to 4 ngram terms
+
+Then I prune this vocabulary with conditions: 
+
+- minimum 5 occurences over all documents.
+- minimum 0.1% of documents which should contain this term.
+- maximum 50% of documents which should contain this term.
+
+This gives me a vocabulary size of `29035`.
+
+I have tried several approaches to reduce the size of the vocabulary:
+
+1. Normalized Difference Sentiment Index as described in [A Quick R Demonstration on Sentiment Analysis and Textmining](https://drive.google.com/file/d/0B_sqyEYBKc1wVm4xN0NvQlJlNWc/view)
+2. [Discriminant Analysis for Two-sample T-test ](https://piazza.com/class/jky28ddlhmu2r8?cid=663) as illustrated by Professor. Feng Liang.
+3. Use (XG)Boosting to build a model on all review data and select features/terms using `xgb.importance()` ordered by Gain.
+4. Use logistic linear regression model with Lasso regularization to fit the review data, then select the none-zero cofficient term (3200+). For these terms, sort by the absolute value of coefficient, then select the 1000, 2000, 3000 terms as vocabulary candidates.
+
+My testing shows approach #3 and #4 work better than #1 and #2. #4 works extremely well and I can achieve above `0.965` AUC using `1000` terms. Adding more terms results in bigger AUC (see the performance number in next section). 
+
+*Note:* I also tried tokenization with word stemming but got lower AUC with same vocabulary size. Thus, no word stemming is used.
+
+# Classification Model: type of algorithms/models used/explored, pre-processing, training process, tuning parameters, etc.
+
+For classification model, I used logistic linear regression with Ridge regularization. `cv.glmnet` is used to select the minminal $\lambda$ to build the model.
+
+Three datasets are tested on vocabulary of size 1000, 2000 and 3000 respetively. And I get the performance matrix as:
+
+```{r, eval=FALSE, include=FALSE}
+start.time = Sys.time()
+
+VOCAL_SIZE = c(1000, 2000, 3000)
+auc.matrix = matrix(0, 4, length(VOCAL_SIZE))
+rownames(perf.matrix) = c("Performance for Split 1", "Performance for Split 2", 
+                          "Performance for Split 3", "Vocab Size")
+auc.matrix[4,] = VOCAL_SIZE
+
+for (v in 1:length(VOCAL_SIZE)){
+  vocab.size = VOCAL_SIZE[v]
+  my.vocab = trim_vocab_by_lasso(all, all.vocab, vocab.size)
+  for (s in 1:3){
+    train = all[-which(all$new_id%in%splits[,s]),]
+    test = all[which(all$new_id%in%splits[,s]),]
+    auc.matrix[s, v] = make_prediction(my.vocab, train, test)[[1]]$auc
+  }
   
-NFOLDS = 5
-my.cv = cv.glmnet(x = dtm.all, y = all$sentiment, 
-                    family = 'binomial', 
-                    alpha = 1,
-                    type.measure = "auc",
-                    nfolds = NFOLDS)
-
-my.fit = glmnet(x = dtm.all, y = all$sentiment, 
-                  lambda = my.cv$lambda.1se, family='binomial', alpha = 1)
-
-betas = coef(my.fit)[-1, 1] #Remove inception
-vocab.id = order(abs(betas), decreasing=TRUE)[1:500]
-vocab = all.vocab$term[vocab.id]
-
-f= file(VOCAB_FILE, open = "w")
-writeLines(sort(vocab), f)
-close(f)
-```
-
-Vocab by XGBoost
-```{r}
-vectorizer = vocab_vectorizer(all.vocab)
-
-X_train = create_dtm(it.all, vectorizer)
-Y_train = all$sentiment
-  
-xgb.model = xgboost(data = X_train, label=Y_train,
-                      objective = "binary:logistic", eval_metric = "auc",
-                      eta = 0.09,
-                      nrounds = 1642,
-                      # colsample_bytree = 0.6,
-                      # subsample = 0.75,
-                      verbose = TRUE)
-
-# cv <- xgb.cv(data = X_train, label = Y_train,
-#               objective = "binary:logistic", eval_metric = "auc",
-#               early_stopping_rounds = 10,
-#               # max_depth = 6,
-#               nfold = 5, nrounds = 2000,
-#               eta = 0.09,
-#               verbose = TRUE)
-
-feature.importance = xgb.importance(model= xgb.model)
-vocab = feature.importance$Feature[1:2000]
-
-f= file(VOCAB_FILE, open = "w")
-writeLines(sort(vocab), f)
-close(f)
-```
-
-# Technical details: type of algorithms/models used/explored, pre-processing, training process, tuning parameters, etc.
-
-# Model validation: performance on the three test datasets, discussion on model limitations, explanation on errors, and future steps you could take to improve your model.
-
-```{r}
-t1 = Sys.time()
-
-f= file(VOCAB_FILE)
-my.vocab = readLines(f)
-close(f)
-
-result = list()
-for (s in 1:3){
-  train = all[-which(all$new_id%in%splits[,s]),]
-  test = all[which(all$new_id%in%splits[,s]),]
-  result[[s]] = make_prediction(my.vocab, train, test) #, tokenize_word_stems)
+  f = file(paste("myVocab_", vocab.size, ".txt", sep=""), open = "w")
+  writeLines(sort(my.vocab), f)
+  close(f)
 }
 
-print(result)
+print(auc.matrix)
 
-print(difftime(Sys.time(), t1, units = 'sec'))
+end.time = Sys.time()
+run.time = as.numeric(difftime(end.time, start.time, units = 'secs'))
+
+eval.obj = list(perf=auc.matrix, compute.time=run.time)
+
+save(eval.obj, file="EVAL.OBJ")
 ```
 
-
-## Preprocessing and Feature Engineering
-
-Several approaches are taken to pre-process the data.
-
-- Response label: merge *Charged Off* to *Default* and convert the label value to 0 or 1.
-- Build new predictors to help training/prediction: 
-    - `earliest_cr_line_mon`: derived from *earliest_cr_line* that indicates how many months has elapsed till *2019-1-1* when the borrower's earliest reported credit line was opened.
-    - `fico_score`: consolidate *fico_range_high* and *fico_range_low* using formula: *(fico_range_high + fico_range_low) / 2*.
-- Level grouping: 
-    - `zip_code`: it has more than 900 levels, I group these values to 10 new levels to reduce memory usage and improve performance.
-- Remove predictors: remove less useful and redundant predictors.
-    - `emp_title` (too many levels), `title` (redundant with *purpose*), `grade` (redundant with *sub_grade*) ,`earliest_cr_line`, `fico_range_high`, `fico_range_low`.
-
-## Models
-
-For testing purpose, I build 7 models,
-
-- Dumb model: this is the simplest model that predict 0.2 for every sample.
-- Logistic Regression
-- Boosting (XGBoost, CatBoost)
-- RandomForest
-- Lasso
-- liner SVM
-
-Suprisingly, Dumb model can achieve `0.504` logloss score. kernlab *ksvm()* fails to build the model (hang forever).  lasso and random forest don't give me significant improvement than logistic regression and they take much longer time to build. Thus, I will pick `dumb`, `Logistic Regression` and `Boosting` as my final models. 
-
-**Note**: My testing shows CatBoost performs at least 10x faster than XGBoost (with GPU, CatBoost can do even better). In case catboost library is not installed, xgboost will be used.
-
-## Evaluation
-
-I tested all 3 test datasets against these models with the parameters,
-
-- Dumb: None.
-- Logistic Regression: liner combination of all available predictors.
-- Boosting: One-hot encoding on train/test data then train with the following parameters,
-    - CatBoost: loss_function = "Logloss", learning_rate = 0.09, iterations = 1200
-    - XGBoost: objective = "binary:logistic", eval_metric = "logloss", eta = 0.09, nrounds = 1200
-
-The LogLoss scores are,
-
-```{r, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 load("EVAL.OBJ")
 
-test.results = rbind(eval.obj$loss, Average=colMeans(eval.obj$loss))
-kable(test.results) %>%
-  kable_styling(latex_options = "striped")
+kable(eval.obj$perf, booktabs = T) %>%
+  row_spec(4, bold = T, color = "white", background = "black")
 ```
 
 Computation time: `r ceiling(eval.obj$compute.time)` seconds
+
+# Discussion on model limitations, explanation on errors, and future steps you could take to improve your model.
