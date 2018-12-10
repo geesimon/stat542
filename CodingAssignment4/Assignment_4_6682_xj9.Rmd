@@ -44,6 +44,7 @@ get_RMSE <- function   (y, y.hat){
 
 ```{r}
 #recommenderRegistry$get_entries(dataType = "realRatingMatrix")
+start.time = Sys.time()
 
 model.names = c('UBCF', 'IBCF', 'SVDF', 'SVD', 'RERECOMMEND', 'RANDOM', 'POPULAR', 'ALS_implicit', 'ALS')
 rmses = rep(0, length(model.names))
@@ -69,5 +70,10 @@ for (m in 1:length(model.names)) {
   
   rmses[m] = get_RMSE(test$Rating, label$Rating)
 }
+
+end.time = Sys.time()
+run.time = as.numeric(difftime(end.time, start.time, units = 'secs'))
+
+print(run.time)
 ```
 
