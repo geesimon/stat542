@@ -1,0 +1,73 @@
+---
+title: "CS598 - Coding Assignment 4"
+author: "Xiaoming Ji"
+output: pdf_document
+---
+
+```{r, include=FALSE}
+mypackages = c("recommenderlab", "ggplot2", "dplyr", "reshape2")   # required packages
+tmp = setdiff(mypackages, rownames(installed.packages()))  # packages need to be installed
+if (length(tmp) > 0) install.packages(tmp)
+lapply(mypackages, require, character.only = TRUE)
+```
+
+```{r, include=FALSE}
+set.seed(6682)
+
+# ratings data
+# use colClasses = 'NULL' to skip columns
+ratings = read.csv('ratings.dat', sep = ':', 
+    colClasses = c('integer', 'NULL'), header = FALSE)
+colnames(ratings) = c('UserID', 'MovieID', 'Rating', 'Timestamp')
+
+ratings$Timestamp = NULL;
+train.id = sample(nrow(ratings), floor(nrow(ratings)) * 0.6)
+train = ratings[train.id, ]
+
+test = ratings[-train.id, ]
+test.id = sample(nrow(test), floor(nrow(test)) * 0.5)
+test = test[test.id, ]
+
+label = test[c('UserID', 'Rating')]
+test$Rating = NA
+```
+
+```{r}
+R = acast(train, UserID ~ MovieID, value.var = 'Rating')
+R = as(R, 'realRatingMatrix')
+R_m = normalize(R)
+
+get_RMSE <- function   (y, y.hat){
+  return (sqrt(mean((y.hat - y) ** 2)))
+}
+```
+
+```{r}
+#recommenderRegistry$get_entries(dataType = "realRatingMatrix")
+
+model.names = c('UBCF', 'IBCF', 'SVDF', 'SVD', 'RERECOMMEND', 'RANDOM', 'POPULAR', 'ALS_implicit', 'ALS')
+rmses = rep(0, length(model.names))
+
+for (m in 1:length(model.names)) {
+  rec = Recommender(R, method = model.names[m],
+      parameter = list(normalize = 'Z-score', method = 'Cosine', nn = 5))
+  
+  recom = predict(rec, R, type = 'ratings')  # predict ratings. This may be slow.
+  rec_list = as(recom, 'list')  # each element are ratings of that user
+  
+  # For all lines in test file, one by one
+  for (u in 1:nrow(test)){
+  
+      # Read userid and movieid from columns 2 and 3 of test data
+      userid = as.character(test$UserID[u])
+      movieid = as.character(test$MovieID[u])
+      
+      rating = rec_list[[userid]][movieid]
+      # 2.5 may be too arbitrary
+      test$Rating[u] = ifelse(is.na(rating), 2.5, rating)
+  }
+  
+  rmses[m] = get_RMSE(test$Rating, label$Rating)
+}
+```
+
