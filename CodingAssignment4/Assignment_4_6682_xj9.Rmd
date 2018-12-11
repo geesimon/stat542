@@ -46,7 +46,7 @@ Using `evaluate`, I run through some cross-validation among several some models,
 - UBCF: normalize = 'Z-score', method = 'cosine', nn = 5
 - SVDF: normalize = 'Z-score'
 
-```{r, eval=FALSE}
+```{r}
 models = list(
   UBCF = list(normalize = 'Z-score', method = 'cosine', nn = 5),
   SVDF = list(normalize = 'Z-score')
@@ -94,7 +94,7 @@ print(rmses)
 algorithms <- list(
   UBCF = list(name = "UBCF", param = NULL),
   SVDF = list(name = "SVD", param = NULL)
-  #POPULAR = list(name = "POPULAR", param = NULL)
+  POPULAR = list(name = "POPULAR", param = NULL)
 )
 
 R.all = acast(ratings, UserID ~ MovieID, value.var = 'Rating')
