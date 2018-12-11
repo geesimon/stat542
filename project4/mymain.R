@@ -9,7 +9,7 @@ pacman::p_load(
   "xgboost"
 )
 
-trim_vocab_by_lasso <- function(all.review, all.vocab, word.count = 2000, tokenizer = word_tokenizer) {
+trim_vocab_by_lasso <- function(all.review, all.vocab, word.count = c(2000), tokenizer = word_tokenizer) {
   it.all = itoken(all.review$review, 
                   preprocessor = tolower, 
                   tokenizer = tokenizer, 
@@ -30,13 +30,17 @@ trim_vocab_by_lasso <- function(all.review, all.vocab, word.count = 2000, tokeni
                   lambda = my.cv$lambda.1se, family='binomial', alpha = 1)
   
   betas = coef(my.fit)[-1, 1] #Remove inception
-  vocab.id = order(abs(betas), decreasing=TRUE)[1:word.count]
-  vocab = all.vocab$term[vocab.id]
   
-  return (vocab)
+  vocabs = list()
+  term.order = order(abs(betas), decreasing=TRUE)
+  for (w in 1:length(word.count)){
+    vocabs[[w]]= all.vocab$term[term.order[1:word.count[w]]]
+  }
+  
+  return (vocabs)
 }
 
-trim_vocab_by_boosting <- function(all.review, all.vocab, word.count = 2000, tokenizer = word_tokenizer) {
+trim_vocab_by_boosting <- function(all.review, all.vocab, word.count = c(2000), tokenizer = word_tokenizer) {
   it.all = itoken(all.review$review, 
                   preprocessor = tolower, 
                   tokenizer = tokenizer, 
@@ -61,9 +65,14 @@ trim_vocab_by_boosting <- function(all.review, all.vocab, word.count = 2000, tok
   #               verbose = TRUE)
   
   feature.importance = xgb.importance(model= xgb.model)
-  vocab = feature.importance$Feature[1:word.count]
+  ordered.terms = feature.importance$Feature
+  vocabs = list()
   
-  return (vocab)
+  for (w in 1:length(word.count)){
+    vocabs[[w]]= ordered.terms[1:word.count[w]]
+  }
+  
+  return (vocabs)
 }
 
 glmnet_predict <- function(train.data, label, test.data){
@@ -139,7 +148,7 @@ make_prediction <- function(vocab, train.data, test.data, tok.fun = word_tokeniz
 main <- function(){
   all = read.table("data.tsv",stringsAsFactors = F,header = T)
   splits = read.table("splits.csv", header = T)
-  s = 3
+  s = 1
   
   # My Code
   f= file("myVocab.txt")
@@ -148,9 +157,9 @@ main <- function(){
   
   train = all[-which(all$new_id%in%splits[,s]),]
   test = all[which(all$new_id%in%splits[,s]),]
-  pred = make_prediction(my.vocab, train, test)[[1]]$yhat
+  pred = make_prediction(vocab, train, test)[[1]]$yhat
   
-  output.data = cbind(new_id = test$new_id, prob = pred)
+  output.data = cbind(new_id = test$new_id, prob = round(pred,2))
   write.csv(output.data, "mysubmission.txt", row.names = FALSE, quote = FALSE) 
 }
 
