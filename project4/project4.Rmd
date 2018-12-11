@@ -116,22 +116,23 @@ Three datasets are tested on vocabulary of size 1000, 2000 and 3000 respetively.
 start.time = Sys.time()
 
 VOCAL_SIZE = c(1000, 2000, 3000)
-auc.matrix = matrix(0, 4, length(VOCAL_SIZE))
-rownames(perf.matrix) = c("Performance for Split 1", "Performance for Split 2", 
-                          "Performance for Split 3", "Vocab Size")
-auc.matrix[4,] = VOCAL_SIZE
+auc.matrix = matrix(0, 3, length(VOCAL_SIZE))
+rownames(auc.matrix) = c("Performance for Split 1", "Performance for Split 2", 
+                          "Performance for Split 3")
+colnames(auc.matrix) = paste("VocabularySize:", VOCAL_SIZE, sep="")
+
+my.vocab = trim_vocab_by_lasso(all, all.vocab, VOCAL_SIZE)
 
 for (v in 1:length(VOCAL_SIZE)){
   vocab.size = VOCAL_SIZE[v]
-  my.vocab = trim_vocab_by_lasso(all, all.vocab, vocab.size)
   for (s in 1:3){
     train = all[-which(all$new_id%in%splits[,s]),]
     test = all[which(all$new_id%in%splits[,s]),]
-    auc.matrix[s, v] = make_prediction(my.vocab, train, test)[[1]]$auc
+    auc.matrix[s, v] = make_prediction(my.vocab[[v]], train, test)[[1]]$auc
   }
   
   f = file(paste("myVocab_", vocab.size, ".txt", sep=""), open = "w")
-  writeLines(sort(my.vocab), f)
+  writeLines(sort(my.vocab[[v]]), f)
   close(f)
 }
 
@@ -148,8 +149,8 @@ save(eval.obj, file="EVAL.OBJ")
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 load("EVAL.OBJ")
 
-kable(eval.obj$perf, booktabs = T) %>%
-  row_spec(4, bold = T, color = "white", background = "black")
+kable(eval.obj$perf) %>%
+  kable_styling(latex_options = "striped")
 ```
 
 Computation time: `r ceiling(eval.obj$compute.time)` seconds
