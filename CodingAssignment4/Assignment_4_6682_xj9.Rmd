@@ -46,12 +46,19 @@ get_RMSE <- function   (y, y.hat){
 #recommenderRegistry$get_entries(dataType = "realRatingMatrix")
 start.time = Sys.time()
 
-model.names = c('UBCF', 'IBCF', 'SVDF', 'SVD', 'RERECOMMEND', 'RANDOM', 'POPULAR', 'ALS_implicit', 'ALS')
-rmses = rep(0, length(model.names))
+#model.names = c('UBCF', 'IBCF', 'SVDF', 'SVD', 'RERECOMMEND', 'RANDOM', 'POPULAR', 'ALS_implicit', 'ALS')
+#model.names = c('IBCF', 'POPULAR', 'ALS_implicit', 'ALS')
+models = list(
+  UBCF = list(normalize = 'Z-score', method = 'Cosine', nn = 5),
+  IBCF = list(normalize = 'Z-score', method = 'Cosine'),
+  POPULAR = list(normalize = 'Z-score'),
+  ALS = list(normalize = 'Z-score')
+)
+rmses = rep(0, length(models))
 
-for (m in 1:length(model.names)) {
-  rec = Recommender(R, method = model.names[m],
-      parameter = list(normalize = 'Z-score', method = 'Cosine', nn = 5))
+for (m in 1:length(models)) {
+  rec = Recommender(R, method = names(models)[m],
+      parameter = models[[m]])
   
   recom = predict(rec, R, type = 'ratings')  # predict ratings. This may be slow.
   rec_list = as(recom, 'list')  # each element are ratings of that user
