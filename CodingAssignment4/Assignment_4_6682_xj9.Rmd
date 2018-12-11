@@ -18,10 +18,10 @@ set.seed(6682)
 
 ## Step 2: Create 
 
-- *train data* that contains about 60% rows of the ratings.dat from the MovieLens 1M dataset (of the same format);
-- *test data* that contains about 20% of the user-movie pairs from the ratings.dat from the MovieLens 1M dataset. 
+- **train data** that contains about 60% rows of the ratings.dat from the MovieLens 1M dataset (of the same format);
+- **test data** that contains about 20% of the user-movie pairs from the ratings.dat from the MovieLens 1M dataset.
 
-```{r, include=FALSE}
+```{r, echo=TRUE}
 ratings = read.csv('ratings.dat', sep = ':', 
     colClasses = c('integer', 'NULL'), header = FALSE)
 colnames(ratings) = c('UserID', 'MovieID', 'Rating', 'Timestamp')
@@ -36,20 +36,28 @@ test = test[test.id, ]
 
 label = test[c('UserID', 'Rating')]
 test$Rating = NA
+rmses = rep(0, 2)
 ```
 
 ## Step 3: Build two models to predict the movie rating for each user-movie pair in the test data. 
 
-```{r}
-R = acast(train, UserID ~ MovieID, value.var = 'Rating')
-R = as(R, 'realRatingMatrix')
+Using `evaluate`, I run through some cross-validation among several some models, `UBCF`, `POPULAR` and `SVDF` perform better (measured by RMSE) than others. Thus, for this assignment, I will use models with parameters,
 
+- UBCF: normalize = 'Z-score', method = 'cosine', nn = 5
+- SVDF: normalize = 'Z-score'
+
+```{r, eval=FALSE}
 models = list(
   UBCF = list(normalize = 'Z-score', method = 'cosine', nn = 5),
   SVDF = list(normalize = 'Z-score')
 )
-rmses = rep(0, length(models))
 
+start.time = Sys.time()
+R = acast(train, UserID ~ MovieID, value.var = 'Rating')
+R = as(R, 'realRatingMatrix')
+
+rmses = rep(0, length(models))
+names(rmses) = names(models)
 for (m in 1:length(models)) {
   rec = Recommender(R, method = names(models)[m],
       parameter = models[[m]])
@@ -77,8 +85,8 @@ print(run.time)
 
 ## Step 4: Report the RMSE (Root-mean-square error) of these two models on the test data. 
 
-```{r include=FALSE}
-rmses
+```{r, echo=FALSE}
+print(rmses)
 ```
 
 
