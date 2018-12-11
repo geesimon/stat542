@@ -11,7 +11,8 @@ if (length(tmp) > 0) install.packages(tmp)
 lapply(mypackages, require, character.only = TRUE)
 ```
 
-## Step 1: Set the seed at the beginning of your code to be the last 4-dig of your University ID.
+## Step 1: Set the seed to be the last 4-dig of University ID.
+
 ```{r}
 set.seed(6682)
 ```
@@ -36,12 +37,11 @@ test = test[test.id, ]
 
 label = test[c('UserID', 'Rating')]
 test$Rating = NA
-rmses = rep(0, 2)
 ```
 
 ## Step 3: Build two models to predict the movie rating for each user-movie pair in the test data. 
 
-Using `evaluate`, I run through some cross-validation among several some models, `UBCF`, `POPULAR` and `SVDF` perform better (measured by RMSE) than others. Thus, for this assignment, I will use models with parameters,
+Using `evaluate`, I run through cross-validation test among all available models and found `UBCF`, `POPULAR` and `SVDF` perform better (measured by RMSE) than others. Thus, for this assignment, I will use models with parameters,
 
 - UBCF: normalize = 'Z-score', method = 'cosine', nn = 5
 - SVDF: normalize = 'Z-score'
@@ -88,19 +88,3 @@ Computation time: `r ceiling(run.time)` seconds
 ```{r, echo=FALSE}
 print(rmses)
 ```
-
-
-```{r eval=FALSE, include=FALSE}
-algorithms <- list(
-  UBCF = list(name = "UBCF", param = NULL),
-  SVDF = list(name = "SVD", param = NULL)
-  POPULAR = list(name = "POPULAR", param = NULL)
-)
-
-R.all = acast(ratings, UserID ~ MovieID, value.var = 'Rating')
-R.all = as(R.all, 'realRatingMatrix')
-
-es <- evaluationScheme(R.all, method="cross-validation", k=5, given=3)
-ev <- evaluate(es, algorithms, type="ratings",progress=TRUE)
-```
-
