@@ -149,8 +149,7 @@ save(eval.obj, file="EVAL.OBJ")
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 load("EVAL.OBJ")
 
-kable(eval.obj$perf) %>%
-  kable_styling(latex_options = "striped")
+kable(eval.obj$perf)
 ```
 
 Computation time: `r ceiling(eval.obj$compute.time)` seconds
