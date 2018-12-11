@@ -49,11 +49,9 @@ start.time = Sys.time()
 #model.names = c('UBCF', 'IBCF', 'SVDF', 'SVD', 'RERECOMMEND', 'RANDOM', 'POPULAR', 'ALS_implicit', 'ALS')
 #model.names = c('IBCF', 'POPULAR', 'ALS_implicit', 'ALS')
 models = list(
+  UBCF = list(),
   SVDF = list(),
-  SVD = list(),
-  RERECOMMEND = list(),
-  RANDOM = list(),
-  ALS_implicit = list()
+  POPULAR = list()
 )
 rmses = rep(0, length(models))
 
@@ -88,8 +86,8 @@ print(run.time)
 ```{r}
 algorithms <- list(
   UBCF = list(name = "UBCF", param = NULL),
-  SVDF = list(name = "SVDF", param = NULL),
-  POPULAR = list(name = "POPULAR", param = NULL)
+  SVDF = list(name = "SVD", param = NULL)
+  #POPULAR = list(name = "POPULAR", param = NULL)
 )
 
 R.all = acast(ratings, UserID ~ MovieID, value.var = 'Rating')
