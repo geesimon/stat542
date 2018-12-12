@@ -22,8 +22,10 @@ ui <- fluidPage(
                      "Number of bins:",
                      min = 1,
                      max = 50,
-                     value = 30)
+                     value = 30),
+         textAreaInput("text", "Plesae input your text:")
       ),
+      
       
       # Show a plot of the generated distribution
       mainPanel(
