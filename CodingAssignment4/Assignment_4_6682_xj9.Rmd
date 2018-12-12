@@ -41,10 +41,12 @@ test$Rating = NA
 
 ## Step 3: Build two models to predict the movie rating for each user-movie pair in the test data. 
 
-Using `evaluate`, I run through cross-validation test among all available models and found `UBCF`, `POPULAR` and `SVDF` perform better (measured by RMSE) than others. Thus, for this assignment, I will use models with parameters,
+Using `evaluate`, I run through cross-validation test among all available models and found `UBCF`, `POPULAR` and `SVDF` perform better (measured by RMSE) than other models. Thus, for this assignment, I will use two models as,
 
-- UBCF: normalize = 'Z-score', method = 'cosine', nn = 5
-- SVDF: normalize = 'Z-score'
+- UBCF: User-based collaborative filtering. 
+  - parameter: normalize = 'Z-score', method = 'cosine', nn = 5
+- SVDF: Funk SVD with gradient descend. Funk SVD decomposes a matrix (with missing values) into two components U and V. The singular values are folded into these matrices. The approximation for the original matrix can be obtained by R = UV'. This model predicts new data rows by estimating the u vectors using gradient descend and then calculating the reconstructed complete matrix r for these users via r = uV'.
+  - parameter: normalize = 'Z-score'
 
 ```{r}
 models = list(
