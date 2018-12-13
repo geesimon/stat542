@@ -11,7 +11,7 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-  review_text = eventReactive(input$predict, input$review_content)
+  review_text <- eventReactive(input$predict, input$review_content)
   observeEvent(input$predict, {
       output$marked_review <- renderUI(tags$h1(review_text()))
     })
