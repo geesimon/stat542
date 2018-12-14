@@ -1,6 +1,6 @@
 library(text2vec)
 library(shiny)
-library(glmnet)
+# library(glmnet)
 
 ##########Load Vocabulary##############
 f= file("myVocab.txt")

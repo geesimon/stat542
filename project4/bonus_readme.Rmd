@@ -1,0 +1,20 @@
+---
+title: "CS598 - Project 4 - ShinyApp for Visualizing Movie Review Sentiment Analysis"
+author: "Xiaoming Ji"
+output: pdf_document
+---
+
+This Shiny app is built to visualize movie review sentiment analysis. This app depends on following R libraries:
+
+- shiny
+- text2vec
+
+To start, in R command line, type: 
+
+```{r, eval=FALSE}
+runApp('vissent')
+```
+
+You can copy&paste or type a text of movie review in the text box and click "Evaluate" button. The app will evaluate the positive(\textcolor{green}{green})/negative(\textcolor{red}{red}) sentiment of the review and also highlight the sentiment words used to make the prediction.
+
+The model used for prediction is logistic regression with Ridge regularization. The vocabulary has 1000 words and is built (by feature selection) using logistic regression with Lasso regularization. To accelerate the initialization, the model was pre-trained and loaded into app during startup. 
