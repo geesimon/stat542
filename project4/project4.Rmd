@@ -48,7 +48,7 @@ all = read.table("data.tsv",stringsAsFactors = F,header = T)
 all$new_id = as.integer(all$new_id)
 all$sentiment = as.integer(all$sentiment)
 all$review = gsub('<.*?>', ' ', all$review)  #Remove HTML tag
-all$review = gsub('[^[:alnum:]]', ' ', all$review) #Remove punctuation
+# all$review = gsub('[^[:alnum:]]', ' ', all$review) #Remove punctuation
 splits = read.table("splits.csv", header = T)
 
 stop_words = c("i", "me", "my", "myself", 
@@ -154,4 +154,6 @@ kable(eval.obj$perf)
 
 Computation time: `r ceiling(eval.obj$compute.time)` seconds
 
-# Discussion on model limitations, explanation on errors, and future steps you could take to improve your model.
+# Improvement Discussion
+
+Model limitations, explanation on errors, and future steps you could take to improve your model.
