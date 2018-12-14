@@ -46,7 +46,7 @@ load(file="model.dat")
 betas = coef(my.fit)[-1,1]
 pos_min = min(betas[betas >= 0])
 pos_max = max(betas[betas >= 0])
-betas[betas >= 0] = round((betas[betas >= 0] - pos_min) / (pos_max - pos_min) * 10) + 10
+betas[betas >= 0] = round((betas[betas >= 0] - pos_min) / (pos_max - pos_min) * 10) + 11
 neg_min = min(betas[betas < 0])
 neg_max = max(betas[betas < 0])
 betas[betas < 0] = round((betas[betas < 0] - neg_max) / (neg_min - neg_max) * 9) + 1
@@ -56,7 +56,8 @@ SentCSSClass = c(
   "word1", "word2", "word3", "word4", "word5",
   "word6","word7", "word8", "word9", "word10",
   "word11","word12","word13", "word14", "word15",
-  "word16", "word17","word18","word19", "word20"
+  "word16", "word17","word18","word19", "word20",
+  "word21"
 )
 
 SentWord = cbind(word = gsub("_", " ", names(betas)), class=SentCSSClass[betas])
