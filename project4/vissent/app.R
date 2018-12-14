@@ -76,11 +76,12 @@ predict_sentiment <- function(review.text){
   review.text = gsub('<.*?>', ' ', review.text)  #Remove HTML tag
   #review.text = gsub('[^[:alnum:]]', ' ', review.text) #Remove punctuation
   
-  it_review = itoken(c(review.text), 
+  it_review = itoken(review.text, 
                      preprocessor = tolower,
                      tokenizer = word_tokenizer, 
                      progressbar = FALSE)
   dtm = create_dtm(it_review, vectorizer)
+  
   sent.html = htmlmark_sentiment(review.text, which(dtm[1,] != 0))
   p = predict(my.fit, dtm, type = 'response')[,1][1]
   
