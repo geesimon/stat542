@@ -3,17 +3,26 @@ library(shiny)
 # library(glmnet)
 
 ##########Load Vocabulary##############
+stop_words = c("i", "me", "my", "myself", 
+               "we", "our", "ours", "ourselves", 
+               "you", "your", "yours", 
+               "their", "they", "his", "her", 
+               "she", "he", "a", "an", "and",
+               "is", "was", "are", "were", 
+               "him", "himself", "has", "have", 
+               "it", "its", "of", "one", "for", 
+               "the", "us", "this")
+
 f= file("myVocab.txt")
 vocab = readLines(f)
 close(f)
-vectorizer = vocab_vectorizer(create_vocabulary(vocab, ngram = c(1L, 4L)))
+vectorizer = vocab_vectorizer(create_vocabulary(vocab, stopwords = stop_words, ngram = c(1L, 4L)))
 
-# ##########Build Model##################
+##########Build Model##################
 # all = read.table("data.tsv",stringsAsFactors = F,header = T)
 # all$new_id = as.integer(all$new_id)
 # all$sentiment = as.integer(all$sentiment)
 # all$review = gsub('<.*?>', ' ', all$review)  #Remove HTML tag
-# all$review = gsub('[^[:alnum:]]', ' ', all$review) #Remove punctuation
 # 
 # print("Loading data...")
 # it.all = itoken(all$review,
@@ -61,12 +70,11 @@ SentCSSClass = c(
 )
 
 SentWord = cbind(word = gsub("_", " ", names(betas)), class=SentCSSClass[betas])
-
+#SearchWord = gsub(" ", ".{0,10}", SentWord[,1])
 #############################################
 htmlmark_sentiment <- function(review.text, sent.word.id){
   for (id in sent.word.id){
-    #print(SentWord[id, 1])
-    review.text = gsub(SentWord[id, 1], tags$div(class = SentWord[id, 2], SentWord[id, 1]), 
+    review.text = gsub(SentWord[id,1], tags$div(class = SentWord[id, 2], SentWord[id, 1]), 
                        review.text)
   }
   
@@ -85,6 +93,7 @@ predict_sentiment <- function(review.text){
   
   sent.html = htmlmark_sentiment(review.text, which(dtm[1,] != 0))
   p = predict(my.fit, dtm, type = 'response')[,1][1]
+  print(p)
   
   return (list(Positive = p > 0.5, mark.text = sent.html))
 }

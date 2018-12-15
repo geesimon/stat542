@@ -9,6 +9,17 @@ pacman::p_load(
   "xgboost"
 )
 
+##########Load Vocabulary##############
+STOPWORDS = c("i", "me", "my", "myself", 
+               "we", "our", "ours", "ourselves", 
+               "you", "your", "yours", 
+               "their", "they", "his", "her", 
+               "she", "he", "a", "an", "and",
+               "is", "was", "are", "were", 
+               "him", "himself", "has", "have", 
+               "it", "its", "of", "one", "for", 
+               "the", "us", "this")
+
 trim_vocab_by_lasso <- function(all.review, all.vocab, word.count = c(2000), tokenizer = word_tokenizer) {
   it.all = itoken(all.review$review, 
                   preprocessor = tolower, 
@@ -118,23 +129,16 @@ make_prediction <- function(vocab, train.data, test.data, tok.fun = word_tokeniz
                    ids = test.data$id, 
                    progressbar = FALSE)
   
-  vectorizer = vocab_vectorizer(create_vocabulary(vocab, ngram = c(1L, 4L)))
+  vectorizer = vocab_vectorizer(create_vocabulary(vocab, stopwords = STOPWORDS, ngram = c(1L, 4L)))
   
   dtm_train  = create_dtm(it_train, vectorizer)
   dtm_test = create_dtm(it_test, vectorizer)
-  
-  # define tfidf model
-  tfidf = TfIdf$new()
-  # fit model to train data and transform train data with fitted model
-  dtm_train_tfidf = fit_transform(dtm_train, tfidf)
-  # tfidf modified by fit_transform() call!
-  # apply pre-trained tf-idf transformation to test data
-  dtm_test_tfidf = transform(dtm_test, tfidf)
   
   result_auc = list()
   for (f in 1:length(model_functions)) {
     func_name = names(model_functions[f])
     preds = model_functions[[f]](dtm_train, train.data$sentiment, dtm_test)
+    preds = round(preds, 2)
     
     result_auc[[func_name]] = list(yhat=preds, auc=glmnet:::auc(test.data$sentiment, preds))
   }
@@ -148,7 +152,7 @@ make_prediction <- function(vocab, train.data, test.data, tok.fun = word_tokeniz
 main <- function(){
   all = read.table("data.tsv",stringsAsFactors = F,header = T)
   splits = read.table("splits.csv", header = T)
-  s = 1
+  s = 3
   
   # My Code
   f= file("myVocab.txt")
